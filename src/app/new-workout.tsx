@@ -1,16 +1,24 @@
 import { Button } from "@react-navigation/elements";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, TextInput, View } from "react-native";
+import { ThemedText } from "../components/themed-text";
+import { useWorkouts } from "../hooks/useWorkouts";
 
 export default function NewWorkout() {
   const router = useRouter();
   const [workoutName, setWorkoutName] = useState("");
+  const { createWorkout } = useWorkouts();
+
+  const onSave = async () => {
+    await createWorkout({ name: workoutName });
+    router.navigate("/homepage");
+  };
 
   return (
     <View style={styles.container}>
       <View>
-        <Text style={styles.title}>New Workout</Text>
+        <ThemedText type="title">New Workout</ThemedText>
 
         <TextInput
           style={styles.input}
@@ -20,7 +28,7 @@ export default function NewWorkout() {
         />
 
         <View>
-          <Text style={styles.subTitle}>Sections</Text>
+          <ThemedText type="subtitle">Sections</ThemedText>
           <Button onPressIn={() => router.navigate("/new-section")}>
             New Section
           </Button>
@@ -29,7 +37,7 @@ export default function NewWorkout() {
 
       <View style={styles.buttonRow}>
         <Button onPressIn={() => router.navigate("/homepage")}>Cancel</Button>
-        <Button onPressIn={() => router.navigate("/homepage")}>Save</Button>
+        <Button onPressIn={onSave}>Save</Button>
       </View>
     </View>
   );
@@ -40,16 +48,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     justifyContent: "space-between",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
-  subTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 20,
   },
   input: {
     borderWidth: 1,

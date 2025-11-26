@@ -1,6 +1,7 @@
 import { Button } from "@react-navigation/elements";
 import { useRouter } from "expo-router";
 import { View } from "react-native";
+import { ThemedText } from "../components/themed-text";
 
 export default function NewSection() {
   const router = useRouter();
@@ -12,7 +13,7 @@ export default function NewSection() {
         padding: 20,
       }}
     >
-      <h1>New Workouts</h1>
+      <ThemedText type="title">New Section</ThemedText>
       <Button
         onPressIn={() => router.navigate("/new-workout")}
         style={{
