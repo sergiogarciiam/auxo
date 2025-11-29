@@ -6,4 +6,5 @@ export const workoutRepository = {
   create: workout.create,
   update: workout.update,
   delete: workout.delete,
+  getAllSections: workout.getAllSections,
 };

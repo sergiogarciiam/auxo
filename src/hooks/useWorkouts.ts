@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { workoutRepository } from "../repositories/workoutRepository";
-import { WorkoutInterface } from "../types/workout";
+import { SectionInterface } from "../types/section";
+import {
+  CreateWorkoutInterface,
+  UpdateWorkoutInterface,
+  WorkoutIdType,
+  WorkoutInterface,
+} from "../types/workout";
 
 export const useWorkouts = () => {
   const [workouts, setWorkouts] = useState<WorkoutInterface[]>([]);
@@ -10,27 +16,32 @@ export const useWorkouts = () => {
     setWorkouts(data);
   };
 
-  const createWorkout = async ({ name }: { name: string }) => {
-    await workoutRepository.create({ name });
+  const getWorkoutById = async ({ id }: WorkoutIdType) => {
+    const workout = await workoutRepository.getById({ id });
+    return workout;
+  };
+
+  const createWorkout = async (workoutData: CreateWorkoutInterface) => {
+    const result = await workoutRepository.create(workoutData);
+    await fetchWorkouts();
+    return result.lastInsertRowId;
+  };
+
+  const updateWorkout = async (workoutData: UpdateWorkoutInterface) => {
+    await workoutRepository.update(workoutData);
     await fetchWorkouts();
   };
 
-  const updateWorkout = async ({
-    id,
-    name,
-    total_time,
-  }: {
-    id: number;
-    name: string;
-    total_time: number;
-  }) => {
-    await workoutRepository.update({ id, name, total_time });
-    await fetchWorkouts();
-  };
-
-  const deleteWorkout = async ({ id }: { id: number }) => {
+  const deleteWorkout = async ({ id }: WorkoutIdType) => {
     await workoutRepository.delete({ id });
     await fetchWorkouts();
+  };
+
+  const getAllSections = async ({ id }: WorkoutIdType) => {
+    const sections = (await workoutRepository.getAllSections({
+      id,
+    })) as SectionInterface[];
+    return sections;
   };
 
   useEffect(() => {
@@ -40,8 +51,10 @@ export const useWorkouts = () => {
   return {
     workouts,
     fetchWorkouts,
+    getWorkoutById,
     createWorkout,
     updateWorkout,
     deleteWorkout,
+    getAllSections,
   };
 };
