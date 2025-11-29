@@ -4,8 +4,11 @@ import { dbRepository } from "../repositories/dbRepository";
 
 export default function RootLayout() {
   return (
-    <SQLiteProvider databaseName="workout_timer.db" onInit={dbRepository.init}>
-      <Stack />;
+    <SQLiteProvider
+      databaseName="workout_timer.db"
+      onInit={dbRepository.migrateDbIfNeeded}
+    >
+      <Stack />
     </SQLiteProvider>
   );
 }

@@ -1,5 +1,5 @@
-import { initDatabase } from "../database/sqlite/init";
+import { migrateDbIfNeeded } from "../database/sqlite/migrateDbIfNeeded";
 
 export const dbRepository = {
-  init: initDatabase,
+  migrateDbIfNeeded: migrateDbIfNeeded,
 };
