@@ -1,8 +1,8 @@
 import { StyleSheet, Text, type TextProps } from "react-native";
 
-export type ThemedTextProps = TextProps & {
+export interface ThemedTextProps extends TextProps {
   type?: "default" | "title" | "defaultSemiBold" | "subtitle" | "link";
-};
+}
 
 export function ThemedText({ type = "default", ...rest }: ThemedTextProps) {
   return (

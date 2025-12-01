@@ -1,12 +1,15 @@
 import { Button } from "@react-navigation/elements";
 import { useRouter } from "expo-router";
 import { StyleSheet, View } from "react-native";
+import { Card } from "../components/card";
 import { ThemedText } from "../components/themed-text";
+import { useSections } from "../hooks/useSections";
 import { useWorkouts } from "../hooks/useWorkouts";
 
 export default function Homepage() {
   const router = useRouter();
   const { workouts } = useWorkouts();
+  const { sections } = useSections();
 
   const accessWorkout = (id: number) => {
     router.navigate({
@@ -20,12 +23,11 @@ export default function Homepage() {
       <ThemedText type="title">Your Workouts</ThemedText>
       {workouts.length > 0 ? (
         workouts.map((workout) => (
-          <ThemedText
+          <Card
             key={workout.id}
-            onPress={() => accessWorkout(workout.id)}
-          >
-            {workout.name}
-          </ThemedText>
+            onEdit={() => accessWorkout(workout.id)}
+            text={workout.name}
+          ></Card>
         ))
       ) : (
         <ThemedText>No workouts yet</ThemedText>
@@ -36,6 +38,14 @@ export default function Homepage() {
       >
         Create
       </Button>
+      <ThemedText type="subtitle">Your Sections</ThemedText>
+      {sections.length > 0 ? (
+        sections.map((section) => (
+          <Card key={section.id} text={section.name}></Card>
+        ))
+      ) : (
+        <ThemedText>No sections yet</ThemedText>
+      )}
     </View>
   );
 }
@@ -44,6 +54,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    gap: 12,
   },
   button: {
     alignSelf: "flex-end",

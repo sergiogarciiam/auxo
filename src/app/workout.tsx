@@ -1,9 +1,9 @@
 import { Button } from "@react-navigation/elements";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { StyleSheet, TextInput, View } from "react-native";
+import { ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Card } from "../components/card";
 import { ThemedText } from "../components/themed-text";
-import { useSections } from "../hooks/useSections";
 import { useWorkouts } from "../hooks/useWorkouts";
 import { SectionInterface } from "../types/section";
 
@@ -16,16 +16,7 @@ export default function NewWorkout() {
   const { createWorkout, getWorkoutById, deleteWorkout, getAllSections } =
     useWorkouts();
 
-  const { createSection } = useSections();
-
   useEffect(() => {
-    if (params?.section) {
-      const sectionParsed: SectionInterface = JSON.parse(
-        params.section as string,
-      );
-      setSections((prev) => [...prev, sectionParsed]);
-    }
-
     if (params?.id) {
       const fetchWorkout = async () => {
         const workout = await getWorkoutById({
@@ -39,22 +30,10 @@ export default function NewWorkout() {
       };
       fetchWorkout();
     }
-  }, [params.section, params.id, getWorkoutById, getAllSections]);
+  }, [params.id, getWorkoutById, getAllSections]);
 
   const onSave = async () => {
-    const workoutId = await createWorkout({ name: workoutName });
-    const newSections = sections.map((section, index) => ({
-      ...section,
-      workout_id: workoutId,
-      position: index,
-    }));
-
-    for (const section of newSections) {
-      console.log("Creating section:", section);
-      await createSection(section);
-    }
-
-    setSections(newSections);
+    await createWorkout({ name: workoutName });
     router.navigate("/homepage");
   };
 
@@ -64,50 +43,69 @@ export default function NewWorkout() {
   };
 
   return (
-    <View style={styles.container}>
-      <View>
-        <ThemedText type="title">New Workout</ThemedText>
-
-        <TextInput
-          style={styles.input}
-          placeholder="Enter workout name"
-          value={workoutName}
-          onChangeText={setWorkoutName}
-        />
-
+    <ScrollView
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+    >
+      <ThemedText type="title">New Workout</ThemedText>
+      <View style={styles.card}>
         <View>
-          <ThemedText type="subtitle">Sections</ThemedText>
-          {sections.map((section, index) => (
-            <ThemedText key={index}>
-              {section.name} - {section.type}
-            </ThemedText>
-          ))}
-          <Button onPressIn={() => router.navigate("/section")}>
-            New Section
-          </Button>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter workout name"
+            value={workoutName}
+            onChangeText={setWorkoutName}
+          />
+
+          <View style={styles.sectionsContainer}>
+            <ThemedText type="subtitle">Sections</ThemedText>
+            {sections.map((section, index) => (
+              <Card key={index} text={section.name}></Card>
+            ))}
+            <Button onPressIn={() => router.navigate("/section")}>
+              New Section
+            </Button>
+          </View>
         </View>
       </View>
-
       <View style={styles.buttonRow}>
         <Button onPressIn={onDelete}>Delete</Button>
         <Button onPressIn={() => router.navigate("/homepage")}>Cancel</Button>
         <Button onPressIn={onSave}>Save</Button>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     padding: 20,
-    justifyContent: "space-between",
+    gap: 20,
+    paddingBottom: 80,
+  },
+  card: {
+    padding: 20,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#eee",
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+    gap: 12,
+  },
+  sectionsContainer: {
+    gap: 12,
   },
   input: {
     borderWidth: 1,
-    borderRadius: 5,
+    borderColor: "#ccc",
+    backgroundColor: "#fafafa",
+    borderRadius: 8,
     padding: 10,
-    marginBottom: 20,
+    fontSize: 15,
+    marginBottom: 15,
   },
   buttonRow: {
     marginTop: 20,

@@ -8,7 +8,11 @@ export default function RootLayout() {
       databaseName="workout_timer.db"
       onInit={dbRepository.migrateDbIfNeeded}
     >
-      <Stack />
+      <Stack
+        screenOptions={{
+          headerBackVisible: false,
+        }}
+      />
     </SQLiteProvider>
   );
 }
