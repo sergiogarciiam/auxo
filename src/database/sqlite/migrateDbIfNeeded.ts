@@ -1,7 +1,7 @@
 import { SQLiteDatabase } from "expo-sqlite";
 
-const IS_DEV = process.env.__DEV__ === "true";
 const DATABASE_VERSION = 1;
+const IS_DEV = true;
 
 export async function migrateDbIfNeeded(db: SQLiteDatabase) {
   // Get current database version
@@ -12,8 +12,6 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
 
   // In dev mode, reset the database on each launch
   if (IS_DEV) {
-    console.log("DEV MODE: reseteando base de datos");
-
     await db.execAsync(`
     PRAGMA foreign_keys = OFF;
 
@@ -47,8 +45,9 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         workout_id INTEGER NOT NULL,
         name TEXT NOT NULL,
-        type TEXT NOT NULL CHECK(type IN ('warmup','cooldown','superset','normal','circuit')),
-        rest_seconds INTEGER DEFAULT 0,
+        type TEXT NOT NULL CHECK(type IN ('warmup','cooldown','traditional','superset','circuit')),
+        rest_exercise INTEGER DEFAULT 0,
+        rest_group INTEGER DEFAULT 0,
         position INTEGER NOT NULL,
         FOREIGN KEY (workout_id) REFERENCES workouts(id) ON DELETE CASCADE
       );
@@ -57,7 +56,6 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         section_id INTEGER NOT NULL,
         name TEXT NOT NULL,
-        type TEXT NOT NULL CHECK(type IN ('reps','time')),
         reps INTEGER,
         time_seconds INTEGER,
         weight REAL,
@@ -68,34 +66,6 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
     `);
 
     currentDbVersion = 1;
-    if (currentDbVersion >= DATABASE_VERSION) return;
-  }
-
-  // v1 → v2
-  if (currentDbVersion === 1) {
-    await db.execAsync(`
-      CREATE TABLE sections_new (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        workout_id INTEGER NOT NULL,
-        name TEXT NOT NULL,
-        type TEXT NOT NULL CHECK(type IN ('warmup','cooldown','superset','normal','circuit')),
-        rest_exercise INTEGER DEFAULT 0,
-        rest_group INTEGER DEFAULT 0,
-        position INTEGER NOT NULL,
-        FOREIGN KEY (workout_id) REFERENCES workouts(id) ON DELETE CASCADE
-      );
-    `);
-
-    await db.execAsync(`
-      INSERT INTO sections_new (id, workout_id, name, type, position)
-      SELECT id, workout_id, name, type, position FROM sections;
-    `);
-
-    await db.execAsync(`DROP TABLE sections;`);
-
-    await db.execAsync(`ALTER TABLE sections_new RENAME TO sections;`);
-
-    currentDbVersion = 2;
     if (currentDbVersion >= DATABASE_VERSION) return;
   }
 

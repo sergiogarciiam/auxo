@@ -1,4 +1,3 @@
-import { Picker } from "@react-native-picker/picker";
 import { Button } from "@react-navigation/elements";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import { ExerciseInterface } from "../types/exercise";
@@ -31,56 +30,36 @@ export function ExerciseCard({
       </View>
 
       <View style={styles.field}>
-        <Text style={styles.label}>Type</Text>
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={exercise.type}
-            onValueChange={(value) =>
-              setExercise(index, { ...exercise, type: value })
-            }
-          >
-            <Picker.Item label="Select a type" value="" />
-            <Picker.Item label="By reps" value="reps" />
-            <Picker.Item label="By time" value="time" />
-          </Picker>
-        </View>
+        <Text style={styles.label}>Reps</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter number of reps"
+          keyboardType="numeric"
+          value={exercise.reps?.toString()}
+          onChangeText={(text) =>
+            setExercise(index, {
+              ...exercise,
+              reps: text === "" ? 0 : parseInt(text, 10),
+            })
+          }
+        />
       </View>
 
-      {exercise.type === "reps" && (
-        <View style={styles.field}>
-          <Text style={styles.label}>Reps</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter number of reps"
-            keyboardType="numeric"
-            value={exercise.reps?.toString()}
-            onChangeText={(text) =>
-              setExercise(index, {
-                ...exercise,
-                reps: text === "" ? 0 : parseInt(text, 10),
-              })
-            }
-          />
-        </View>
-      )}
-
-      {exercise.type === "time" && (
-        <View style={styles.field}>
-          <Text style={styles.label}>Time (seconds)</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter time in seconds"
-            keyboardType="numeric"
-            value={exercise.time_seconds?.toString()}
-            onChangeText={(text) =>
-              setExercise(index, {
-                ...exercise,
-                time_seconds: text === "" ? 0 : parseInt(text, 10),
-              })
-            }
-          />
-        </View>
-      )}
+      <View style={styles.field}>
+        <Text style={styles.label}>Time (seconds)</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter time in seconds"
+          keyboardType="numeric"
+          value={exercise.time_seconds?.toString()}
+          onChangeText={(text) =>
+            setExercise(index, {
+              ...exercise,
+              time_seconds: text === "" ? 0 : parseInt(text, 10),
+            })
+          }
+        />
+      </View>
 
       <View style={styles.field}>
         <Text style={styles.label}>Weight (optional)</Text>
@@ -149,6 +128,7 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 15,
   },
+
   pickerContainer: {
     borderWidth: 1,
     borderColor: "#ccc",

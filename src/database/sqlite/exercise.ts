@@ -15,25 +15,16 @@ export const exercise = {
   create: async (exerciseData: CreateExerciseInterface) => {
     const sql = `
       INSERT INTO exercises 
-      (section_id, name, type, reps, time_seconds, weight, sets, position) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+      (section_id, name, reps, weight, sets, position) 
+      VALUES (?, ?, ?, ?, ?, ?, ?);
     `;
-    const {
-      section_id,
-      name,
-      type,
-      reps,
-      time_seconds,
-      weight,
-      sets,
-      position,
-    } = exerciseData;
+    const { section_id, name, reps, time, weight, sets, position } =
+      exerciseData;
     const result = await runQuery(sql, [
       section_id,
       name,
-      type,
       reps,
-      time_seconds,
+      time,
       weight,
       sets,
       position,
@@ -44,26 +35,16 @@ export const exercise = {
   update: async (exerciseData: UpdateExerciseInterface) => {
     const sql = `
       UPDATE exercises 
-      SET section_id = ?, name = ?, type = ?, reps = ?, time_seconds = ?, weight = ?, sets = ?, position = ?
+      SET section_id = ?, name = ?, reps = ?, time = ?, weight = ?, sets = ?, position = ?
       WHERE id = ?;
     `;
-    const {
-      id,
-      section_id,
-      name,
-      type,
-      reps,
-      time_seconds,
-      weight,
-      sets,
-      position,
-    } = exerciseData;
+    const { id, section_id, name, reps, time, weight, sets, position } =
+      exerciseData;
     const result = await runQuery(sql, [
       section_id,
       name,
-      type,
       reps,
-      time_seconds,
+      time,
       weight,
       sets,
       position,
