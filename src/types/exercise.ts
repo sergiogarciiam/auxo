@@ -21,13 +21,13 @@ export interface CreateExerciseInterface {
 
 export interface UpdateExerciseInterface {
   id: number;
-  section_id: number;
-  name: string;
+  section_id?: number;
+  name?: string;
   reps?: number;
   time?: number;
   weight?: number;
   sets?: number;
-  position: number;
+  position?: number;
 }
 
 export type ExerciseIdType = { id: number };

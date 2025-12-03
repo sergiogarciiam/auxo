@@ -26,8 +26,9 @@ export const useSections = () => {
   };
 
   const createSection = async (sectionData: CreateSectionInterface) => {
-    await sectionRepository.create(sectionData);
+    const result = await sectionRepository.create(sectionData);
     await fetchSections();
+    return result.lastInsertRowId;
   };
 
   const updateSection = async (sectionData: UpdateSectionInterface) => {

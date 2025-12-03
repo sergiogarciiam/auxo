@@ -1,52 +1,62 @@
 import { Picker } from "@react-native-picker/picker";
 import { Button } from "@react-navigation/elements";
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { ExerciseCard } from "../components/exercise-card";
 import { ThemedText } from "../components/themed-text";
-import { useNewWorkoutStore } from "../stores/useNewWorkoutStore";
-import { ExerciseInterface } from "../types/exercise";
-import { SectionInterface } from "../types/section";
+import { useWorkoutStore } from "../stores/useWorkoutStore";
 
 export default function NewSection() {
   const router = useRouter();
-  const { addSection, addExercise } = useNewWorkoutStore();
+  const params = useLocalSearchParams();
+  const [sectionId, setSectionId] = useState(params.sectionId);
 
-  const [section, setSection] = useState<SectionInterface>({
-    id: 0,
-    workout_id: 0,
-    name: "",
-    type: "",
-    position: 0,
-    rest_exercise: 0,
-    rest_group: 0,
-  });
+  const {
+    workout,
+    section,
+    startNewSection,
+    loadSection,
+    updateSection,
+    removeSection,
+    addExercise,
+    updateExercise,
+    removeExercise,
+  } = useWorkoutStore();
 
-  const [exercises, setExercises] = useState<ExerciseInterface[]>([]);
+  useEffect(() => {
+    if (!workout) {
+      router.replace("/homepage");
+    }
+  }, [workout]);
+
+  useEffect(() => {
+    const load = async () => {
+      if (sectionId) {
+        loadSection(sectionId as string);
+      } else {
+        const newSection = startNewSection(`temp-${Date.now()}`);
+        setSectionId(newSection.id);
+      }
+    };
+
+    load();
+  }, []);
 
   const onSave = async () => {
-    addSection(section);
-    exercises.forEach((exercise) => addExercise(exercise));
+    router.push("/workout");
+  };
+
+  const onCancel = () => {
+    removeSection(sectionId as string);
     router.push("/workout");
   };
 
   const onAddNewExercise = () => {
-    setExercises((prev) => [
-      ...prev,
-      {
-        id: 0,
-        section_id: 0,
-        name: "",
-        type: "",
-        reps: 0,
-        time_seconds: 0,
-        position: prev.length,
-        weight: 0,
-        sets: 0,
-      },
-    ]);
+    addExercise(sectionId as string);
   };
+
+  if (!section) return;
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -57,13 +67,17 @@ export default function NewSection() {
           style={styles.input}
           placeholder="Section name"
           value={section.name}
-          onChangeText={(text) => setSection({ ...section, name: text })}
+          onChangeText={(text) =>
+            updateSection(sectionId.toString(), { ...section, name: text })
+          }
         />
 
         <View style={styles.pickerContainer}>
           <Picker
             selectedValue={section.type}
-            onValueChange={(value) => setSection({ ...section, type: value })}
+            onValueChange={(value) =>
+              updateSection(sectionId.toString(), { ...section, type: value })
+            }
           >
             <Picker.Item label="Type" value="" />
             <Picker.Item label="Warm up" value="warmup" />
@@ -80,7 +94,7 @@ export default function NewSection() {
           keyboardType="numeric"
           value={section.rest_exercise.toString()}
           onChangeText={(text) =>
-            setSection({
+            updateSection(sectionId.toString(), {
               ...section,
               rest_exercise: Number(text) || 0,
             })
@@ -100,7 +114,7 @@ export default function NewSection() {
           keyboardType="numeric"
           value={section.rest_group?.toString()}
           onChangeText={(text) =>
-            setSection({
+            updateSection(sectionId.toString(), {
               ...section,
               rest_group: Number(text) || 0,
             })
@@ -110,18 +124,16 @@ export default function NewSection() {
 
       <ThemedText type="subtitle">Exercises</ThemedText>
 
-      {exercises.map((exercise, index) => (
+      {section.exercises.map((exercise, index) => (
         <ExerciseCard
           key={index}
           exercise={exercise}
           index={index}
           setExercise={(idx, ex) => {
-            const copy = [...exercises];
-            copy[idx] = ex;
-            setExercises(copy);
+            updateExercise(sectionId as string, idx, ex);
           }}
           onRemoveExercise={() =>
-            setExercises(exercises.filter((_, i) => i !== index))
+            removeExercise(sectionId as string, exercise.id)
           }
         />
       ))}
@@ -129,7 +141,7 @@ export default function NewSection() {
       <Button onPressIn={onAddNewExercise}>New Exercise</Button>
 
       <View style={styles.row}>
-        <Button onPressIn={() => router.push("/workout")}>Cancel</Button>
+        <Button onPressIn={onCancel}>Cancel</Button>
         <Button onPressIn={onSave}>Save</Button>
       </View>
     </ScrollView>

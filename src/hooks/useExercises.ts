@@ -5,7 +5,7 @@ import {
   UpdateExerciseInterface,
 } from "../types/exercise";
 
-export const useExercise = () => {
+export const useExercises = () => {
   const getExercisesBySectionId = async (section_id: number) => {
     const exercises = await exerciseRepository.getBySectionId({ section_id });
     return exercises;

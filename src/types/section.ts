@@ -19,12 +19,12 @@ export interface CreateSectionInterface {
 
 export interface UpdateSectionInterface {
   id: number;
-  workout_id: number;
-  name: string;
-  type: string;
-  rest_exercise: number;
+  workout_id?: number;
+  name?: string;
+  type?: string;
+  rest_exercise?: number;
   rest_group?: number;
-  position: number;
+  position?: number;
 }
 
 export type SectionIdType = { id: number };

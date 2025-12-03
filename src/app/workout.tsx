@@ -4,30 +4,20 @@ import { useEffect } from "react";
 import { ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { Card } from "../components/card";
 import { ThemedText } from "../components/themed-text";
-import { useSections } from "../hooks/useSections";
-import { useWorkouts } from "../hooks/useWorkouts";
-import { useNewWorkoutStore } from "../stores/useNewWorkoutStore";
+import { useSaveWorkout } from "../hooks/useSaveWorkout";
+import { useWorkoutStore } from "../stores/useWorkoutStore";
 
 export default function NewWorkout() {
   const router = useRouter();
   const params = useLocalSearchParams();
 
-  const { getWorkoutById, getAllSections, createWorkout, deleteWorkout } =
-    useWorkouts();
-  const { createSection } = useSections();
-
-  const { workoutId, name, setName, sections, setSections, reset } =
-    useNewWorkoutStore();
+  const { saveWorkout } = useSaveWorkout();
+  const { workout, startNewWorkout, setName, reset } = useWorkoutStore();
 
   useEffect(() => {
     const load = async () => {
-      if (workoutId) {
-        const workout = await getWorkoutById({ id: workoutId });
-        if (workout) {
-          setName(workout.name);
-          const sectionsData = await getAllSections({ id: workoutId });
-          setSections(sectionsData);
-        }
+      if (!workout) {
+        startNewWorkout();
       }
     };
 
@@ -36,25 +26,18 @@ export default function NewWorkout() {
   }, [params.id]);
 
   const onSave = async () => {
-    const workoutId = await createWorkout({
-      name,
-    });
-
-    for (const section of sections) {
-      section.workout_id = workoutId;
-      await createSection(section);
-    }
-
+    if (!workout) return;
+    saveWorkout(workout);
     reset();
     router.replace("/homepage");
   };
 
   const onDelete = async () => {
-    if (!workoutId) return;
-    await deleteWorkout({ id: workoutId });
     reset();
     router.replace("/homepage");
   };
+
+  if (!workout) return;
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -64,20 +47,24 @@ export default function NewWorkout() {
         <TextInput
           style={styles.input}
           placeholder="Workout name"
-          value={name}
+          value={workout.name}
           onChangeText={setName}
         />
 
         <ThemedText type="subtitle">Sections</ThemedText>
-        {sections.map((sec, index) => (
-          <Card key={index} text={sec.name} />
-        ))}
+        {workout.sections
+          .filter((section) => section.localStatus !== "deleted")
+          .map((section, index) => (
+            <Card key={index} text={section.name} />
+          ))}
 
         <Button onPressIn={() => router.push("/section")}>New Section</Button>
       </View>
 
       <View style={styles.row}>
-        {workoutId && <Button onPressIn={onDelete}>Delete</Button>}
+        {workout.localStatus === "updated" && (
+          <Button onPressIn={onDelete}>Delete</Button>
+        )}
         <Button onPressIn={() => router.push("/homepage")}>Cancel</Button>
         <Button onPressIn={onSave}>Save</Button>
       </View>

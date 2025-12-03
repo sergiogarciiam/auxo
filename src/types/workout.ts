@@ -10,8 +10,8 @@ export interface CreateWorkoutInterface {
 
 export interface UpdateWorkoutInterface {
   id: number;
-  name: string;
-  total_time: number;
+  name?: string;
+  total_time?: number;
 }
 
 export type WorkoutIdType = { id: number };

@@ -5,39 +5,48 @@ import { Card } from "../components/card";
 import { ThemedText } from "../components/themed-text";
 import { useSections } from "../hooks/useSections";
 import { useWorkouts } from "../hooks/useWorkouts";
-import { useNewWorkoutStore } from "../stores/useNewWorkoutStore";
+import { useWorkoutStore } from "../stores/useWorkoutStore";
 
 export default function Homepage() {
   const router = useRouter();
-  const { workouts } = useWorkouts();
+  const { workouts, getWorkoutById, getAllSections } = useWorkouts();
   const { sections } = useSections();
-  const { reset, setWorkoutId, setName } = useNewWorkoutStore();
+  const { loadWorkout, reset } = useWorkoutStore();
 
   const onCreateWorkout = () => {
     reset();
-    setWorkoutId(null);
-    setName("");
     router.push("/workout");
   };
 
-  const onEditWorkout = (id: number) => {
+  const onEditWorkout = async (id: number) => {
     reset();
-    setWorkoutId(id);
-    router.push("/workout");
+    const workoutFromDb = await getWorkoutById({
+      id,
+    });
+    const sectionsFromDb = await getAllSections({ id });
+    const workoutState = {
+      ...workoutFromDb,
+      sections: sectionsFromDb,
+      localStatus: "updated",
+    };
+    loadWorkout(workoutState);
+    router.push(`/workout`);
   };
 
   return (
     <View style={styles.container}>
       <ThemedText type="title">Your Workouts</ThemedText>
 
-      {workouts.length > 0 ? (
-        workouts.map((workout) => (
-          <Card
-            key={workout.id}
-            onEdit={() => onEditWorkout(workout.id)}
-            text={workout.name}
-          />
-        ))
+      {workouts.filter(Boolean).length > 0 ? (
+        workouts
+          .filter(Boolean)
+          .map((workout, index) => (
+            <Card
+              key={workout.id || `tmp-${index}`}
+              onEdit={() => workout.id && onEditWorkout(workout.id)}
+              text={workout.name}
+            />
+          ))
       ) : (
         <ThemedText>No workouts yet</ThemedText>
       )}
