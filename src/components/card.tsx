@@ -1,5 +1,6 @@
 import { Button } from "@react-navigation/elements";
 import { StyleSheet, Text, View } from "react-native";
+import { Colors, Sizes, Spacing } from "../constants/theme";
 
 interface CardProps {
   text: string;
@@ -8,11 +9,14 @@ interface CardProps {
   onDelete?: () => void;
 }
 
+/**
+ * Reusable card component for displaying workout/section information
+ */
 export function Card({ text, onPlay, onEdit, onDelete }: CardProps) {
   return (
-    <View style={style.card}>
+    <View style={styles.card}>
       <Text>{text}</Text>
-      <View style={style.buttonsContainer}>
+      <View style={styles.buttonsContainer}>
         {onPlay && <Button>Start</Button>}
         {onEdit && <Button onPressIn={onEdit}>Edit</Button>}
         {onDelete && <Button>Delete</Button>}
@@ -21,23 +25,25 @@ export function Card({ text, onPlay, onEdit, onDelete }: CardProps) {
   );
 }
 
-const style = StyleSheet.create({
+const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    padding: 16,
+    backgroundColor: Colors.BACKGROUND,
+    borderRadius: Sizes.BORDER_RADIUS,
+    padding: Sizes.PADDING_LARGE,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: {
+      width: Sizes.SHADOW_OFFSET_WIDTH,
+      height: Sizes.SHADOW_OFFSET_HEIGHT,
+    },
+    shadowOpacity: Sizes.SHADOW_OPACITY,
+    shadowRadius: Sizes.SHADOW_RADIUS,
+    elevation: Sizes.ELEVATION,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-
   buttonsContainer: {
     flexDirection: "row",
-    gap: 8,
+    gap: Spacing.LARGE,
   },
 });

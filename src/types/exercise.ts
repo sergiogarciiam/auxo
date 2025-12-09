@@ -1,4 +1,9 @@
-export interface ExerciseInterface {
+/**
+ * Types for Exercise domain
+ * Follows a consistent naming pattern: Entity, CreateEntity, UpdateEntity
+ */
+
+export interface Exercise {
   id: number;
   section_id: number;
   name: string;
@@ -9,7 +14,7 @@ export interface ExerciseInterface {
   position: number;
 }
 
-export interface CreateExerciseInterface {
+export interface CreateExercisePayload {
   section_id: number;
   name: string;
   reps: number;
@@ -19,7 +24,7 @@ export interface CreateExerciseInterface {
   position: number;
 }
 
-export interface UpdateExerciseInterface {
+export interface UpdateExercisePayload {
   id: number;
   section_id?: number;
   name?: string;
@@ -29,5 +34,3 @@ export interface UpdateExerciseInterface {
   sets?: number;
   position?: number;
 }
-
-export type ExerciseIdType = { id: number };

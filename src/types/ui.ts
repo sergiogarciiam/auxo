@@ -1,3 +1,8 @@
+/**
+ * UI-specific types and entities
+ * These represent the state of entities in the UI, including local change tracking
+ */
+
 export type LocalStatus = "new" | "updated" | "deleted" | "unchanged";
 
 export interface UIExercise {

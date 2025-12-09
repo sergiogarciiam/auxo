@@ -1,31 +1,46 @@
 import {
-  CreateWorkoutInterface,
-  UpdateWorkoutInterface,
-  WorkoutIdType,
-  WorkoutInterface,
+  CreateWorkoutPayload,
+  UpdateWorkoutPayload,
+  Workout,
 } from "@/src/types/workout";
 import { getAllRows, getFirstRow, runQuery } from "./db";
 
 export const workout = {
-  getALl: async () => {
+  /**
+   * Fetches all workouts ordered by creation date (newest first)
+   */
+  getAll: async (): Promise<Workout[]> => {
     const sql = `SELECT * FROM workouts ORDER BY id DESC;`;
-    const result = (await getAllRows(sql)) as WorkoutInterface[];
+    const result = (await getAllRows(sql)) as Workout[];
     return result;
   },
 
-  getById: async ({ id }: WorkoutIdType) => {
+  /**
+   * Fetches a workout by ID
+   */
+  getById: async ({ id }: { id: number }): Promise<Workout> => {
     const sql = `SELECT * FROM workouts WHERE id = ?;`;
-    const result = (await getFirstRow(sql, [id])) as WorkoutInterface;
+    const result = (await getFirstRow(sql, [id])) as Workout;
     return result;
   },
 
-  create: async ({ name }: CreateWorkoutInterface) => {
+  /**
+   * Creates a new workout
+   */
+  create: async ({ name }: CreateWorkoutPayload): Promise<any> => {
     const sql = `INSERT INTO workouts (name) VALUES (?);`;
     const result = await runQuery(sql, [name]);
     return result;
   },
 
-  update: async ({ id, name, total_time }: UpdateWorkoutInterface) => {
+  /**
+   * Updates an existing workout
+   */
+  update: async ({
+    id,
+    name,
+    total_time,
+  }: UpdateWorkoutPayload): Promise<any> => {
     const sql = `
       UPDATE workouts 
       SET name = ?, total_time = ?
@@ -35,15 +50,24 @@ export const workout = {
     return result;
   },
 
-  delete: async ({ id }: WorkoutIdType) => {
+  /**
+   * Deletes a workout
+   */
+  delete: async ({ id }: { id: number }): Promise<any> => {
     const sql = `DELETE FROM workouts WHERE id = ?;`;
     const result = await runQuery(sql, [id]);
     return result;
   },
 
-  getAllSections: async ({ id }: WorkoutIdType) => {
+  /**
+   * Fetches all sections for a workout
+   */
+  getAllSections: async ({ id }: { id: number }): Promise<any[]> => {
     const sql = `SELECT * FROM sections WHERE workout_id = ? ORDER BY position ASC;`;
     const result = await getAllRows(sql, [id]);
     return result;
   },
-};
+
+  // Legacy aliases for backwards compatibility
+  getALl: async () => workout.getAll(),
+} as const;

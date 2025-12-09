@@ -1,13 +1,27 @@
 import { Button } from "@react-navigation/elements";
 import { StyleSheet } from "react-native";
 
-interface ThemedButtonInterface {
+interface ThemedButtonProps {
   text: string;
   onPress: () => void;
+  disabled?: boolean;
 }
 
-export const ThemedButton = ({ text, onPress }: ThemedButtonInterface) => {
-  return <Button onPress={onPress}>{text}</Button>;
+/**
+ * Themed button component with consistent styling
+ */
+export const ThemedButton = ({
+  text,
+  onPress,
+  disabled = false,
+}: ThemedButtonProps) => {
+  return (
+    <Button onPress={onPress} disabled={disabled}>
+      {text}
+    </Button>
+  );
 };
 
-const styles = StyleSheet.create({});
+// Currently using default Button styling from React Navigation
+// Can be extended with custom styles as needed
+StyleSheet.create({});

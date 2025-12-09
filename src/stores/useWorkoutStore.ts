@@ -1,4 +1,4 @@
-import { nanoid } from "nanoid/non-secure"; // para ids temporales
+import { nanoid } from "nanoid/non-secure";
 import { create } from "zustand";
 import { UIExercise, UISection, UIWorkout } from "../types/ui";
 
@@ -10,7 +10,7 @@ interface WorkoutStore {
   startNewWorkout: () => void;
   setName: (name: string) => void;
 
-  startNewSection: (newSectionId: string) => void;
+  startNewSection: (newSectionId: string) => UISection;
   loadSection: (sectionId: string) => void;
   updateSection: (tempId: string | number, data: Partial<UISection>) => void;
   removeSection: (tempId: string | number) => void;
@@ -29,20 +29,69 @@ interface WorkoutStore {
   reset: () => void;
 }
 
+/**
+ * Helper to create a new temporary workout
+ */
+const createTempWorkout = (): UIWorkout => ({
+  id: `temp-${nanoid()}`,
+  name: "",
+  sections: [],
+  localStatus: "new",
+});
+
+/**
+ * Helper to create a new temporary section
+ */
+const createTempSection = (
+  newSectionId: string,
+  workoutId: string | number,
+  position: number,
+): UISection => ({
+  id: newSectionId,
+  workout_id: workoutId,
+  type: "",
+  rest_exercise: 0,
+  name: "",
+  exercises: [],
+  position,
+  rest_group: 0,
+  localStatus: "new",
+});
+
+/**
+ * Helper to create a new temporary exercise
+ */
+const createTempExercise = (
+  tmpId: string,
+  sectionId: string | number,
+  position: number,
+): UIExercise => ({
+  id: tmpId,
+  section_id: sectionId,
+  name: "",
+  reps: 0,
+  time_seconds: 0,
+  position,
+  weight: 0,
+  sets: 0,
+  localStatus: "new",
+});
+
 export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   workout: null,
   section: null,
 
+  /**
+   * Initializes a new empty workout
+   */
   startNewWorkout: () =>
     set({
-      workout: {
-        id: `temp-${nanoid()}`,
-        name: "",
-        sections: [],
-        localStatus: "new",
-      },
+      workout: createTempWorkout(),
     }),
 
+  /**
+   * Loads an existing workout from database
+   */
   loadWorkout: (workoutFromDb) =>
     set({
       workout: {
@@ -59,26 +108,37 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       },
     }),
 
+  /**
+   * Updates the workout name
+   */
   setName: (name) =>
     set((state) => ({
-      workout: {
-        ...state.workout!,
-        name,
-      },
+      workout: state.workout
+        ? {
+            ...state.workout,
+            name,
+          }
+        : null,
     })),
 
+  /**
+   * Creates a new section in the current workout
+   * Ensures a workout exists before creating a section
+   */
   startNewSection: (newSectionId) => {
-    const newSection: UISection = {
-      workout_id: get().workout!.id,
-      type: "",
-      rest_exercise: 0,
-      id: newSectionId,
-      name: "",
-      exercises: [],
-      position: get().workout!.sections.length,
-      rest_group: 0,
-      localStatus: "new",
-    };
+    const state = get();
+
+    // Ensure a workout exists before creating a section
+    if (!state.workout) {
+      set({ workout: createTempWorkout() });
+    }
+
+    const workout = get().workout!;
+    const newSection = createTempSection(
+      newSectionId,
+      workout.id,
+      workout.sections.length,
+    );
 
     set((state) => ({
       section: newSection,
@@ -93,16 +153,22 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     return newSection;
   },
 
+  /**
+   * Loads a section into the current context
+   */
   loadSection: (sectionId) => {
     set({ section: null });
     set((state) => {
-      const section = state.workout!.sections.find(
+      const section = state.workout?.sections.find(
         (section) => section.id === sectionId,
       );
       return { section: section || null };
     });
   },
 
+  /**
+   * Updates a section's data
+   */
   updateSection: (id, data) =>
     set((state) => {
       const updatedSections: UISection[] = state.workout!.sections.map((s) =>
@@ -122,21 +188,21 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       };
     }),
 
+  /**
+   * Marks a section as deleted
+   */
   removeSection: (id) =>
     set((state) => {
       const sections: UISection[] = state.workout!.sections.map((section) =>
-        section.id === id
-          ? {
-              ...section,
-              localStatus:
-                section.localStatus === "new" ? "deleted" : "deleted",
-            }
-          : section,
+        section.id === id ? { ...section, localStatus: "deleted" } : section,
       );
 
       return { workout: { ...state.workout!, sections } };
     }),
 
+  /**
+   * Adds a new exercise to a section
+   */
   addExercise: (sectionId) =>
     set((state) => {
       const tmpId = `tmp-ex-${nanoid()}`;
@@ -144,17 +210,11 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       const sections = state.workout!.sections.map((section) => {
         if (section.id !== sectionId) return section;
 
-        const newExercise: UIExercise = {
-          id: tmpId,
-          section_id: sectionId,
-          name: "",
-          reps: 0,
-          time_seconds: 0,
-          position: section.exercises.length,
-          weight: 0,
-          sets: 0,
-          localStatus: "new",
-        };
+        const newExercise = createTempExercise(
+          tmpId,
+          sectionId,
+          section.exercises.length,
+        );
 
         return {
           ...section,
@@ -162,9 +222,17 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         };
       });
 
-      return { workout: { ...state.workout!, sections } };
+      const updatedSection = sections.find((s) => s.id === sectionId) || null;
+
+      return {
+        workout: { ...state.workout!, sections },
+        section: updatedSection,
+      };
     }),
 
+  /**
+   * Updates an exercise's data
+   */
   updateExercise: (sectionId, exerciseId, data) =>
     set((state) => {
       const sections: UISection[] = state.workout!.sections.map((section) => {
@@ -188,6 +256,9 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       return { workout: { ...state.workout!, sections } };
     }),
 
+  /**
+   * Marks an exercise as deleted
+   */
   removeExercise: (sectionId, exerciseId) =>
     set((state) => {
       const sections: UISection[] = state.workout!.sections.map((section) => {
@@ -205,5 +276,8 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       return { workout: { ...state.workout!, sections } };
     }),
 
+  /**
+   * Clears the current workout state
+   */
   reset: () => set({ workout: null }),
 }));

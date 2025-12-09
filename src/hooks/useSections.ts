@@ -1,54 +1,127 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { sectionRepository } from "../repositories/sectionRepository";
 import {
-  CreateSectionInterface,
-  SectionIdType,
-  SectionInterface,
-  UpdateSectionInterface,
+  CreateSectionPayload,
+  Section,
+  UpdateSectionPayload,
 } from "../types/section";
 
 export const useSections = () => {
-  const [sections, setSections] = useState<SectionInterface[]>([]);
+  const [sections, setSections] = useState<Section[]>([]);
 
-  const fetchSections = async () => {
-    const data = await sectionRepository.getAll();
-    setSections(data);
-  };
+  /**
+   * Fetches all sections from database
+   */
+  const fetchSections = useCallback(async () => {
+    try {
+      const data = await sectionRepository.getAll();
+      setSections(data);
+    } catch (error) {
+      console.error("Failed to fetch sections:", error);
+      throw error;
+    }
+  }, []);
 
-  const getSectionByWorkoutId = async (workout_id: number) => {
-    const sections = await sectionRepository.getByWorkoutId({ workout_id });
-    return sections;
-  };
+  /**
+   * Fetches all sections for a workout
+   */
+  const getSectionByWorkoutId = useCallback(async (workout_id: number) => {
+    try {
+      const sections = await sectionRepository.getByWorkoutId({ workout_id });
+      return sections;
+    } catch (error) {
+      console.error("Failed to fetch sections by workout:", error);
+      throw error;
+    }
+  }, []);
 
-  const getSectionById = async (id: number) => {
-    const section = await sectionRepository.getById({ id });
-    return section;
-  };
+  /**
+   * Fetches all exercises for a section
+   */
+  const getAllExercisesBySectionId = useCallback(async (section_id: number) => {
+    try {
+      const exercises = await sectionRepository.getAllExercisesBySectionId({
+        section_id,
+      });
+      return exercises;
+    } catch (error) {
+      console.error("Failed to fetch exercises:", error);
+      throw error;
+    }
+  }, []);
 
-  const createSection = async (sectionData: CreateSectionInterface) => {
-    const result = await sectionRepository.create(sectionData);
-    await fetchSections();
-    return result.lastInsertRowId;
-  };
+  /**
+   * Fetches a specific section by ID
+   */
+  const getSectionById = useCallback(async (id: number) => {
+    try {
+      const section = await sectionRepository.getById({ id });
+      return section;
+    } catch (error) {
+      console.error("Failed to fetch section:", error);
+      throw error;
+    }
+  }, []);
 
-  const updateSection = async (sectionData: UpdateSectionInterface) => {
-    await sectionRepository.update(sectionData);
-    await fetchSections();
-  };
+  /**
+   * Creates a new section
+   */
+  const createSection = useCallback(
+    async (sectionData: CreateSectionPayload) => {
+      try {
+        const result = await sectionRepository.create(sectionData);
+        await fetchSections();
+        return result.lastInsertRowId;
+      } catch (error) {
+        console.error("Failed to create section:", error);
+        throw error;
+      }
+    },
+    [fetchSections],
+  );
 
-  const deleteSection = async ({ id }: SectionIdType) => {
-    await sectionRepository.delete({ id });
-    await fetchSections();
-  };
+  /**
+   * Updates an existing section
+   */
+  const updateSection = useCallback(
+    async (sectionData: UpdateSectionPayload) => {
+      try {
+        await sectionRepository.update(sectionData);
+        await fetchSections();
+      } catch (error) {
+        console.error("Failed to update section:", error);
+        throw error;
+      }
+    },
+    [fetchSections],
+  );
 
+  /**
+   * Deletes a section
+   */
+  const deleteSection = useCallback(
+    async (id: number) => {
+      try {
+        await sectionRepository.delete({ id });
+        await fetchSections();
+      } catch (error) {
+        console.error("Failed to delete section:", error);
+        throw error;
+      }
+    },
+    [fetchSections],
+  );
+
+  // Load sections on mount
   useEffect(() => {
     fetchSections();
-  }, []);
+  }, [fetchSections]);
 
   return {
     sections,
     fetchSections,
     getSectionByWorkoutId,
+    getAllExercisesBySectionId,
     getSectionById,
     createSection,
     updateSection,

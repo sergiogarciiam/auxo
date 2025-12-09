@@ -1,17 +1,20 @@
-export interface WorkoutInterface {
+/**
+ * Types for Workout domain
+ * Follows a consistent naming pattern: Entity, CreateEntity, UpdateEntity
+ */
+
+export interface Workout {
   id: number;
   name: string;
   total_time: number;
 }
 
-export interface CreateWorkoutInterface {
+export interface CreateWorkoutPayload {
   name: string;
 }
 
-export interface UpdateWorkoutInterface {
+export interface UpdateWorkoutPayload {
   id: number;
   name?: string;
   total_time?: number;
 }
-
-export type WorkoutIdType = { id: number };

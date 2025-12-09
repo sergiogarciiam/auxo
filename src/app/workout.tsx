@@ -1,43 +1,71 @@
 import { Button } from "@react-navigation/elements";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { Card } from "../components/card";
 import { ThemedText } from "../components/themed-text";
+import { Colors, Sizes, Spacing } from "../constants/theme";
 import { useSaveWorkout } from "../hooks/useSaveWorkout";
+import { useWorkouts } from "../hooks/useWorkouts";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
+import { handleAndShowError } from "../utils/ui";
 
-export default function NewWorkout() {
+export default function WorkoutScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
 
+  const { deleteWorkout } = useWorkouts();
   const { saveWorkout } = useSaveWorkout();
   const { workout, startNewWorkout, setName, reset } = useWorkoutStore();
 
+  // Initialize workout on mount
   useEffect(() => {
-    const load = async () => {
-      if (!workout) {
-        startNewWorkout();
-      }
-    };
+    if (!workout) {
+      startNewWorkout();
+    }
+  }, [params.id, startNewWorkout, workout]);
 
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.id]);
-
-  const onSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!workout) return;
-    saveWorkout(workout);
-    reset();
-    router.replace("/homepage");
-  };
+    try {
+      await saveWorkout(workout);
+      reset();
+      router.replace("/homepage");
+    } catch (error) {
+      handleAndShowError(error);
+    }
+  }, [workout, saveWorkout, reset, router]);
 
-  const onDelete = async () => {
-    reset();
-    router.replace("/homepage");
-  };
+  const handleDelete = useCallback(async () => {
+    try {
+      await deleteWorkout(Number(workout!.id));
+      reset();
+      router.replace("/homepage");
+    } catch (error) {
+      handleAndShowError(error);
+    }
+  }, [workout, deleteWorkout, reset, router]);
 
-  if (!workout) return;
+  const handleCancel = useCallback(() => {
+    router.push("/homepage");
+  }, [router]);
+
+  const handleAddSection = useCallback(() => {
+    router.push("/section");
+  }, [router]);
+
+  if (!workout) return null;
+
+  const visibleSections = workout.sections.filter(
+    (section) =>
+      section.localStatus !== "deleted" &&
+      !(
+        section.localStatus === "new" &&
+        (!section.name || section.name.trim() === "")
+      ),
+  );
+
+  const isExistingWorkout = workout.localStatus === "updated";
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -49,47 +77,51 @@ export default function NewWorkout() {
           placeholder="Workout name"
           value={workout.name}
           onChangeText={setName}
+          accessibilityLabel="Workout name input"
         />
 
         <ThemedText type="subtitle">Sections</ThemedText>
-        {workout.sections
-          .filter((section) => section.localStatus !== "deleted")
-          .map((section, index) => (
-            <Card key={index} text={section.name} />
-          ))}
+        {visibleSections.length > 0 ? (
+          visibleSections.map((section) => (
+            <Card key={section.id} text={section.name} />
+          ))
+        ) : (
+          <ThemedText>No sections yet</ThemedText>
+        )}
 
-        <Button onPressIn={() => router.push("/section")}>New Section</Button>
+        <Button onPress={handleAddSection}>New Section</Button>
       </View>
 
       <View style={styles.row}>
-        {workout.localStatus === "updated" && (
-          <Button onPressIn={onDelete}>Delete</Button>
-        )}
-        <Button onPressIn={() => router.push("/homepage")}>Cancel</Button>
-        <Button onPressIn={onSave}>Save</Button>
+        {isExistingWorkout && <Button onPress={handleDelete}>Delete</Button>}
+        <Button onPress={handleCancel}>Cancel</Button>
+        <Button onPress={handleSave}>Save</Button>
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20, gap: 20 },
+  container: {
+    padding: Sizes.PADDING_LARGE,
+    gap: Spacing.DOUBLE_EXTRA_LARGE,
+  },
   card: {
-    padding: 20,
+    padding: Sizes.PADDING_LARGE,
     backgroundColor: "white",
-    borderRadius: 12,
-    gap: 16,
+    borderRadius: Sizes.BORDER_RADIUS_LARGE,
+    gap: Spacing.DOUBLE_EXTRA_LARGE,
   },
   input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: "#fafafa",
+    borderWidth: Sizes.BORDER_WIDTH,
+    borderColor: Colors.BORDER,
+    padding: Sizes.PADDING,
+    borderRadius: Sizes.BORDER_RADIUS,
+    backgroundColor: Colors.LIGHT_BACKGROUND,
   },
   row: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    gap: 10,
+    gap: Spacing.LARGE,
   },
 });

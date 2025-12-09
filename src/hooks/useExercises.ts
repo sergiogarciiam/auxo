@@ -1,27 +1,71 @@
+import { useCallback } from "react";
 import { exerciseRepository } from "../repositories/exerciseRepository";
 import {
-  CreateExerciseInterface,
-  ExerciseIdType,
-  UpdateExerciseInterface,
+  CreateExercisePayload,
+  Exercise,
+  UpdateExercisePayload,
 } from "../types/exercise";
 
 export const useExercises = () => {
-  const getExercisesBySectionId = async (section_id: number) => {
-    const exercises = await exerciseRepository.getBySectionId({ section_id });
-    return exercises;
-  };
+  /**
+   * Fetches all exercises for a section
+   */
+  const getExercisesBySectionId = useCallback(
+    async (section_id: number): Promise<Exercise[]> => {
+      try {
+        const exercises = await exerciseRepository.getBySectionId({
+          section_id,
+        });
+        return exercises;
+      } catch (error) {
+        console.error("Failed to fetch exercises:", error);
+        throw error;
+      }
+    },
+    [],
+  );
 
-  const createExercise = async (exerciseData: CreateExerciseInterface) => {
-    await exerciseRepository.create(exerciseData);
-  };
+  /**
+   * Creates a new exercise
+   */
+  const createExercise = useCallback(
+    async (exerciseData: CreateExercisePayload) => {
+      try {
+        await exerciseRepository.create(exerciseData);
+      } catch (error) {
+        console.error("Failed to create exercise:", error);
+        throw error;
+      }
+    },
+    [],
+  );
 
-  const updateExercise = async (exerciseData: UpdateExerciseInterface) => {
-    await exerciseRepository.update(exerciseData);
-  };
+  /**
+   * Updates an existing exercise
+   */
+  const updateExercise = useCallback(
+    async (exerciseData: UpdateExercisePayload) => {
+      try {
+        await exerciseRepository.update(exerciseData);
+      } catch (error) {
+        console.error("Failed to update exercise:", error);
+        throw error;
+      }
+    },
+    [],
+  );
 
-  const deleteExercise = async ({ id }: ExerciseIdType) => {
-    await exerciseRepository.delete({ id });
-  };
+  /**
+   * Deletes an exercise
+   */
+  const deleteExercise = useCallback(async (id: number) => {
+    try {
+      await exerciseRepository.delete({ id });
+    } catch (error) {
+      console.error("Failed to delete exercise:", error);
+      throw error;
+    }
+  }, []);
 
   return {
     getExercisesBySectionId,

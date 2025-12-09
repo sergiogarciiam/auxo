@@ -1,139 +1,110 @@
 import { Button } from "@react-navigation/elements";
-import { StyleSheet, Text, TextInput, View } from "react-native";
-import { ExerciseInterface } from "../types/exercise";
+import { StyleSheet, TextInput, View } from "react-native";
+import { Colors, Sizes, Spacing, Typography } from "../constants/theme";
+import { UIExercise } from "../types/ui";
+import { Field } from "./field";
 
 interface ExerciseCardProps {
-  exercise: ExerciseInterface;
-  index: number;
-  setExercise: (index: number, exercise: ExerciseInterface) => void;
+  exercise: UIExercise;
+  index: number | string;
+  setExercise: (index: number | string, exercise: Partial<UIExercise>) => void;
   onRemoveExercise: () => void;
 }
 
+/**
+ * Card component for editing individual exercise details
+ */
 export function ExerciseCard({
   exercise,
   index,
   setExercise,
   onRemoveExercise,
 }: ExerciseCardProps) {
+  const handleInputChange = (field: keyof UIExercise, value: any) => {
+    setExercise(index, { ...exercise, [field]: value });
+  };
+
+  const handleNumericChange = (field: keyof UIExercise, value: string) => {
+    const numValue = value === "" ? 0 : parseInt(value, 10);
+    handleInputChange(field, numValue);
+  };
+
   return (
     <View style={styles.card}>
-      <View style={styles.field}>
-        <Text style={styles.label}>Name</Text>
+      <Field label="Name" required>
         <TextInput
           style={styles.input}
           placeholder="Enter exercise name"
           value={exercise.name}
-          onChangeText={(text) =>
-            setExercise(index, { ...exercise, name: text })
-          }
+          onChangeText={(text) => handleInputChange("name", text)}
         />
-      </View>
+      </Field>
 
-      <View style={styles.field}>
-        <Text style={styles.label}>Reps</Text>
+      <Field label="Reps">
         <TextInput
           style={styles.input}
           placeholder="Enter number of reps"
           keyboardType="numeric"
           value={exercise.reps?.toString()}
-          onChangeText={(text) =>
-            setExercise(index, {
-              ...exercise,
-              reps: text === "" ? 0 : parseInt(text, 10),
-            })
-          }
+          onChangeText={(text) => handleNumericChange("reps", text)}
         />
-      </View>
+      </Field>
 
-      <View style={styles.field}>
-        <Text style={styles.label}>Time (seconds)</Text>
+      <Field label="Time (seconds)">
         <TextInput
           style={styles.input}
           placeholder="Enter time in seconds"
           keyboardType="numeric"
           value={exercise.time_seconds?.toString()}
-          onChangeText={(text) =>
-            setExercise(index, {
-              ...exercise,
-              time_seconds: text === "" ? 0 : parseInt(text, 10),
-            })
-          }
+          onChangeText={(text) => handleNumericChange("time_seconds", text)}
         />
-      </View>
+      </Field>
 
-      <View style={styles.field}>
-        <Text style={styles.label}>Weight (optional)</Text>
+      <Field label="Weight (optional)">
         <TextInput
           style={styles.input}
           placeholder="Enter weight"
           keyboardType="numeric"
           value={exercise.weight?.toString()}
-          onChangeText={(text) =>
-            setExercise(index, {
-              ...exercise,
-              weight: text === "" ? 0 : parseInt(text, 10),
-            })
-          }
+          onChangeText={(text) => handleNumericChange("weight", text)}
         />
-      </View>
+      </Field>
 
-      <View style={styles.field}>
-        <Text style={styles.label}>Sets (optional)</Text>
+      <Field label="Sets (optional)">
         <TextInput
           style={styles.input}
           placeholder="Enter number of sets"
           keyboardType="numeric"
           value={exercise.sets?.toString()}
-          onChangeText={(text) =>
-            setExercise(index, {
-              ...exercise,
-              sets: text === "" ? 0 : parseInt(text, 10),
-            })
-          }
+          onChangeText={(text) => handleNumericChange("sets", text)}
         />
-      </View>
+      </Field>
 
-      <Button onPressIn={onRemoveExercise}>Remove</Button>
+      <Button onPress={onRemoveExercise}>Remove</Button>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    padding: 20,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "#eee",
+    padding: Sizes.PADDING_LARGE,
+    backgroundColor: Colors.BACKGROUND,
+    borderRadius: Sizes.BORDER_RADIUS_LARGE,
+    marginBottom: Spacing.DOUBLE_EXTRA_LARGE,
+    borderWidth: Sizes.BORDER_WIDTH,
+    borderColor: Colors.BORDER,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-    gap: 16,
-  },
-  field: {
-    gap: 6,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#555",
+    shadowOpacity: Sizes.SHADOW_OPACITY,
+    shadowRadius: Sizes.SHADOW_RADIUS_LARGE,
+    elevation: Sizes.ELEVATION,
+    gap: Spacing.DOUBLE_EXTRA_LARGE,
   },
   input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    backgroundColor: "#fafafa",
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 15,
-  },
-
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    backgroundColor: "#fafafa",
-    borderRadius: 8,
-    overflow: "hidden",
+    borderWidth: Sizes.BORDER_WIDTH,
+    borderColor: Colors.BORDER,
+    backgroundColor: Colors.LIGHT_BACKGROUND,
+    borderRadius: Sizes.BORDER_RADIUS,
+    padding: Sizes.PADDING,
+    fontSize: Typography.FONT_SIZE_DEFAULT,
   },
 });

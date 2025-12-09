@@ -6,7 +6,7 @@ export default function RootLayout() {
   return (
     <SQLiteProvider
       databaseName="workout_timer.db"
-      onInit={dbRepository.migrateDbIfNeeded}
+      onInit={dbRepository.onInit}
     >
       <Stack
         screenOptions={{

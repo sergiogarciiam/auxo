@@ -1,4 +1,6 @@
+import { useCallback } from "react";
 import { UIWorkout } from "../types/ui";
+import { validateWorkout } from "../utils/validation";
 import { useExercises } from "./useExercises";
 import { useSections } from "./useSections";
 import { useWorkouts } from "./useWorkouts";
@@ -8,93 +10,123 @@ export const useSaveWorkout = () => {
   const { createSection, updateSection, deleteSection } = useSections();
   const { createExercise, updateExercise, deleteExercise } = useExercises();
 
-  const saveWorkout = async (uiWorkout: UIWorkout) => {
-    let workoutId = uiWorkout.id;
-
-    // 1. WORKOUT
-    if (uiWorkout.localStatus === "new") {
-      workoutId = await createWorkout({ name: uiWorkout.name });
-    } else if (uiWorkout.localStatus === "updated") {
-      await updateWorkout({ id: workoutId!, name: uiWorkout.name });
-    }
-
-    // 2. SECTIONS
-    for (const sec of uiWorkout.sections) {
-      let sectionId = sec.id;
-
-      switch (sec.localStatus) {
-        case "new": {
-          sectionId = await createSection({
-            workout_id: workoutId!,
-            name: sec.name,
-            type: sec.type,
-            rest_exercise: sec.rest_exercise,
-            rest_group: sec.rest_group,
-            position: sec.position,
-          });
-          break;
-        }
-
-        case "updated": {
-          await updateSection({
-            id: sectionId as number,
-            workout_id: workoutId!,
-            name: sec.name,
-            type: sec.type,
-            rest_exercise: sec.rest_exercise,
-            rest_group: sec.rest_group,
-            position: sec.position,
-          });
-          break;
-        }
-
-        case "deleted": {
-          if (typeof sectionId === "number") {
-            await deleteSection({ id: sectionId });
-          }
-          continue;
-        }
+  /**
+   * Saves a complete workout and all its sections/exercises to database
+   * Validates data before writing to prevent partial saves
+   */
+  const saveWorkout = useCallback(
+    async (uiWorkout: UIWorkout): Promise<number | string> => {
+      // Validate before writing to DB to prevent partial saves
+      const validationError = validateWorkout(uiWorkout);
+      if (validationError) {
+        throw new Error(validationError);
       }
 
-      // 3. EXERCISES
-      for (const ex of sec.exercises) {
-        switch (ex.localStatus) {
-          case "new":
-            await createExercise({
-              section_id: sectionId as number,
-              name: ex.name,
-              reps: ex.reps,
-              time: ex.time_seconds,
-              weight: ex.weight,
-              sets: ex.sets,
-              position: ex.position,
-            });
-            break;
+      let workoutId = uiWorkout.id;
 
-          case "updated":
-            await updateExercise({
-              id: ex.id as number,
-              section_id: sectionId as number,
-              name: ex.name,
-              reps: ex.reps,
-              time: ex.time_seconds,
-              weight: ex.weight,
-              sets: ex.sets,
-              position: ex.position,
-            });
-            break;
+      try {
+        // 1. WORKOUT
+        if (uiWorkout.localStatus === "new") {
+          workoutId = await createWorkout({ name: uiWorkout.name });
+        } else if (uiWorkout.localStatus === "updated") {
+          await updateWorkout({
+            id: workoutId as number,
+            name: uiWorkout.name,
+          });
+        }
 
-          case "deleted":
-            if (typeof ex.id === "number") {
-              await deleteExercise({ id: ex.id });
+        // 2. SECTIONS
+        for (const sec of uiWorkout.sections) {
+          let sectionId = sec.id;
+
+          switch (sec.localStatus) {
+            case "new": {
+              sectionId = await createSection({
+                workout_id: workoutId as number,
+                name: sec.name,
+                type: sec.type,
+                rest_exercise: sec.rest_exercise,
+                rest_group: sec.rest_group,
+                position: sec.position,
+              });
+              break;
             }
-            break;
-        }
-      }
-    }
 
-    return workoutId!;
-  };
+            case "updated": {
+              await updateSection({
+                id: sectionId as number,
+                workout_id: workoutId as number,
+                name: sec.name,
+                type: sec.type,
+                rest_exercise: sec.rest_exercise,
+                rest_group: sec.rest_group,
+                position: sec.position,
+              });
+              break;
+            }
+
+            case "deleted": {
+              if (typeof sectionId === "number") {
+                await deleteSection(sectionId);
+              }
+              continue;
+            }
+          }
+
+          // 3. EXERCISES
+          for (const ex of sec.exercises) {
+            switch (ex.localStatus) {
+              case "new":
+                await createExercise({
+                  section_id: sectionId as number,
+                  name: ex.name,
+                  reps: ex.reps,
+                  time: ex.time_seconds,
+                  weight: ex.weight,
+                  sets: ex.sets,
+                  position: ex.position,
+                });
+                break;
+
+              case "updated":
+                await updateExercise({
+                  id: ex.id as number,
+                  section_id: sectionId as number,
+                  name: ex.name,
+                  reps: ex.reps,
+                  time: ex.time_seconds,
+                  weight: ex.weight,
+                  sets: ex.sets,
+                  position: ex.position,
+                });
+                break;
+
+              case "deleted":
+                if (typeof ex.id === "number") {
+                  await deleteExercise(ex.id);
+                }
+                break;
+            }
+          }
+        }
+
+        return workoutId;
+      } catch (error) {
+        console.error("Error saving workout:", error);
+        throw error;
+      }
+    },
+    [
+      createWorkout,
+      updateWorkout,
+      createSection,
+      updateSection,
+      deleteSection,
+      createExercise,
+      updateExercise,
+      deleteExercise,
+    ],
+  );
 
   return { saveWorkout };
 };

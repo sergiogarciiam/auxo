@@ -1,4 +1,9 @@
-export interface SectionInterface {
+/**
+ * Types for Section domain
+ * Follows a consistent naming pattern: Entity, CreateEntity, UpdateEntity
+ */
+
+export interface Section {
   id: number;
   workout_id: number;
   name: string;
@@ -8,7 +13,7 @@ export interface SectionInterface {
   position: number;
 }
 
-export interface CreateSectionInterface {
+export interface CreateSectionPayload {
   workout_id: number;
   name: string;
   type: string;
@@ -17,7 +22,7 @@ export interface CreateSectionInterface {
   position: number;
 }
 
-export interface UpdateSectionInterface {
+export interface UpdateSectionPayload {
   id: number;
   workout_id?: number;
   name?: string;
@@ -26,5 +31,3 @@ export interface UpdateSectionInterface {
   rest_group?: number;
   position?: number;
 }
-
-export type SectionIdType = { id: number };
