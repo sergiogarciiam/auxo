@@ -1,19 +1,23 @@
 import { Picker } from "@react-native-picker/picker";
-import { Button } from "@react-navigation/elements";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
-import { ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Alert, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { ExerciseCard } from "../components/exercise-card";
+import { Field } from "../components/field";
+import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
 import { SECTION_TYPE_LABELS, SECTION_TYPES } from "../constants/constants";
 import { Colors, Sizes, Spacing, Typography } from "../constants/theme";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
+import { UISection } from "../types/ui";
 import { handleAndShowError } from "../utils/ui";
 
 export default function SectionScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const [sectionId, setSectionId] = useState(params.sectionId);
+
+  const initialSectionRef = useRef<UISection | null>(null);
 
   const {
     workout,
@@ -26,6 +30,12 @@ export default function SectionScreen() {
     updateExercise,
     removeExercise,
   } = useWorkoutStore();
+
+  // when section loads (capture snapshot once per section.id)
+  useEffect(() => {
+    if (section)
+      initialSectionRef.current = JSON.parse(JSON.stringify(section));
+  }, [section]);
 
   // Redirect if no workout exists
   useEffect(() => {
@@ -42,25 +52,7 @@ export default function SectionScreen() {
       const newSection = startNewSection(`temp-${Date.now()}`);
       setSectionId(newSection.id.toString());
     }
-  }, []);
-
-  const handleSave = useCallback(async () => {
-    try {
-      router.push("/workout");
-    } catch (error) {
-      handleAndShowError(error);
-    }
-  }, [router]);
-
-  const handleCancel = useCallback(() => {
-    try {
-      removeSection(sectionId as string);
-      router.push("/workout");
-    } catch (error) {
-      handleAndShowError(error);
-    }
-  }, [sectionId, removeSection, router]);
-
+  }, [sectionId, loadSection, startNewSection]);
   const handleAddExercise = useCallback(() => {
     try {
       addExercise(sectionId as string);
@@ -72,108 +64,200 @@ export default function SectionScreen() {
   const handleUpdateSection = useCallback(
     (data: any) => {
       try {
-        updateSection(sectionId?.toString(), {
-          ...section,
-          ...data,
-        });
+        updateSection(sectionId?.toString(), data);
       } catch (error) {
         handleAndShowError(error);
       }
     },
-    [sectionId, section, updateSection],
+    [sectionId, updateSection],
   );
+
+  const handleDeleteSection = useCallback(() => {
+    try {
+      removeSection(sectionId as string);
+      router.push("/workout");
+    } catch (error) {
+      handleAndShowError(error);
+    }
+  }, [sectionId, removeSection, router]);
+
+  // determine if current section differs from the initial snapshot
+  const isDirty = (() => {
+    if (!section) return false;
+    const initial = initialSectionRef.current;
+    if (!initial) return true;
+    return JSON.stringify(initial) !== JSON.stringify(section);
+  })();
+
+  const isCreating = section?.id?.toString().startsWith("temp-") || false;
+
+  const handleDone = useCallback(() => {
+    router.push("/workout");
+  }, [router]);
+
+  const handleDiscard = useCallback(() => {
+    Alert.alert(
+      "Discard changes?",
+      "Are you sure you want to discard changes to this section?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Discard",
+          style: "destructive",
+          onPress: () => {
+            try {
+              if (section?.localStatus === "new") {
+                removeSection(sectionId as string);
+              } else if (initialSectionRef.current) {
+                updateSection(sectionId?.toString(), initialSectionRef.current);
+              }
+              router.push("/workout");
+            } catch (error) {
+              handleAndShowError(error);
+            }
+          },
+        },
+      ],
+    );
+  }, [section, sectionId, removeSection, updateSection, router]);
 
   if (!section) return null;
 
   const isCircuitOrSuperset =
     section.type === "circuit" || section.type === "superset";
 
+  let restExerciseValue = "";
+  if (section.rest_exercise) {
+    restExerciseValue = section.rest_exercise.toString();
+  }
+
+  let restGroupValue = "";
+  if (section.rest_group) {
+    restGroupValue = section.rest_group.toString();
+  }
+
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <ThemedText type="title">New Section</ThemedText>
-
-      <View style={styles.card}>
-        <TextInput
-          style={styles.input}
-          placeholder="Section name"
-          value={section.name}
-          onChangeText={(text) => handleUpdateSection({ name: text })}
-          accessibilityLabel="Section name input"
-        />
-
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={section.type}
-            onValueChange={(value) => handleUpdateSection({ type: value })}
-            accessibilityLabel="Section type picker"
-          >
-            <Picker.Item label="Select Type" value="" />
-            {SECTION_TYPES.map((type) => (
-              <Picker.Item
-                key={type}
-                label={SECTION_TYPE_LABELS[type]}
-                value={type}
+    <>
+      <Stack.Screen
+        options={{
+          title: "Section",
+          headerRight: () => (
+            <View style={styles.headerButtonRow}>
+              {!isCreating && (
+                <ThemedButton
+                  text="Delete"
+                  onPress={handleDeleteSection}
+                  variant="destructive"
+                />
+              )}
+              {isDirty && (
+                <ThemedButton
+                  text="Discard"
+                  onPress={handleDiscard}
+                  variant="destructive"
+                />
+              )}
+              <ThemedButton
+                text={isDirty ? "Done" : "Back"}
+                onPress={handleDone}
+                variant={isDirty ? "success" : "primary"}
               />
-            ))}
-          </Picker>
+            </View>
+          ),
+        }}
+      />
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.card}>
+          <Field label="Section name" required>
+            <TextInput
+              style={styles.input}
+              value={section.name}
+              onChangeText={(text) => handleUpdateSection({ name: text })}
+              accessibilityLabel="Section name input"
+            />
+          </Field>
+
+          <Field label="Section type">
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={section.type}
+                onValueChange={(value) => handleUpdateSection({ type: value })}
+                accessibilityLabel="Section type picker"
+              >
+                <Picker.Item label="Select Type" value="" />
+                {SECTION_TYPES.map((type) => (
+                  <Picker.Item
+                    key={type}
+                    label={SECTION_TYPE_LABELS[type]}
+                    value={type}
+                  />
+                ))}
+              </Picker>
+            </View>
+          </Field>
+
+          <Field label="Rest between exercises (seconds)">
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              value={restExerciseValue}
+              onChangeText={(text) =>
+                handleUpdateSection({
+                  rest_exercise: Number(text) || 0,
+                })
+              }
+              accessibilityLabel="Rest between exercises input"
+            />
+          </Field>
+
+          <Field label={`Rest between ${section.type || "group"}`}>
+            <TextInput
+              style={[
+                styles.input,
+                !isCircuitOrSuperset ? styles.inputDisabled : undefined,
+              ]}
+              editable={isCircuitOrSuperset}
+              keyboardType="numeric"
+              value={restGroupValue}
+              onChangeText={(text) =>
+                handleUpdateSection({
+                  rest_group: Number(text) || 0,
+                })
+              }
+              accessibilityLabel={`Rest between ${section.type} input`}
+            />
+          </Field>
         </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Rest between exercises (seconds)"
-          keyboardType="numeric"
-          value={section.rest_exercise.toString()}
-          onChangeText={(text) =>
-            handleUpdateSection({
-              rest_exercise: Number(text) || 0,
-            })
-          }
-          accessibilityLabel="Rest between exercises input"
-        />
+        <ThemedText type="subtitle">Exercises</ThemedText>
 
-        <TextInput
-          style={[
-            styles.input,
-            !isCircuitOrSuperset ? styles.inputDisabled : undefined,
-          ]}
-          editable={isCircuitOrSuperset}
-          placeholder={`Rest between ${section.type || "group"}`}
-          keyboardType="numeric"
-          value={section.rest_group?.toString()}
-          onChangeText={(text) =>
-            handleUpdateSection({
-              rest_group: Number(text) || 0,
-            })
-          }
-          accessibilityLabel={`Rest between ${section.type} input`}
-        />
-      </View>
-
-      <ThemedText type="subtitle">Exercises</ThemedText>
-
-      {section.exercises
-        .filter((exercise) => exercise.localStatus !== "deleted")
-        .map((exercise) => (
-          <ExerciseCard
-            key={exercise.id}
-            exercise={exercise}
-            index={exercise.id}
-            setExercise={(exerciseId, ex) => {
-              updateExercise(sectionId as string, exerciseId, ex);
-            }}
-            onRemoveExercise={() =>
-              removeExercise(sectionId as string, exercise.id)
-            }
-          />
-        ))}
-
-      <Button onPress={handleAddExercise}>New Exercise</Button>
-
-      <View style={styles.row}>
-        <Button onPress={handleCancel}>Cancel</Button>
-        <Button onPress={handleSave}>Save</Button>
-      </View>
-    </ScrollView>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.exercisesScroll}
+        >
+          {section.exercises
+            .filter((exercise) => exercise.localStatus !== "deleted")
+            .map((exercise) => (
+              <View key={exercise.id} style={styles.exerciseWrapper}>
+                <ExerciseCard
+                  exercise={exercise}
+                  exerciseId={exercise.id}
+                  setExercise={(exerciseId, ex) => {
+                    updateExercise(sectionId as string, exerciseId, ex);
+                  }}
+                  onRemoveExercise={() =>
+                    removeExercise(sectionId as string, exercise.id)
+                  }
+                />
+              </View>
+            ))}
+          <View style={styles.newExerciseButtonContainer}>
+            <ThemedButton text="New Exercise" onPress={handleAddExercise} />
+          </View>
+        </ScrollView>
+      </ScrollView>
+    </>
   );
 }
 
@@ -209,9 +293,27 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.LIGHT_BACKGROUND,
     overflow: "hidden",
   },
-  row: {
+  headerButtonRow: {
     flexDirection: "row",
     justifyContent: "flex-end",
     gap: Spacing.LARGE,
+  },
+  exercisesScroll: {
+    paddingVertical: Spacing.MEDIUM,
+  },
+  exerciseWrapper: {
+    marginRight: Spacing.LARGE,
+    width: 320,
+  },
+  exerciseAddButton: {
+    justifyContent: "center",
+    alignItems: "center",
+    alignSelf: "center",
+  },
+  newExerciseButtonContainer: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: Spacing.LARGE,
   },
 });

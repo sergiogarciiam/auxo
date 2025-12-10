@@ -1,8 +1,8 @@
-import { Button } from "@react-navigation/elements";
-import { useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { useCallback } from "react";
 import { ScrollView, StyleSheet } from "react-native";
 import { Card } from "../components/card";
+import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
 import { Sizes, Spacing } from "../constants/theme";
 import { useSections } from "../hooks/useSections";
@@ -68,25 +68,30 @@ export default function Homepage() {
   const hasWorkouts = workouts.filter(Boolean).length > 0;
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <ThemedText type="title">Your Workouts</ThemedText>
+    <>
+      <Stack.Screen
+        options={{
+          title: "Your Workouts",
+        }}
+      />
+      <ScrollView contentContainerStyle={styles.container}>
+        {hasWorkouts ? (
+          workouts
+            .filter(Boolean)
+            .map((workout, index) => (
+              <Card
+                key={workout.id || `tmp-${index}`}
+                onEdit={() => workout.id && handleEditWorkout(workout.id)}
+                text={workout.name}
+              />
+            ))
+        ) : (
+          <ThemedText>No workouts yet. Create one to get started!</ThemedText>
+        )}
 
-      {hasWorkouts ? (
-        workouts
-          .filter(Boolean)
-          .map((workout, index) => (
-            <Card
-              key={workout.id || `tmp-${index}`}
-              onEdit={() => workout.id && handleEditWorkout(workout.id)}
-              text={`${workout.name} ${workout.id}`}
-            />
-          ))
-      ) : (
-        <ThemedText>No workouts yet. Create one to get started!</ThemedText>
-      )}
-
-      <Button onPress={handleCreateWorkout}>Create Workout</Button>
-    </ScrollView>
+        <ThemedButton text="New Workout" onPress={handleCreateWorkout} />
+      </ScrollView>
+    </>
   );
 }
 

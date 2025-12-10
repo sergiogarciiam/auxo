@@ -3,15 +3,18 @@
  */
 
 export const Colors = {
-  PRIMARY: "#007AFF",
+  PRIMARY: "#7a96d1ff",
   BACKGROUND: "#fff",
   BORDER: "#ccc",
   LIGHT_BACKGROUND: "#fafafa",
-  DISABLED_BACKGROUND: "#eee",
+  DISABLED_BACKGROUND: "#ddd",
   DISABLED_TEXT: "#999",
   TEXT_SECONDARY: "#555",
   INDICATOR_INACTIVE: "#ccc",
-  ERROR_TEXT: "#cc0000",
+  ERROR_TEXT: "#d17a7aff",
+  SUCCESS: "#7ad18fff",
+  DESTRUCTIVE: "#d17a7aff",
+  NEUTRAL: "#7a96d1ff",
 } as const;
 
 export const Sizes = {

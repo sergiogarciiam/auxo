@@ -1,12 +1,12 @@
-import { Button } from "@react-navigation/elements";
 import { StyleSheet, TextInput, View } from "react-native";
 import { Colors, Sizes, Spacing, Typography } from "../constants/theme";
 import { UIExercise } from "../types/ui";
 import { Field } from "./field";
+import { ThemedButton } from "./themed-button";
 
 interface ExerciseCardProps {
   exercise: UIExercise;
-  index: number | string;
+  exerciseId: number | string;
   setExercise: (index: number | string, exercise: Partial<UIExercise>) => void;
   onRemoveExercise: () => void;
 }
@@ -16,12 +16,13 @@ interface ExerciseCardProps {
  */
 export function ExerciseCard({
   exercise,
-  index,
+  exerciseId,
   setExercise,
   onRemoveExercise,
 }: ExerciseCardProps) {
   const handleInputChange = (field: keyof UIExercise, value: any) => {
-    setExercise(index, { ...exercise, [field]: value });
+    // Send only the changed field to avoid accidental overwrites
+    setExercise(exerciseId, { [field]: value });
   };
 
   const handleNumericChange = (field: keyof UIExercise, value: string) => {
@@ -34,7 +35,6 @@ export function ExerciseCard({
       <Field label="Name" required>
         <TextInput
           style={styles.input}
-          placeholder="Enter exercise name"
           value={exercise.name}
           onChangeText={(text) => handleInputChange("name", text)}
         />
@@ -43,9 +43,8 @@ export function ExerciseCard({
       <Field label="Reps">
         <TextInput
           style={styles.input}
-          placeholder="Enter number of reps"
           keyboardType="numeric"
-          value={exercise.reps?.toString()}
+          value={exercise.reps ? exercise.reps.toString() : ""}
           onChangeText={(text) => handleNumericChange("reps", text)}
         />
       </Field>
@@ -53,9 +52,8 @@ export function ExerciseCard({
       <Field label="Time (seconds)">
         <TextInput
           style={styles.input}
-          placeholder="Enter time in seconds"
           keyboardType="numeric"
-          value={exercise.time_seconds?.toString()}
+          value={exercise.time_seconds ? exercise.time_seconds.toString() : ""}
           onChangeText={(text) => handleNumericChange("time_seconds", text)}
         />
       </Field>
@@ -63,9 +61,8 @@ export function ExerciseCard({
       <Field label="Weight (optional)">
         <TextInput
           style={styles.input}
-          placeholder="Enter weight"
           keyboardType="numeric"
-          value={exercise.weight?.toString()}
+          value={exercise.weight ? exercise.weight.toString() : ""}
           onChangeText={(text) => handleNumericChange("weight", text)}
         />
       </Field>
@@ -73,14 +70,17 @@ export function ExerciseCard({
       <Field label="Sets (optional)">
         <TextInput
           style={styles.input}
-          placeholder="Enter number of sets"
           keyboardType="numeric"
-          value={exercise.sets?.toString()}
+          value={exercise.sets ? exercise.sets.toString() : ""}
           onChangeText={(text) => handleNumericChange("sets", text)}
         />
       </Field>
 
-      <Button onPress={onRemoveExercise}>Remove</Button>
+      <ThemedButton
+        text="Remove"
+        onPress={onRemoveExercise}
+        variant="destructive"
+      />
     </View>
   );
 }

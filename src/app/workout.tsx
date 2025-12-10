@@ -1,8 +1,9 @@
-import { Button } from "@react-navigation/elements";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect } from "react";
-import { ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useRef } from "react";
+import { Alert, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { Card } from "../components/card";
+import { Field } from "../components/field";
+import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
 import { Colors, Sizes, Spacing } from "../constants/theme";
 import { useSaveWorkout } from "../hooks/useSaveWorkout";
@@ -14,9 +15,18 @@ export default function WorkoutScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
 
-  const { deleteWorkout } = useWorkouts();
+  const { deleteWorkout, getWorkoutById } = useWorkouts();
   const { saveWorkout } = useSaveWorkout();
-  const { workout, startNewWorkout, setName, reset } = useWorkoutStore();
+  const {
+    workout,
+    startNewWorkout,
+    setName,
+    removeSection,
+    reset,
+    loadWorkout,
+  } = useWorkoutStore();
+
+  const initialWorkoutRef = useRef<any | null>(null);
 
   // Initialize workout on mount
   useEffect(() => {
@@ -25,16 +35,75 @@ export default function WorkoutScreen() {
     }
   }, [params.id, startNewWorkout, workout]);
 
-  const handleSave = useCallback(async () => {
-    if (!workout) return;
+  // capture initial snapshot to detect dirty state
+  useEffect(() => {
+    if (workout)
+      initialWorkoutRef.current = JSON.parse(JSON.stringify(workout));
+  }, [workout?.id]);
+
+  const isDirty = (() => {
+    if (!workout) return false;
+    const initial = initialWorkoutRef.current;
+    if (!initial) return true;
+    return JSON.stringify(initial) !== JSON.stringify(workout);
+  })();
+
+  const handleDone = useCallback(async () => {
     try {
-      await saveWorkout(workout);
-      reset();
+      if (isDirty) {
+        await saveWorkout(workout!);
+        reset();
+      }
       router.replace("/homepage");
     } catch (error) {
       handleAndShowError(error);
     }
-  }, [workout, saveWorkout, reset, router]);
+  }, [isDirty, saveWorkout, workout, reset, router]);
+
+  const handleDiscard = useCallback(() => {
+    Alert.alert(
+      "Discard changes?",
+      "Are you sure you want to discard changes to this workout?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Discard",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              if (!workout) return router.replace("/homepage");
+
+              // if this is a temporary workout, just reset
+              if (
+                workout.id?.toString().startsWith("temp-") ||
+                workout.localStatus === "new"
+              ) {
+                reset();
+                return router.replace("/homepage");
+              }
+
+              // otherwise try to re-fetch the saved workout and load it into the store
+              const id = Number(workout.id);
+              const original = await getWorkoutById(id);
+              if (original) {
+                loadWorkout(original as any);
+              }
+              router.replace("/homepage");
+            } catch (error) {
+              handleAndShowError(error);
+            }
+          },
+        },
+      ],
+    );
+  }, [workout, reset, router, getWorkoutById, loadWorkout]);
+
+  const handleEditSection = useCallback(
+    (sectionId: string) => {
+      router.push(`/section?sectionId=${sectionId}`);
+    },
+    [router],
+  );
 
   const handleDelete = useCallback(async () => {
     try {
@@ -46,13 +115,16 @@ export default function WorkoutScreen() {
     }
   }, [workout, deleteWorkout, reset, router]);
 
-  const handleCancel = useCallback(() => {
-    router.push("/homepage");
-  }, [router]);
-
   const handleAddSection = useCallback(() => {
     router.push("/section");
   }, [router]);
+
+  const handleDeleteSection = useCallback(
+    (sectionId: string) => {
+      removeSection(sectionId);
+    },
+    [removeSection],
+  );
 
   if (!workout) return null;
 
@@ -65,39 +137,67 @@ export default function WorkoutScreen() {
       ),
   );
 
-  const isExistingWorkout = workout.localStatus === "updated";
+  const isCreating = workout.id?.toString().startsWith("temp-") || false;
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <ThemedText type="title">Workout</ThemedText>
+    <>
+      <Stack.Screen
+        options={{
+          title: "Workout",
+          headerRight: () => (
+            <View style={styles.headerButtonRow}>
+              <ThemedButton
+                text="Delete"
+                onPress={handleDelete}
+                disabled={isCreating}
+                variant="destructive"
+              />
 
-      <View style={styles.card}>
-        <TextInput
-          style={styles.input}
-          placeholder="Workout name"
-          value={workout.name}
-          onChangeText={setName}
-          accessibilityLabel="Workout name input"
-        />
+              <ThemedButton
+                text="Discard"
+                onPress={handleDiscard}
+                disabled={!isDirty}
+                variant="destructive"
+              />
 
-        <ThemedText type="subtitle">Sections</ThemedText>
-        {visibleSections.length > 0 ? (
-          visibleSections.map((section) => (
-            <Card key={section.id} text={section.name} />
-          ))
-        ) : (
-          <ThemedText>No sections yet</ThemedText>
-        )}
+              <ThemedButton
+                text={isDirty ? "Done" : "Back"}
+                onPress={handleDone}
+                variant={isDirty ? "success" : "primary"}
+              />
+            </View>
+          ),
+        }}
+      />
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.card}>
+          <Field label="Workout name" required>
+            <TextInput
+              style={styles.input}
+              value={workout.name}
+              onChangeText={setName}
+              accessibilityLabel="Workout name input"
+            />
+          </Field>
 
-        <Button onPress={handleAddSection}>New Section</Button>
-      </View>
+          <ThemedText type="subtitle">Sections</ThemedText>
+          {visibleSections.length > 0 ? (
+            visibleSections.map((section) => (
+              <Card
+                key={section.id}
+                text={section.name}
+                onEdit={() => handleEditSection(section.id.toString())}
+                onDelete={() => handleDeleteSection(section.id.toString())}
+              />
+            ))
+          ) : (
+            <ThemedText>No sections yet</ThemedText>
+          )}
 
-      <View style={styles.row}>
-        {isExistingWorkout && <Button onPress={handleDelete}>Delete</Button>}
-        <Button onPress={handleCancel}>Cancel</Button>
-        <Button onPress={handleSave}>Save</Button>
-      </View>
-    </ScrollView>
+          <ThemedButton text="New Section" onPress={handleAddSection} />
+        </View>
+      </ScrollView>
+    </>
   );
 }
 
@@ -119,7 +219,7 @@ const styles = StyleSheet.create({
     borderRadius: Sizes.BORDER_RADIUS,
     backgroundColor: Colors.LIGHT_BACKGROUND,
   },
-  row: {
+  headerButtonRow: {
     flexDirection: "row",
     justifyContent: "flex-end",
     gap: Spacing.LARGE,

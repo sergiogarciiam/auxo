@@ -1,6 +1,6 @@
-import { Button } from "@react-navigation/elements";
 import { StyleSheet, Text, View } from "react-native";
 import { Colors, Sizes, Spacing } from "../constants/theme";
+import { ThemedButton } from "./themed-button";
 
 interface CardProps {
   text: string;
@@ -17,9 +17,15 @@ export function Card({ text, onPlay, onEdit, onDelete }: CardProps) {
     <View style={styles.card}>
       <Text>{text}</Text>
       <View style={styles.buttonsContainer}>
-        {onPlay && <Button>Start</Button>}
-        {onEdit && <Button onPressIn={onEdit}>Edit</Button>}
-        {onDelete && <Button>Delete</Button>}
+        {onPlay && <ThemedButton text="Start" onPress={onPlay} />}
+        {onEdit && <ThemedButton text="Edit" onPress={onEdit} />}
+        {onDelete && (
+          <ThemedButton
+            text="Delete"
+            onPress={onDelete}
+            variant="destructive"
+          />
+        )}
       </View>
     </View>
   );

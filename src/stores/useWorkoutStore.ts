@@ -159,9 +159,11 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   loadSection: (sectionId) => {
     set({ section: null });
     set((state) => {
+      const idToFind = sectionId?.toString();
       const section = state.workout?.sections.find(
-        (section) => section.id === sectionId,
+        (s) => s.id?.toString() === idToFind,
       );
+
       return { section: section || null };
     });
   },
@@ -171,8 +173,9 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
    */
   updateSection: (id, data) =>
     set((state) => {
+      const idToFind = id?.toString();
       const updatedSections: UISection[] = state.workout!.sections.map((s) =>
-        s.id === id
+        s.id?.toString() === idToFind
           ? {
               ...s,
               ...data,
@@ -180,7 +183,8 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
             }
           : s,
       );
-      const updatedSection = updatedSections.find((s) => s.id === id) || null;
+      const updatedSection =
+        updatedSections.find((s) => s.id?.toString() === idToFind) || null;
 
       return {
         workout: { ...state.workout!, sections: updatedSections },
@@ -193,8 +197,11 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
    */
   removeSection: (id) =>
     set((state) => {
+      const idToFind = id?.toString();
       const sections: UISection[] = state.workout!.sections.map((section) =>
-        section.id === id ? { ...section, localStatus: "deleted" } : section,
+        section.id?.toString() === idToFind
+          ? { ...section, localStatus: "deleted" }
+          : section,
       );
 
       return { workout: { ...state.workout!, sections } };
@@ -206,9 +213,10 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   addExercise: (sectionId) =>
     set((state) => {
       const tmpId = `tmp-ex-${nanoid()}`;
+      const sectionIdStr = sectionId?.toString();
 
       const sections = state.workout!.sections.map((section) => {
-        if (section.id !== sectionId) return section;
+        if (section.id?.toString() !== sectionIdStr) return section;
 
         const newExercise = createTempExercise(
           tmpId,
@@ -222,7 +230,8 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         };
       });
 
-      const updatedSection = sections.find((s) => s.id === sectionId) || null;
+      const updatedSection =
+        sections.find((s) => s.id?.toString() === sectionIdStr) || null;
 
       return {
         workout: { ...state.workout!, sections },
@@ -235,12 +244,15 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
    */
   updateExercise: (sectionId, exerciseId, data) =>
     set((state) => {
+      const sectionIdStr = sectionId?.toString();
+      const exerciseIdStr = exerciseId?.toString();
+
       const sections: UISection[] = state.workout!.sections.map((section) => {
-        if (section.id !== sectionId) return section;
+        if (section.id?.toString() !== sectionIdStr) return section;
 
         const updatedExercises: UIExercise[] = section.exercises.map(
           (exercise) =>
-            exercise.id === exerciseId
+            exercise.id?.toString() === exerciseIdStr
               ? {
                   ...exercise,
                   ...data,
@@ -253,7 +265,13 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         return { ...section, exercises: updatedExercises };
       });
 
-      return { workout: { ...state.workout!, sections } };
+      const updatedSection =
+        sections.find((s) => s.id?.toString() === sectionIdStr) || null;
+
+      return {
+        workout: { ...state.workout!, sections },
+        section: updatedSection,
+      };
     }),
 
   /**
@@ -261,11 +279,14 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
    */
   removeExercise: (sectionId, exerciseId) =>
     set((state) => {
+      const sectionIdStr = sectionId?.toString();
+      const exerciseIdStr = exerciseId?.toString();
+
       const sections: UISection[] = state.workout!.sections.map((section) => {
-        if (section.id !== sectionId) return section;
+        if (section.id?.toString() !== sectionIdStr) return section;
 
         const exercises: UIExercise[] = section.exercises.map((exercise) =>
-          exercise.id === exerciseId
+          exercise.id?.toString() === exerciseIdStr
             ? { ...exercise, localStatus: "deleted" }
             : exercise,
         );
@@ -273,7 +294,13 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         return { ...section, exercises };
       });
 
-      return { workout: { ...state.workout!, sections } };
+      const updatedSection =
+        sections.find((s) => s.id?.toString() === sectionIdStr) || null;
+
+      return {
+        workout: { ...state.workout!, sections },
+        section: updatedSection,
+      };
     }),
 
   /**
