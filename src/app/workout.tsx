@@ -1,5 +1,5 @@
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { Card } from "../components/card";
 import { Field } from "../components/field";
@@ -9,7 +9,9 @@ import { Colors, Sizes, Spacing } from "../constants/theme";
 import { useSaveWorkout } from "../hooks/useSaveWorkout";
 import { useWorkouts } from "../hooks/useWorkouts";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
+import { UISection, UIWorkout } from "../types/ui";
 import { handleAndShowError } from "../utils/ui";
+import { validateWorkout } from "../utils/validation";
 
 export default function WorkoutScreen() {
   const router = useRouter();
@@ -19,14 +21,31 @@ export default function WorkoutScreen() {
   const { saveWorkout } = useSaveWorkout();
   const {
     workout,
+    section,
     startNewWorkout,
     setName,
+    updateSection,
     removeSection,
     reset,
     loadWorkout,
   } = useWorkoutStore();
 
   const initialWorkoutRef = useRef<any | null>(null);
+
+  const [localSections, setLocalSections] = useState<UISection[]>([]);
+
+  useEffect(() => {
+    if (workout) {
+      const filtered = workout.sections
+        .filter(
+          (s) =>
+            s.localStatus !== "deleted" &&
+            !(s.localStatus === "new" && (!s.name || s.name.trim() === "")),
+        )
+        .sort((a, b) => a.position - b.position);
+      setLocalSections(filtered);
+    }
+  }, [workout]);
 
   // Initialize workout on mount
   useEffect(() => {
@@ -37,28 +56,23 @@ export default function WorkoutScreen() {
 
   // capture initial snapshot to detect dirty state
   useEffect(() => {
-    if (workout)
+    if (workout && !section?.id.toString().startsWith("temp-"))
       initialWorkoutRef.current = JSON.parse(JSON.stringify(workout));
   }, [workout?.id]);
 
-  const isDirty = (() => {
-    if (!workout) return false;
-    const initial = initialWorkoutRef.current;
-    if (!initial) return true;
-    return JSON.stringify(initial) !== JSON.stringify(workout);
-  })();
-
   const handleDone = useCallback(async () => {
     try {
-      if (isDirty) {
-        await saveWorkout(workout!);
-        reset();
+      const validationError = validateWorkout(workout as UIWorkout);
+      if (validationError) {
+        throw new Error(validationError);
       }
-      router.replace("/homepage");
+      await saveWorkout(workout!);
+      reset();
+      router.replace("/");
     } catch (error) {
       handleAndShowError(error);
     }
-  }, [isDirty, saveWorkout, workout, reset, router]);
+  }, [saveWorkout, workout, reset, router]);
 
   const handleDiscard = useCallback(() => {
     Alert.alert(
@@ -71,7 +85,7 @@ export default function WorkoutScreen() {
           style: "destructive",
           onPress: async () => {
             try {
-              if (!workout) return router.replace("/homepage");
+              if (!workout) return router.replace("/");
 
               // if this is a temporary workout, just reset
               if (
@@ -79,7 +93,7 @@ export default function WorkoutScreen() {
                 workout.localStatus === "new"
               ) {
                 reset();
-                return router.replace("/homepage");
+                return router.replace("/");
               }
 
               // otherwise try to re-fetch the saved workout and load it into the store
@@ -88,7 +102,7 @@ export default function WorkoutScreen() {
               if (original) {
                 loadWorkout(original as any);
               }
-              router.replace("/homepage");
+              router.replace("/");
             } catch (error) {
               handleAndShowError(error);
             }
@@ -105,14 +119,28 @@ export default function WorkoutScreen() {
     [router],
   );
 
-  const handleDelete = useCallback(async () => {
-    try {
-      await deleteWorkout(Number(workout!.id));
-      reset();
-      router.replace("/homepage");
-    } catch (error) {
-      handleAndShowError(error);
-    }
+  const handleDeleteWorkout = useCallback(async () => {
+    Alert.alert(
+      "Remove section?",
+      "Are you sure you want to remove this workout?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              // TODO: remove exercises and sectionss
+              await deleteWorkout(Number(workout!.id));
+              reset();
+              router.replace("/");
+            } catch (error) {
+              handleAndShowError(error);
+            }
+          },
+        },
+      ],
+    );
   }, [workout, deleteWorkout, reset, router]);
 
   const handleAddSection = useCallback(() => {
@@ -121,21 +149,29 @@ export default function WorkoutScreen() {
 
   const handleDeleteSection = useCallback(
     (sectionId: string) => {
-      removeSection(sectionId);
+      Alert.alert(
+        "Remove section?",
+        "Are you sure you want to remove this section?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                removeSection(sectionId);
+              } catch (error) {
+                handleAndShowError(error);
+              }
+            },
+          },
+        ],
+      );
     },
     [removeSection],
   );
 
   if (!workout) return null;
-
-  const visibleSections = workout.sections.filter(
-    (section) =>
-      section.localStatus !== "deleted" &&
-      !(
-        section.localStatus === "new" &&
-        (!section.name || section.name.trim() === "")
-      ),
-  );
 
   const isCreating = workout.id?.toString().startsWith("temp-") || false;
 
@@ -146,24 +182,18 @@ export default function WorkoutScreen() {
           title: "Workout",
           headerRight: () => (
             <View style={styles.headerButtonRow}>
+              <ThemedButton text="Back" onPress={handleDiscard} />
               <ThemedButton
                 text="Delete"
-                onPress={handleDelete}
+                onPress={handleDeleteWorkout}
                 disabled={isCreating}
                 variant="destructive"
               />
 
               <ThemedButton
-                text="Discard"
-                onPress={handleDiscard}
-                disabled={!isDirty}
-                variant="destructive"
-              />
-
-              <ThemedButton
-                text={isDirty ? "Done" : "Back"}
+                text="Done"
                 onPress={handleDone}
-                variant={isDirty ? "success" : "primary"}
+                variant="success"
               />
             </View>
           ),
@@ -181,14 +211,66 @@ export default function WorkoutScreen() {
           </Field>
 
           <ThemedText type="subtitle">Sections</ThemedText>
-          {visibleSections.length > 0 ? (
-            visibleSections.map((section) => (
-              <Card
-                key={section.id}
-                text={section.name}
-                onEdit={() => handleEditSection(section.id.toString())}
-                onDelete={() => handleDeleteSection(section.id.toString())}
-              />
+
+          {localSections.length > 0 ? (
+            localSections.map((section, index) => (
+              <View key={section.id} style={{ marginBottom: 12 }}>
+                <Card
+                  text={section.name}
+                  onEdit={() => handleEditSection(section.id.toString())}
+                  onDelete={() => handleDeleteSection(section.id.toString())}
+                />
+                <View style={{ flexDirection: "row", gap: 8, marginTop: 4 }}>
+                  <ThemedButton
+                    text="⬆"
+                    disabled={index === 0}
+                    onPress={() => {
+                      const newSections = [...localSections];
+                      [newSections[index - 1], newSections[index]] = [
+                        newSections[index],
+                        newSections[index - 1],
+                      ];
+
+                      const updatedSections = newSections.map((s, idx) => ({
+                        ...s,
+                        position: idx,
+                      }));
+
+                      setLocalSections(updatedSections);
+
+                      updatedSections.forEach((s) => {
+                        updateSection(s.id.toString(), {
+                          position: s.position,
+                        });
+                      });
+                    }}
+                  />
+                  <ThemedButton
+                    text="⬇"
+                    disabled={index === localSections.length - 1}
+                    onPress={() => {
+                      const newSections = [...localSections];
+                      [newSections[index], newSections[index + 1]] = [
+                        newSections[index + 1],
+                        newSections[index],
+                      ];
+
+                      const updatedSections = newSections.map((s, idx) => ({
+                        ...s,
+                        position: idx,
+                      }));
+
+                      setLocalSections(updatedSections);
+
+                      updatedSections.forEach((s) => {
+                        updateSection(s.id.toString(), {
+                          position: s.position,
+                        });
+                      });
+                    }}
+                  />
+                </View>
+              </View>
             ))
           ) : (
             <ThemedText>No sections yet</ThemedText>

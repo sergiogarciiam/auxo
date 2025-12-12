@@ -44,7 +44,7 @@ export function ExerciseCard({
         <TextInput
           style={styles.input}
           keyboardType="numeric"
-          value={exercise.reps ? exercise.reps.toString() : ""}
+          value={exercise.reps.toString()}
           onChangeText={(text) => handleNumericChange("reps", text)}
         />
       </Field>
@@ -53,7 +53,7 @@ export function ExerciseCard({
         <TextInput
           style={styles.input}
           keyboardType="numeric"
-          value={exercise.time_seconds ? exercise.time_seconds.toString() : ""}
+          value={exercise.time_seconds.toString()}
           onChangeText={(text) => handleNumericChange("time_seconds", text)}
         />
       </Field>
@@ -62,16 +62,16 @@ export function ExerciseCard({
         <TextInput
           style={styles.input}
           keyboardType="numeric"
-          value={exercise.weight ? exercise.weight.toString() : ""}
+          value={exercise.weight.toString()}
           onChangeText={(text) => handleNumericChange("weight", text)}
         />
       </Field>
 
-      <Field label="Sets (optional)">
+      <Field label="Sets" required>
         <TextInput
           style={styles.input}
           keyboardType="numeric"
-          value={exercise.sets ? exercise.sets.toString() : ""}
+          value={exercise.sets.toString()}
           onChangeText={(text) => handleNumericChange("sets", text)}
         />
       </Field>

@@ -11,6 +11,7 @@ import { Colors, Sizes, Spacing, Typography } from "../constants/theme";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
 import { UISection } from "../types/ui";
 import { handleAndShowError } from "../utils/ui";
+import { validateSection } from "../utils/validation";
 
 export default function SectionScreen() {
   const router = useRouter();
@@ -20,7 +21,6 @@ export default function SectionScreen() {
   const initialSectionRef = useRef<UISection | null>(null);
 
   const {
-    workout,
     section,
     startNewSection,
     loadSection,
@@ -31,19 +31,6 @@ export default function SectionScreen() {
     removeExercise,
   } = useWorkoutStore();
 
-  // when section loads (capture snapshot once per section.id)
-  useEffect(() => {
-    if (section)
-      initialSectionRef.current = JSON.parse(JSON.stringify(section));
-  }, [section]);
-
-  // Redirect if no workout exists
-  useEffect(() => {
-    if (!workout) {
-      router.replace("/homepage");
-    }
-  }, [workout, router]);
-
   // Load or create section
   useEffect(() => {
     if (sectionId) {
@@ -53,6 +40,7 @@ export default function SectionScreen() {
       setSectionId(newSection.id.toString());
     }
   }, [sectionId, loadSection, startNewSection]);
+
   const handleAddExercise = useCallback(() => {
     try {
       addExercise(sectionId as string);
@@ -75,24 +63,25 @@ export default function SectionScreen() {
   const handleDeleteSection = useCallback(() => {
     try {
       removeSection(sectionId as string);
-      router.push("/workout");
+      router.replace("/workout");
     } catch (error) {
       handleAndShowError(error);
     }
   }, [sectionId, removeSection, router]);
 
-  // determine if current section differs from the initial snapshot
-  const isDirty = (() => {
-    if (!section) return false;
-    const initial = initialSectionRef.current;
-    if (!initial) return true;
-    return JSON.stringify(initial) !== JSON.stringify(section);
-  })();
-
   const isCreating = section?.id?.toString().startsWith("temp-") || false;
 
   const handleDone = useCallback(() => {
-    router.push("/workout");
+    try {
+      const currentSection = useWorkoutStore.getState().section;
+      const validationError = validateSection(currentSection as UISection);
+      if (validationError) {
+        throw new Error(validationError);
+      }
+      router.replace("/workout");
+    } catch (error) {
+      handleAndShowError(error);
+    }
   }, [router]);
 
   const handleDiscard = useCallback(() => {
@@ -111,7 +100,7 @@ export default function SectionScreen() {
               } else if (initialSectionRef.current) {
                 updateSection(sectionId?.toString(), initialSectionRef.current);
               }
-              router.push("/workout");
+              router.replace("/workout");
             } catch (error) {
               handleAndShowError(error);
             }
@@ -126,16 +115,6 @@ export default function SectionScreen() {
   const isCircuitOrSuperset =
     section.type === "circuit" || section.type === "superset";
 
-  let restExerciseValue = "";
-  if (section.rest_exercise) {
-    restExerciseValue = section.rest_exercise.toString();
-  }
-
-  let restGroupValue = "";
-  if (section.rest_group) {
-    restGroupValue = section.rest_group.toString();
-  }
-
   return (
     <>
       <Stack.Screen
@@ -143,6 +122,8 @@ export default function SectionScreen() {
           title: "Section",
           headerRight: () => (
             <View style={styles.headerButtonRow}>
+              <ThemedButton text="Back" onPress={handleDiscard} />
+
               {!isCreating && (
                 <ThemedButton
                   text="Delete"
@@ -150,17 +131,10 @@ export default function SectionScreen() {
                   variant="destructive"
                 />
               )}
-              {isDirty && (
-                <ThemedButton
-                  text="Discard"
-                  onPress={handleDiscard}
-                  variant="destructive"
-                />
-              )}
               <ThemedButton
-                text={isDirty ? "Done" : "Back"}
+                text="Done"
                 onPress={handleDone}
-                variant={isDirty ? "success" : "primary"}
+                variant="success"
               />
             </View>
           ),
@@ -200,7 +174,7 @@ export default function SectionScreen() {
             <TextInput
               style={styles.input}
               keyboardType="numeric"
-              value={restExerciseValue}
+              value={section.rest_exercise.toString()}
               onChangeText={(text) =>
                 handleUpdateSection({
                   rest_exercise: Number(text) || 0,
@@ -218,7 +192,7 @@ export default function SectionScreen() {
               ]}
               editable={isCircuitOrSuperset}
               keyboardType="numeric"
-              value={restGroupValue}
+              value={section.rest_group.toString()}
               onChangeText={(text) =>
                 handleUpdateSection({
                   rest_group: Number(text) || 0,

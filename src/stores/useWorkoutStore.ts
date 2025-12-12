@@ -1,6 +1,6 @@
 import { nanoid } from "nanoid/non-secure";
 import { create } from "zustand";
-import { UIExercise, UISection, UIWorkout } from "../types/ui";
+import { LocalStatus, UIExercise, UISection, UIWorkout } from "../types/ui";
 
 interface WorkoutStore {
   workout: UIWorkout | null;
@@ -96,10 +96,10 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     set({
       workout: {
         ...workoutFromDb,
-        sections: workoutFromDb.sections.map((section) => ({
+        sections: (workoutFromDb.sections || []).map((section) => ({
           ...section,
           localStatus: "unchanged",
-          exercises: section.exercises.map((exercise) => ({
+          exercises: (section.exercises || []).map((exercise) => ({
             ...exercise,
             localStatus: "unchanged",
           })),
@@ -198,9 +198,24 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   removeSection: (id) =>
     set((state) => {
       const idToFind = id?.toString();
-      const sections: UISection[] = state.workout!.sections.map((section) =>
+
+      const section = state.workout!.sections.find(
+        (s) => s.id?.toString() === idToFind,
+      );
+
+      if (
+        section?.localStatus === "new" ||
+        section?.id?.toString().startsWith("temp-")
+      ) {
+        const sections = state.workout!.sections.filter(
+          (s) => s.id?.toString() !== idToFind,
+        );
+        return { workout: { ...state.workout!, sections } };
+      }
+
+      const sections = state.workout!.sections.map((section) =>
         section.id?.toString() === idToFind
-          ? { ...section, localStatus: "deleted" }
+          ? { ...section, localStatus: "deleted" as LocalStatus }
           : section,
       );
 
@@ -306,5 +321,5 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   /**
    * Clears the current workout state
    */
-  reset: () => set({ workout: null }),
+  reset: () => set({ workout: null, section: null }),
 }));

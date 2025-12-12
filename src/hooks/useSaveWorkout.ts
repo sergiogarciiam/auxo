@@ -1,6 +1,5 @@
 import { useCallback } from "react";
 import { UIWorkout } from "../types/ui";
-import { validateWorkout } from "../utils/validation";
 import { useExercises } from "./useExercises";
 import { useSections } from "./useSections";
 import { useWorkouts } from "./useWorkouts";
@@ -16,12 +15,6 @@ export const useSaveWorkout = () => {
    */
   const saveWorkout = useCallback(
     async (uiWorkout: UIWorkout): Promise<number | string> => {
-      // Validate before writing to DB to prevent partial saves
-      const validationError = validateWorkout(uiWorkout);
-      if (validationError) {
-        throw new Error(validationError);
-      }
-
       let workoutId = uiWorkout.id;
 
       try {
