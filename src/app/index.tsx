@@ -8,8 +8,10 @@ import { ThemedText } from "../components/themed-text";
 import { IconColors, IconSizes, Sizes, Spacing } from "../constants/theme";
 import { useSections } from "../hooks/useSections";
 import { useWorkouts } from "../hooks/useWorkouts";
+import { useStartWorkoutStore } from "../stores/useStartWorkoutStore";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
 import { UIWorkout } from "../types/ui";
+import { buildExecutionPlan } from "../utils/planner";
 import { transformSectionToUI } from "../utils/transformers";
 import { handleAndShowError } from "../utils/ui";
 
@@ -18,6 +20,7 @@ export default function Homepage() {
   const { workouts, getWorkoutById, getAllSections } = useWorkouts();
   const { getAllExercisesBySectionId } = useSections();
   const { loadWorkout, reset } = useWorkoutStore();
+  const { startWorkout } = useStartWorkoutStore();
 
   const [localWorkouts, setLocalWorkouts] = useState<UIWorkout[] | any[]>([]);
 
@@ -100,6 +103,43 @@ export default function Homepage() {
     ],
   );
 
+  const handleStartWorkout = useCallback(
+    async (id: number) => {
+      try {
+        const workoutFromDb = await getWorkoutById(id);
+        const sectionsFromDb = await getAllSections(id);
+
+        // Transform sections with exercises
+        const sectionsWithExercises = await Promise.all(
+          sectionsFromDb.map(async (section) => {
+            const exercises = await getAllExercisesBySectionId(section.id);
+            return transformSectionToUI(section, exercises);
+          }),
+        );
+
+        const workoutState = {
+          ...workoutFromDb,
+          sections: sectionsWithExercises,
+          localStatus: "updated" as const,
+        };
+
+        const plan = buildExecutionPlan(workoutState as any);
+
+        startWorkout(workoutState as any, plan);
+        router.push("/start");
+      } catch (error) {
+        handleAndShowError(error);
+      }
+    },
+    [
+      getAllExercisesBySectionId,
+      getAllSections,
+      getWorkoutById,
+      router,
+      startWorkout,
+    ],
+  );
+
   const hasWorkouts = localWorkouts.filter(Boolean).length > 0;
 
   return (
@@ -116,6 +156,7 @@ export default function Homepage() {
             .map((workout: any, index: number) => (
               <Card
                 key={workout.id || `tmp-${index}`}
+                onStart={() => handleStartWorkout(workout.id)}
                 onEdit={() => workout.id && handleEditWorkout(workout.id)}
                 text={workout.name}
                 index={index}

@@ -11,7 +11,7 @@ import { ThemedButton } from "./themed-button";
 
 interface CardProps {
   text: string;
-  onPlay?: () => void;
+  onStart?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
   index: number;
@@ -26,7 +26,7 @@ interface CardProps {
  */
 export function Card({
   text,
-  onPlay,
+  onStart,
   onEdit,
   onDelete,
   index,
@@ -41,7 +41,7 @@ export function Card({
 
       <View style={styles.rightContainer}>
         <View style={styles.buttonsContainer}>
-          {onPlay && (
+          {onStart && (
             <ThemedButton
               icon={
                 <MaterialIcons
@@ -50,7 +50,7 @@ export function Card({
                   color={IconColors.ON_PRIMARY}
                 />
               }
-              onPress={onPlay}
+              onPress={onStart}
             />
           )}
           {onEdit && (

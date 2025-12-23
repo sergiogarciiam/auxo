@@ -35,3 +35,18 @@ export interface UIWorkout {
   sections: UISection[];
   localStatus: LocalStatus;
 }
+
+export type ExecutionStepType = "exercise" | "rest";
+
+export interface ExecutionStep {
+  id: string;
+  type: ExecutionStepType;
+  sectionId: number | string;
+  exerciseId?: number | string;
+  name?: string; // exercise name or 'Rest'
+  reps?: number;
+  time_seconds?: number;
+  set?: number;
+  weight?: number;
+  duration_seconds?: number; // for rest steps
+}

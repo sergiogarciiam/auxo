@@ -65,6 +65,37 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
       );
     `);
 
+    // If in dev, insert sample data so the app has two example workouts
+    if (IS_DEV) {
+      await db.execAsync(`
+        INSERT INTO workouts (name, total_time) VALUES
+          ('Full Body Beginner', 0),
+          ('Circuit Blast', 0);
+
+        INSERT INTO sections (workout_id, name, type, rest_exercise, rest_group, position) VALUES
+          (1, 'Warm up', 'warmup', 0, 0, 0),
+          (1, 'Strength', 'traditional', 60, 90, 1),
+          (2, 'Circuit', 'circuit', 15, 60, 0),
+          (2, 'Cooldown', 'cooldown', 0, 0, 1);
+
+        INSERT INTO exercises (section_id, name, reps, time_seconds, weight, sets, position) VALUES
+          -- Workout 1 - Warm up
+          (1, 'Jumping Jacks', NULL, 30, NULL, 1, 0),
+          (1, 'Arm Circles', NULL, 30, NULL, 1, 1),
+          -- Workout 1 - Strength
+          (2, 'Squats', 12, NULL, NULL, 3, 0),
+          (2, 'Push Ups', 10, NULL, NULL, 3, 1),
+          (2, 'Bent Over Row', 12, NULL, NULL, 3, 2),
+          -- Workout 2 - Circuit
+          (3, 'Burpees', NULL, 45, NULL, 3, 0),
+          (3, 'Mountain Climbers', NULL, 30, NULL, 3, 1),
+          (3, 'Jump Lunges', NULL, 30, NULL, 3, 2),
+          -- Workout 2 - Cooldown
+          (4, 'Stretch Hamstrings', NULL, 60, NULL, 1, 0),
+          (4, 'Child Pose', NULL, 60, NULL, 1, 1);
+      `);
+    }
+
     currentDbVersion = 1;
     if (currentDbVersion >= DATABASE_VERSION) return;
   }
