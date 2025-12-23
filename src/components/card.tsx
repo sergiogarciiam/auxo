@@ -1,5 +1,12 @@
+import { MaterialIcons } from "@expo/vector-icons";
 import { StyleSheet, Text, View } from "react-native";
-import { Colors, Sizes, Spacing } from "../constants/theme";
+import {
+  Colors,
+  IconColors,
+  IconSizes,
+  Sizes,
+  Spacing,
+} from "../constants/theme";
 import { ThemedButton } from "./themed-button";
 
 interface CardProps {
@@ -7,25 +14,98 @@ interface CardProps {
   onPlay?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  index: number;
+  handleMovePrev: (index: number) => void;
+  handleMoveNext: (index: number) => void;
+  isDisabledPrev?: boolean;
+  isDisabledNext?: boolean;
 }
 
 /**
  * Reusable card component for displaying workout/section information
  */
-export function Card({ text, onPlay, onEdit, onDelete }: CardProps) {
+export function Card({
+  text,
+  onPlay,
+  onEdit,
+  onDelete,
+  index,
+  handleMovePrev,
+  handleMoveNext,
+  isDisabledPrev,
+  isDisabledNext,
+}: CardProps) {
   return (
     <View style={styles.card}>
       <Text>{text}</Text>
-      <View style={styles.buttonsContainer}>
-        {onPlay && <ThemedButton text="Start" onPress={onPlay} />}
-        {onEdit && <ThemedButton text="Edit" onPress={onEdit} />}
-        {onDelete && (
+
+      <View style={styles.rightContainer}>
+        <View style={styles.buttonsContainer}>
+          {onPlay && (
+            <ThemedButton
+              icon={
+                <MaterialIcons
+                  name="play-arrow"
+                  size={IconSizes.MEDIUM}
+                  color={IconColors.ON_PRIMARY}
+                />
+              }
+              onPress={onPlay}
+            />
+          )}
+          {onEdit && (
+            <ThemedButton
+              icon={
+                <MaterialIcons
+                  name="edit"
+                  size={IconSizes.MEDIUM}
+                  color={IconColors.ON_PRIMARY}
+                />
+              }
+              onPress={onEdit}
+            />
+          )}
+          {onDelete && (
+            <ThemedButton
+              icon={
+                <MaterialIcons
+                  name="delete"
+                  size={IconSizes.MEDIUM}
+                  color={IconColors.ON_PRIMARY}
+                />
+              }
+              onPress={onDelete}
+              variant="destructive"
+            />
+          )}
+        </View>
+
+        <View style={styles.arrwosContainer}>
           <ThemedButton
-            text="Delete"
-            onPress={onDelete}
-            variant="destructive"
+            icon={
+              <MaterialIcons
+                name="keyboard-arrow-up"
+                size={IconSizes.LARGE}
+                color={IconColors.ON_PRIMARY}
+              />
+            }
+            variant="icon"
+            disabled={isDisabledPrev}
+            onPress={() => handleMovePrev(index)}
           />
-        )}
+          <ThemedButton
+            icon={
+              <MaterialIcons
+                name="keyboard-arrow-down"
+                size={IconSizes.LARGE}
+                color={IconColors.ON_PRIMARY}
+              />
+            }
+            variant="icon"
+            disabled={isDisabledNext}
+            onPress={() => handleMoveNext(index)}
+          />
+        </View>
       </View>
     </View>
   );
@@ -48,8 +128,21 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
+  rightContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.LARGE,
+  },
+
   buttonsContainer: {
     flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.LARGE,
+  },
+
+  arrwosContainer: {
+    flexDirection: "column",
+    alignItems: "center",
+    gap: Spacing.SMALL,
   },
 });

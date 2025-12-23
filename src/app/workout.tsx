@@ -1,3 +1,4 @@
+import { MaterialIcons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, ScrollView, StyleSheet, TextInput, View } from "react-native";
@@ -5,7 +6,14 @@ import { Card } from "../components/card";
 import { Field } from "../components/field";
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
-import { Colors, Sizes, Spacing } from "../constants/theme";
+import {
+  Colors,
+  IconColors,
+  IconSizes,
+  Sizes,
+  Spacing,
+} from "../constants/theme";
+
 import { useSaveWorkout } from "../hooks/useSaveWorkout";
 import { useWorkouts } from "../hooks/useWorkouts";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
@@ -171,6 +179,54 @@ export default function WorkoutScreen() {
     [removeSection],
   );
 
+  const handleMovePrevSection = useCallback(
+    (index: number) => {
+      const newSections = [...localSections];
+      [newSections[index - 1], newSections[index]] = [
+        newSections[index],
+        newSections[index - 1],
+      ];
+
+      const updatedSections = newSections.map((s, idx) => ({
+        ...s,
+        position: idx,
+      }));
+
+      setLocalSections(updatedSections);
+
+      updatedSections.forEach((s) => {
+        updateSection(s.id.toString(), {
+          position: s.position,
+        });
+      });
+    },
+    [localSections, updateSection],
+  );
+
+  const handleMoveNextSection = useCallback(
+    (index: number) => {
+      const newSections = [...localSections];
+      [newSections[index], newSections[index + 1]] = [
+        newSections[index + 1],
+        newSections[index],
+      ];
+
+      const updatedSections = newSections.map((s, idx) => ({
+        ...s,
+        position: idx,
+      }));
+
+      setLocalSections(updatedSections);
+
+      updatedSections.forEach((s) => {
+        updateSection(s.id.toString(), {
+          position: s.position,
+        });
+      });
+    },
+    [localSections, updateSection],
+  );
+
   if (!workout) return null;
 
   const isCreating = workout.id?.toString().startsWith("temp-") || false;
@@ -182,16 +238,37 @@ export default function WorkoutScreen() {
           title: "Workout",
           headerRight: () => (
             <View style={styles.headerButtonRow}>
-              <ThemedButton text="Back" onPress={handleDiscard} />
               <ThemedButton
-                text="Delete"
+                icon={
+                  <MaterialIcons
+                    name="arrow-back"
+                    size={IconSizes.MEDIUM}
+                    color={IconColors.ON_PRIMARY}
+                  />
+                }
+                onPress={handleDiscard}
+              />
+              <ThemedButton
+                icon={
+                  <MaterialIcons
+                    name="delete"
+                    size={IconSizes.MEDIUM}
+                    color={IconColors.ON_PRIMARY}
+                  />
+                }
                 onPress={handleDeleteWorkout}
                 disabled={isCreating}
                 variant="destructive"
               />
 
               <ThemedButton
-                text="Done"
+                icon={
+                  <MaterialIcons
+                    name="check"
+                    size={IconSizes.MEDIUM}
+                    color={IconColors.ON_PRIMARY}
+                  />
+                }
                 onPress={handleDone}
                 variant="success"
               />
@@ -219,64 +296,29 @@ export default function WorkoutScreen() {
                   text={section.name}
                   onEdit={() => handleEditSection(section.id.toString())}
                   onDelete={() => handleDeleteSection(section.id.toString())}
+                  index={index}
+                  handleMovePrev={handleMovePrevSection}
+                  handleMoveNext={handleMoveNextSection}
+                  isDisabledPrev={index === 0}
+                  isDisabledNext={index === localSections.length - 1}
                 />
-                <View style={{ flexDirection: "row", gap: 8, marginTop: 4 }}>
-                  <ThemedButton
-                    text="⬆"
-                    disabled={index === 0}
-                    onPress={() => {
-                      const newSections = [...localSections];
-                      [newSections[index - 1], newSections[index]] = [
-                        newSections[index],
-                        newSections[index - 1],
-                      ];
-
-                      const updatedSections = newSections.map((s, idx) => ({
-                        ...s,
-                        position: idx,
-                      }));
-
-                      setLocalSections(updatedSections);
-
-                      updatedSections.forEach((s) => {
-                        updateSection(s.id.toString(), {
-                          position: s.position,
-                        });
-                      });
-                    }}
-                  />
-                  <ThemedButton
-                    text="⬇"
-                    disabled={index === localSections.length - 1}
-                    onPress={() => {
-                      const newSections = [...localSections];
-                      [newSections[index], newSections[index + 1]] = [
-                        newSections[index + 1],
-                        newSections[index],
-                      ];
-
-                      const updatedSections = newSections.map((s, idx) => ({
-                        ...s,
-                        position: idx,
-                      }));
-
-                      setLocalSections(updatedSections);
-
-                      updatedSections.forEach((s) => {
-                        updateSection(s.id.toString(), {
-                          position: s.position,
-                        });
-                      });
-                    }}
-                  />
-                </View>
               </View>
             ))
           ) : (
             <ThemedText>No sections yet</ThemedText>
           )}
 
-          <ThemedButton text="New Section" onPress={handleAddSection} />
+          <ThemedButton
+            text="New Section"
+            icon={
+              <MaterialIcons
+                name="add"
+                size={IconSizes.SMALL}
+                color={IconColors.ON_PRIMARY}
+              />
+            }
+            onPress={handleAddSection}
+          />
         </View>
       </ScrollView>
     </>

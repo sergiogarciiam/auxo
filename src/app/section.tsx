@@ -1,3 +1,4 @@
+import { MaterialIcons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -7,7 +8,14 @@ import { Field } from "../components/field";
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
 import { SECTION_TYPE_LABELS, SECTION_TYPES } from "../constants/constants";
-import { Colors, Sizes, Spacing, Typography } from "../constants/theme";
+import {
+  Colors,
+  IconColors,
+  IconSizes,
+  Sizes,
+  Spacing,
+  Typography,
+} from "../constants/theme";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
 import { UISection } from "../types/ui";
 import { handleAndShowError } from "../utils/ui";
@@ -31,6 +39,17 @@ export default function SectionScreen() {
     removeExercise,
   } = useWorkoutStore();
 
+  const [localExercises, setLocalExercises] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (section) {
+      const filtered = section.exercises
+        .filter((e) => e.localStatus !== "deleted")
+        .sort((a, b) => a.position - b.position);
+      setLocalExercises(filtered);
+    }
+  }, [section]);
+
   // Load or create section
   useEffect(() => {
     if (sectionId) {
@@ -48,6 +67,44 @@ export default function SectionScreen() {
       handleAndShowError(error);
     }
   }, [sectionId, addExercise]);
+
+  const handleMovePrevExercise = useCallback(
+    (index: number) => {
+      const newExercises = [...localExercises];
+      [newExercises[index - 1], newExercises[index]] = [
+        newExercises[index],
+        newExercises[index - 1],
+      ];
+
+      const updated = newExercises.map((e, idx) => ({ ...e, position: idx }));
+      setLocalExercises(updated);
+
+      // Persist positions to store
+      updated.forEach((e) => {
+        updateExercise(sectionId as string, e.id, { position: e.position });
+      });
+    },
+    [localExercises, updateExercise, sectionId],
+  );
+
+  const handleMoveNextExercise = useCallback(
+    (index: number) => {
+      const newExercises = [...localExercises];
+      [newExercises[index], newExercises[index + 1]] = [
+        newExercises[index + 1],
+        newExercises[index],
+      ];
+
+      const updated = newExercises.map((e, idx) => ({ ...e, position: idx }));
+      setLocalExercises(updated);
+
+      // Persist positions to store
+      updated.forEach((e) => {
+        updateExercise(sectionId as string, e.id, { position: e.position });
+      });
+    },
+    [localExercises, updateExercise, sectionId],
+  );
 
   const handleUpdateSection = useCallback(
     (data: any) => {
@@ -122,17 +179,38 @@ export default function SectionScreen() {
           title: "Section",
           headerRight: () => (
             <View style={styles.headerButtonRow}>
-              <ThemedButton text="Back" onPress={handleDiscard} />
+              <ThemedButton
+                icon={
+                  <MaterialIcons
+                    name="arrow-back"
+                    size={IconSizes.MEDIUM}
+                    color={IconColors.ON_PRIMARY}
+                  />
+                }
+                onPress={handleDiscard}
+              />
 
               {!isCreating && (
                 <ThemedButton
-                  text="Delete"
+                  icon={
+                    <MaterialIcons
+                      name="delete"
+                      size={IconSizes.MEDIUM}
+                      color={IconColors.ON_PRIMARY}
+                    />
+                  }
                   onPress={handleDeleteSection}
                   variant="destructive"
                 />
               )}
               <ThemedButton
-                text="Done"
+                icon={
+                  <MaterialIcons
+                    name="check"
+                    size={IconSizes.MEDIUM}
+                    color={IconColors.ON_PRIMARY}
+                  />
+                }
                 onPress={handleDone}
                 variant="success"
               />
@@ -210,24 +288,38 @@ export default function SectionScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.exercisesScroll}
         >
-          {section.exercises
-            .filter((exercise) => exercise.localStatus !== "deleted")
-            .map((exercise) => (
-              <View key={exercise.id} style={styles.exerciseWrapper}>
-                <ExerciseCard
-                  exercise={exercise}
-                  exerciseId={exercise.id}
-                  setExercise={(exerciseId, ex) => {
-                    updateExercise(sectionId as string, exerciseId, ex);
-                  }}
-                  onRemoveExercise={() =>
-                    removeExercise(sectionId as string, exercise.id)
-                  }
-                />
-              </View>
-            ))}
+          {localExercises.map((exercise, index) => (
+            <View key={exercise.id} style={styles.exerciseWrapper}>
+              <ExerciseCard
+                exercise={exercise}
+                exerciseId={exercise.id}
+                index={index}
+                handleMovePrev={handleMovePrevExercise}
+                handleMoveNext={handleMoveNextExercise}
+                isDisabledPrev={index === 0}
+                isDisabledNext={index === localExercises.length - 1}
+                setExercise={(exerciseId, ex) => {
+                  updateExercise(sectionId as string, exerciseId, ex);
+                }}
+                onRemoveExercise={() =>
+                  removeExercise(sectionId as string, exercise.id)
+                }
+              />
+            </View>
+          ))}
+
           <View style={styles.newExerciseButtonContainer}>
-            <ThemedButton text="New Exercise" onPress={handleAddExercise} />
+            <ThemedButton
+              text="New Exercise"
+              icon={
+                <MaterialIcons
+                  name="add"
+                  size={IconSizes.SMALL}
+                  color={IconColors.ON_PRIMARY}
+                />
+              }
+              onPress={handleAddExercise}
+            />
           </View>
         </ScrollView>
       </ScrollView>

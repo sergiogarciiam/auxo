@@ -1,5 +1,13 @@
+import { MaterialIcons } from "@expo/vector-icons";
 import { StyleSheet, TextInput, View } from "react-native";
-import { Colors, Sizes, Spacing, Typography } from "../constants/theme";
+import {
+  Colors,
+  IconColors,
+  IconSizes,
+  Sizes,
+  Spacing,
+  Typography,
+} from "../constants/theme";
 import { UIExercise } from "../types/ui";
 import { Field } from "./field";
 import { ThemedButton } from "./themed-button";
@@ -9,6 +17,11 @@ interface ExerciseCardProps {
   exerciseId: number | string;
   setExercise: (index: number | string, exercise: Partial<UIExercise>) => void;
   onRemoveExercise: () => void;
+  index?: number;
+  handleMovePrev?: (index: number) => void;
+  handleMoveNext?: (index: number) => void;
+  isDisabledPrev?: boolean;
+  isDisabledNext?: boolean;
 }
 
 /**
@@ -19,6 +32,11 @@ export function ExerciseCard({
   exerciseId,
   setExercise,
   onRemoveExercise,
+  index,
+  handleMovePrev,
+  handleMoveNext,
+  isDisabledPrev,
+  isDisabledNext,
 }: ExerciseCardProps) {
   const handleInputChange = (field: keyof UIExercise, value: any) => {
     // Send only the changed field to avoid accidental overwrites
@@ -78,9 +96,50 @@ export function ExerciseCard({
 
       <ThemedButton
         text="Remove"
+        icon={
+          <MaterialIcons
+            name="delete"
+            size={IconSizes.SMALL}
+            color={IconColors.ON_PRIMARY}
+          />
+        }
         onPress={onRemoveExercise}
         variant="destructive"
       />
+
+      <View style={styles.arrowsRow}>
+        <ThemedButton
+          icon={
+            <MaterialIcons
+              name="chevron-left"
+              size={IconSizes.MEDIUM}
+              color={IconColors.ON_PRIMARY}
+            />
+          }
+          variant="icon"
+          disabled={!handleMovePrev || isDisabledPrev}
+          onPress={() => {
+            if (!handleMovePrev || index === undefined) return;
+            handleMovePrev(index);
+          }}
+        />
+
+        <ThemedButton
+          icon={
+            <MaterialIcons
+              name="chevron-right"
+              size={IconSizes.MEDIUM}
+              color={IconColors.ON_PRIMARY}
+            />
+          }
+          variant="icon"
+          disabled={!handleMoveNext || isDisabledNext}
+          onPress={() => {
+            if (!handleMoveNext || index === undefined) return;
+            handleMoveNext(index);
+          }}
+        />
+      </View>
     </View>
   );
 }
@@ -106,5 +165,10 @@ const styles = StyleSheet.create({
     borderRadius: Sizes.BORDER_RADIUS,
     padding: Sizes.PADDING,
     fontSize: Typography.FONT_SIZE_DEFAULT,
+  },
+  arrowsRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: Spacing.MEDIUM,
   },
 });

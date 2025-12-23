@@ -1,13 +1,15 @@
+import { MaterialIcons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ScrollView, StyleSheet } from "react-native";
 import { Card } from "../components/card";
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
-import { Sizes, Spacing } from "../constants/theme";
+import { IconColors, IconSizes, Sizes, Spacing } from "../constants/theme";
 import { useSections } from "../hooks/useSections";
 import { useWorkouts } from "../hooks/useWorkouts";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
+import { UIWorkout } from "../types/ui";
 import { transformSectionToUI } from "../utils/transformers";
 import { handleAndShowError } from "../utils/ui";
 
@@ -16,6 +18,39 @@ export default function Homepage() {
   const { workouts, getWorkoutById, getAllSections } = useWorkouts();
   const { getAllExercisesBySectionId } = useSections();
   const { loadWorkout, reset } = useWorkoutStore();
+
+  const [localWorkouts, setLocalWorkouts] = useState<UIWorkout[] | any[]>([]);
+
+  // Keep a local copy of workouts for reordering in the UI
+  useEffect(() => {
+    setLocalWorkouts(workouts || []);
+  }, [workouts]);
+
+  const handleMovePrevWorkout = useCallback(
+    (index: number) => {
+      const newWorkouts = [...localWorkouts];
+      [newWorkouts[index - 1], newWorkouts[index]] = [
+        newWorkouts[index],
+        newWorkouts[index - 1],
+      ];
+
+      setLocalWorkouts(newWorkouts);
+    },
+    [localWorkouts],
+  );
+
+  const handleMoveNextWorkout = useCallback(
+    (index: number) => {
+      const newWorkouts = [...localWorkouts];
+      [newWorkouts[index], newWorkouts[index + 1]] = [
+        newWorkouts[index + 1],
+        newWorkouts[index],
+      ];
+
+      setLocalWorkouts(newWorkouts);
+    },
+    [localWorkouts],
+  );
 
   /**
    * Creates a new blank workout
@@ -65,7 +100,7 @@ export default function Homepage() {
     ],
   );
 
-  const hasWorkouts = workouts.filter(Boolean).length > 0;
+  const hasWorkouts = localWorkouts.filter(Boolean).length > 0;
 
   return (
     <>
@@ -76,20 +111,35 @@ export default function Homepage() {
       />
       <ScrollView contentContainerStyle={styles.container}>
         {hasWorkouts ? (
-          workouts
+          localWorkouts
             .filter(Boolean)
-            .map((workout, index) => (
+            .map((workout: any, index: number) => (
               <Card
                 key={workout.id || `tmp-${index}`}
                 onEdit={() => workout.id && handleEditWorkout(workout.id)}
                 text={workout.name}
+                index={index}
+                handleMovePrev={handleMovePrevWorkout}
+                handleMoveNext={handleMoveNextWorkout}
+                isDisabledPrev={index === 0}
+                isDisabledNext={index === localWorkouts.length - 1}
               />
             ))
         ) : (
           <ThemedText>No workouts yet. Create one to get started!</ThemedText>
         )}
 
-        <ThemedButton text="New Workout" onPress={handleCreateWorkout} />
+        <ThemedButton
+          text="New Workout"
+          icon={
+            <MaterialIcons
+              name="add"
+              size={IconSizes.SMALL}
+              color={IconColors.ON_PRIMARY}
+            />
+          }
+          onPress={handleCreateWorkout}
+        />
       </ScrollView>
     </>
   );

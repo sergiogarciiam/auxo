@@ -1,11 +1,13 @@
-import { Pressable, StyleSheet, Text } from "react-native";
+import React from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Colors, Sizes, Typography } from "../constants/theme";
 
 interface ThemedButtonProps {
-  text: string;
+  text?: string;
   onPress: () => void;
   disabled?: boolean;
-  variant?: "primary" | "success" | "destructive";
+  variant?: "primary" | "success" | "destructive" | "icon";
+  icon?: React.ReactNode;
 }
 
 /**
@@ -17,6 +19,7 @@ export const ThemedButton = ({
   onPress,
   disabled = false,
   variant = "primary",
+  icon,
 }: ThemedButtonProps) => {
   const getButtonColor = () => {
     switch (variant) {
@@ -36,12 +39,41 @@ export const ThemedButton = ({
       disabled={disabled}
       style={({ pressed }) => [
         styles.button,
+        variant === "icon" && styles.iconButton,
         { backgroundColor: getButtonColor() },
         disabled && styles.buttonDisabled,
         pressed && !disabled && styles.buttonPressed,
       ]}
     >
-      <Text style={[styles.text, disabled && styles.textDisabled]}>{text}</Text>
+      <View style={styles.content}>
+        {icon && text ? (
+          <View style={styles.iconWithTextRow}>
+            {icon}
+            <Text
+              style={[
+                styles.text,
+                variant === "icon" && styles.iconText,
+                disabled && styles.textDisabled,
+                styles.iconTextSpacing,
+              ]}
+            >
+              {text}
+            </Text>
+          </View>
+        ) : icon ? (
+          icon
+        ) : (
+          <Text
+            style={[
+              styles.text,
+              variant === "icon" && styles.iconText,
+              disabled && styles.textDisabled,
+            ]}
+          >
+            {text}
+          </Text>
+        )}
+      </View>
     </Pressable>
   );
 };
@@ -54,6 +86,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+
+  iconButton: {
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+    minWidth: 32,
+    minHeight: 32,
+    borderRadius: 16,
+  },
+
+  content: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  iconWithTextRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  iconTextSpacing: {
+    marginLeft: Sizes.PADDING,
+  },
+
   buttonDisabled: {
     backgroundColor: Colors.DISABLED_BACKGROUND,
   },
@@ -64,6 +117,9 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: Typography.FONT_WEIGHT_SEMI_BOLD,
     fontSize: Typography.FONT_SIZE_DEFAULT,
+  },
+  iconText: {
+    fontSize: 14,
   },
   textDisabled: {
     color: Colors.DISABLED_TEXT,

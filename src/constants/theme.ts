@@ -51,3 +51,13 @@ export const Spacing = {
   DOUBLE_EXTRA_LARGE: 16,
   TRIPLE_EXTRA_LARGE: 20,
 } as const;
+
+export const IconSizes = {
+  SMALL: 16,
+  MEDIUM: 18,
+  LARGE: 20,
+} as const;
+
+export const IconColors = {
+  ON_PRIMARY: "#fff",
+} as const;
