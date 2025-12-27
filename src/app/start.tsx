@@ -1,6 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { Stack } from "expo-router";
-import { useState } from "react";
+import { Stack, useRouter } from "expo-router";
+import { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
@@ -8,8 +8,99 @@ import { Colors, IconColors, IconSizes, Spacing } from "../constants/theme";
 import { useStartWorkoutStore } from "../stores/useStartWorkoutStore";
 
 export default function StartWorkout() {
-  const { workout, executionPlan } = useStartWorkoutStore();
+  const { workout, executionPlan, stopWorkout } = useStartWorkoutStore();
   const [index, setIndex] = useState(0);
+  const [isFinished, setIsFinished] = useState(false);
+
+  const step = executionPlan[index];
+  const isLast = index >= executionPlan.length - 1;
+  const percent = isFinished
+    ? 100
+    : Math.round(((index + 1) / executionPlan.length) * 100);
+  const currentSection = workout?.sections?.find(
+    (s) => s.id === step.sectionId,
+  );
+  const screenTitle = `${workout?.name ?? ""}${currentSection ? ` > ${currentSection.name}` : ""}`;
+
+  const [remaining, setRemaining] = useState<number | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const timerRef = useRef<number | null>(null);
+  const router = useRouter();
+
+  const clearIntervalTimer = () => {
+    if (timerRef.current !== null) {
+      clearInterval(timerRef.current as unknown as number);
+      timerRef.current = null;
+    }
+  };
+
+  const handleNext = () => {
+    clearIntervalTimer();
+    setRemaining(null);
+    setIsPaused(false);
+    if (!isLast) setIndex((i) => i + 1);
+  };
+
+  const handlePrev = () => {
+    clearIntervalTimer();
+    setRemaining(null);
+    setIsPaused(false);
+    if (index > 0) setIndex((i) => i - 1);
+  };
+  const startInterval = () => {
+    clearIntervalTimer();
+    timerRef.current = setInterval(() => {
+      setRemaining((prev) => {
+        if (prev === null) return null;
+        if (prev <= 1) {
+          // reached zero
+          clearIntervalTimer();
+          // advance to next step after a short delay to allow UI update
+          setTimeout(() => {
+            if (!isLast) setIndex((i) => i + 1);
+          }, 200);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000) as unknown as number;
+  };
+
+  // run when index changes: reset remaining and start timer (unless paused)
+  useEffect(() => {
+    clearIntervalTimer();
+
+    const initial =
+      step.type === "exercise"
+        ? (step.time_seconds ?? null)
+        : (step.duration_seconds ?? null);
+    if (initial && initial > 0) {
+      setRemaining(initial);
+      if (!isPaused) startInterval();
+    } else {
+      setRemaining(null);
+    }
+
+    return () => clearIntervalTimer();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index]);
+
+  // run when pause toggles: stop or start interval without resetting remaining
+  useEffect(() => {
+    if (isPaused) {
+      clearIntervalTimer();
+    } else {
+      // resume
+      if (remaining && remaining > 0) startInterval();
+    }
+    return () => {};
+  }, [isPaused]);
+
+  const formatTime = (s: number) => {
+    const mm = Math.floor(s / 60);
+    const ss = s % 60;
+    return `${mm}:${ss.toString().padStart(2, "0")}`;
+  };
 
   if (!executionPlan || executionPlan.length === 0) {
     return (
@@ -20,23 +111,11 @@ export default function StartWorkout() {
     );
   }
 
-  const step = executionPlan[index];
-  const isLast = index >= executionPlan.length - 1;
-  const percent = Math.round((index / executionPlan.length) * 100);
-
-  const handleNext = () => {
-    if (!isLast) setIndex((i) => i + 1);
-  };
-
-  const handlePrev = () => {
-    if (index > 0) setIndex((i) => i - 1);
-  };
-
   return (
     <>
       <Stack.Screen
         options={{
-          title: workout?.name .,
+          title: screenTitle,
         }}
       />
       <View style={styles.container}>
@@ -60,17 +139,67 @@ export default function StartWorkout() {
           </View>
         </View>
 
-        <ThemedText
-          style={styles.progressText}
-        >{`${index + 1} / ${executionPlan.length}`}</ThemedText>
+        {!isFinished && (
+          <View style={styles.controls}>
+            <ThemedButton
+              text="Prev"
+              icon={
+                <MaterialIcons
+                  name="chevron-left"
+                  size={IconSizes.MEDIUM}
+                  color={IconColors.ON_PRIMARY}
+                />
+              }
+              onPress={handlePrev}
+              disabled={index === 0}
+            />
+
+            {!isFinished && (
+              <ThemedText
+                style={styles.progressText}
+              >{`${index + 1} / ${executionPlan.length}`}</ThemedText>
+            )}
+
+            <ThemedButton
+              text={isLast ? "Finish" : "Next"}
+              icon={
+                <MaterialIcons
+                  name="chevron-right"
+                  size={IconSizes.MEDIUM}
+                  color={IconColors.ON_PRIMARY}
+                />
+              }
+              onPress={
+                isLast
+                  ? () => {
+                      // mark isFinished in-place
+                      clearIntervalTimer();
+                      setRemaining(null);
+                      setIsPaused(false);
+                      setIsFinished(true);
+                    }
+                  : handleNext
+              }
+            />
+          </View>
+        )}
 
         <View style={styles.stepContainer}>
-          {step.type === "exercise" ? (
+          {isFinished ? (
             <>
               <ThemedText type="title" style={styles.bigValue}>
-                {step.time_seconds && step.time_seconds > 0
-                  ? `${step.time_seconds}s`
-                  : `${step.reps ?? "-"} reps`}
+                You isFinished the workout!
+              </ThemedText>
+              <ThemedText type="subtitle">{workout?.name}</ThemedText>
+            </>
+          ) : step.type === "exercise" ? (
+            <>
+              <ThemedText type="title" style={styles.bigValue}>
+                {remaining !== null
+                  ? formatTime(remaining)
+                  : step.time_seconds && step.time_seconds > 0
+                    ? formatTime(step.time_seconds)
+                    : `${step.reps ?? "-"} reps`}
               </ThemedText>
 
               <ThemedText type="subtitle">{step.name}</ThemedText>
@@ -78,43 +207,43 @@ export default function StartWorkout() {
                 <ThemedText>{`Weight: ${step.weight}`}</ThemedText>
               )}
               {step.set && <ThemedText>{`Set ${step.set}`}</ThemedText>}
+              {isPaused && remaining !== null && (
+                <ThemedText style={styles.pausedText}>Paused</ThemedText>
+              )}
             </>
           ) : (
             <>
               <ThemedText type="title" style={styles.bigValue}>
-                {`${step.duration_seconds ?? 0}s`}
+                {remaining !== null
+                  ? formatTime(remaining)
+                  : formatTime(step.duration_seconds ?? 0)}
               </ThemedText>
               <ThemedText type="subtitle">{step.name || "Rest"}</ThemedText>
             </>
           )}
         </View>
-
-        <View style={styles.controls}>
+      </View>
+      <View style={styles.bottomControls}>
+        <ThemedButton
+          text="Exit"
+          onPress={() => {
+            stopWorkout();
+            router.replace("/");
+          }}
+        />
+        {!isFinished && (
           <ThemedButton
-            text="Prev"
             icon={
               <MaterialIcons
-                name="chevron-left"
+                name={isPaused ? "play-arrow" : "pause"}
                 size={IconSizes.MEDIUM}
                 color={IconColors.ON_PRIMARY}
               />
             }
-            onPress={handlePrev}
-            disabled={index === 0}
+            onPress={() => setIsPaused((p) => !p)}
+            disabled={remaining === null}
           />
-
-          <ThemedButton
-            text={isLast ? "Finish" : "Next"}
-            icon={
-              <MaterialIcons
-                name="chevron-right"
-                size={IconSizes.MEDIUM}
-                color={IconColors.ON_PRIMARY}
-              />
-            }
-            onPress={isLast ? () => {} : handleNext}
-          />
-        </View>
+        )}
       </View>
     </>
   );
@@ -188,12 +317,23 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 12,
     color: "#666",
-    marginTop: Spacing.TINY,
+    marginTop: Spacing.SMALL,
   },
-
+  pausedText: {
+    marginTop: Spacing.MEDIUM,
+    color: "#b00020",
+    fontWeight: "600",
+  },
   controls: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
     gap: Spacing.LARGE,
+  },
+  bottomControls: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    marginBottom: Spacing.LARGE,
   },
 });

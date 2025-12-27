@@ -5,6 +5,7 @@ interface StartWorkoutStore {
   workout: UIWorkout | null;
   executionPlan: ExecutionStep[];
   startWorkout: (workout: UIWorkout, executionPlan: ExecutionStep[]) => void;
+  stopWorkout: () => void;
 }
 
 export const useStartWorkoutStore = create<StartWorkoutStore>((set, get) => ({
@@ -13,5 +14,8 @@ export const useStartWorkoutStore = create<StartWorkoutStore>((set, get) => ({
 
   startWorkout(workout: UIWorkout, executionPlan: ExecutionStep[]) {
     set({ workout, executionPlan });
+  },
+  stopWorkout() {
+    set({ workout: null, executionPlan: [] });
   },
 }));
