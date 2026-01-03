@@ -1,11 +1,12 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ScrollView, StyleSheet } from "react-native";
+import { Alert, ScrollView, StyleSheet } from "react-native";
 import { Card } from "../components/card";
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
 import { IconColors, IconSizes, Sizes, Spacing } from "../constants/theme";
+import { useExercises } from "../hooks/useExercises";
 import { useSections } from "../hooks/useSections";
 import { useWorkouts } from "../hooks/useWorkouts";
 import { useStartWorkoutStore } from "../stores/useStartWorkoutStore";
@@ -17,8 +18,10 @@ import { handleAndShowError } from "../utils/ui";
 
 export default function Homepage() {
   const router = useRouter();
-  const { workouts, getWorkoutById, getAllSections } = useWorkouts();
-  const { getAllExercisesBySectionId } = useSections();
+  const { workouts, getWorkoutById, getAllSections, deleteWorkout } =
+    useWorkouts();
+  const { getAllExercisesBySectionId, deleteSection } = useSections();
+  const { deleteExercise } = useExercises();
   const { loadWorkout, reset } = useWorkoutStore();
   const { startWorkout } = useStartWorkoutStore();
 
@@ -142,6 +145,60 @@ export default function Homepage() {
 
   const hasWorkouts = localWorkouts.filter(Boolean).length > 0;
 
+  const handleDeleteWorkout = useCallback(
+    (id: number) => {
+      Alert.alert(
+        "Remove workout?",
+        "Are you sure you want to remove this workout?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                const sectionsToDelete = await getAllSections(id);
+
+                const exercisesToDelete = (
+                  await Promise.all(
+                    (sectionsToDelete || []).map(async (s: any) => {
+                      return await getAllExercisesBySectionId(Number(s.id));
+                    }),
+                  )
+                ).flat();
+
+                await Promise.all(
+                  (sectionsToDelete || []).map((s: any) =>
+                    deleteSection(Number(s.id)),
+                  ),
+                );
+
+                await Promise.all(
+                  (exercisesToDelete || [])
+                    .map((e: any) => e.id)
+                    .map(async (exerciseId: number) =>
+                      deleteExercise(Number(exerciseId)),
+                    ),
+                );
+
+                await deleteWorkout(Number(id));
+              } catch (error) {
+                handleAndShowError(error);
+              }
+            },
+          },
+        ],
+      );
+    },
+    [
+      getAllSections,
+      getAllExercisesBySectionId,
+      deleteSection,
+      deleteExercise,
+      deleteWorkout,
+    ],
+  );
+
   return (
     <>
       <Stack.Screen
@@ -158,6 +215,7 @@ export default function Homepage() {
                 key={workout.id || `tmp-${index}`}
                 onStart={() => handleStartWorkout(workout.id)}
                 onEdit={() => workout.id && handleEditWorkout(workout.id)}
+                onDelete={() => workout.id && handleDeleteWorkout(workout.id)}
                 text={workout.name}
                 index={index}
                 handleMovePrev={handleMovePrevWorkout}

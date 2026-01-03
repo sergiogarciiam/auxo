@@ -14,7 +14,9 @@ import {
   Spacing,
 } from "../constants/theme";
 
+import { useExercises } from "../hooks/useExercises";
 import { useSaveWorkout } from "../hooks/useSaveWorkout";
+import { useSections } from "../hooks/useSections";
 import { useWorkouts } from "../hooks/useWorkouts";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
 import { UISection, UIWorkout } from "../types/ui";
@@ -26,6 +28,8 @@ export default function WorkoutScreen() {
   const params = useLocalSearchParams();
 
   const { deleteWorkout, getWorkoutById } = useWorkouts();
+  const { deleteSection } = useSections();
+  const { deleteExercise } = useExercises();
   const { saveWorkout } = useSaveWorkout();
   const {
     workout,
@@ -138,7 +142,22 @@ export default function WorkoutScreen() {
           style: "destructive",
           onPress: async () => {
             try {
-              // TODO: remove exercises and sectionss
+              await Promise.all(
+                workout?.sections
+                  ?.map((s) => s.id)!
+                  .map(async (sectionId) => {
+                    await deleteSection(Number(sectionId));
+                  }) || [],
+              );
+
+              await Promise.all(
+                workout?.sections
+                  ?.flatMap((s) => (s.exercises || []).map((e) => e.id))
+                  .map(async (exerciseId) => {
+                    await deleteExercise(Number(exerciseId));
+                  }) || [],
+              );
+
               await deleteWorkout(Number(workout!.id));
               reset();
               router.replace("/");
@@ -149,7 +168,7 @@ export default function WorkoutScreen() {
         },
       ],
     );
-  }, [workout, deleteWorkout, reset, router]);
+  }, [workout, deleteWorkout, deleteSection, deleteExercise, reset, router]);
 
   const handleAddSection = useCallback(() => {
     router.push("/section");

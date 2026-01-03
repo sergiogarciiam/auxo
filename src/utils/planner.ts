@@ -15,9 +15,16 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
 
     if (exercises.length === 0) return;
 
+    // SUPERSET PLANNING
     if (section.type === "superset") {
-      // Superset: perform exercises back-to-back (no rest between exercises),
-      // repeat for the number of sets (max sets among exercises). After each set (group), apply rest_group.
+      const pairExercises = [];
+
+      for (let i = 0; i < exercises.length; i += 2) {
+        const first = exercises[i];
+        const second = exercises[i + 1];
+        pairExercises.push([first, second]);
+      }
+
       const maxSets = Math.max(...exercises.map((e) => e.sets || 0));
       for (let setIdx = 0; setIdx < maxSets; setIdx++) {
         exercises.forEach((ex) => {
@@ -46,9 +53,9 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
           });
         }
       }
+
+      // CIRCUIT PLANNING
     } else if (section.type === "circuit") {
-      // Circuit: perform each exercise once per round, include rest_exercise between exercises,
-      // after finishing a round, apply rest_group if more rounds remain.
       const maxSets = Math.max(...exercises.map((e) => e.sets || 0));
       for (let round = 0; round < maxSets; round++) {
         exercises.forEach((ex, idx) => {
@@ -88,9 +95,9 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
           });
         }
       }
+
+      // STANDARD PLANNING
     } else {
-      // traditional, warmup, cooldown or default: do each exercise with its sets sequentially,
-      // add rest_exercise between sets and between exercises
       exercises.forEach((ex, exIdx) => {
         for (let s = 0; s < (ex.sets || 0); s++) {
           plan.push({
@@ -129,9 +136,6 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
         }
       });
     }
-
-    // After finishing section, add group rest if defined (but not if last section)
-    // Note: caller may want to handle global sequencing; we leave group rest insertion to per-type logic
   });
 
   return plan;
