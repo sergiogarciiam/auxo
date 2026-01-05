@@ -1,7 +1,7 @@
 /**
  * UI utilities and helpers
  */
-import { Alert, Platform, ToastAndroid } from "react-native";
+import { showSnackbar } from "../stores/useSnackbarStore";
 
 /**
  * Shows a platform-appropriate error message
@@ -9,11 +9,7 @@ import { Alert, Platform, ToastAndroid } from "react-native";
  */
 export function showErrorMessage(message: string): void {
   try {
-    if (Platform.OS === "android") {
-      ToastAndroid.show(message, ToastAndroid.SHORT);
-    } else {
-      Alert.alert("Error", message);
-    }
+    showSnackbar(message, "error");
   } catch (error) {
     console.error("Failed to show error message:", error);
   }
@@ -44,4 +40,24 @@ export function getErrorMessage(error: unknown): string {
 export function handleAndShowError(error: unknown): void {
   const message = getErrorMessage(error);
   showErrorMessage(message);
+}
+
+/**
+ * Shows a platform-appropriate success message
+ * Uses Toast on Android and Alert on iOS
+ */
+export function showSuccessMessage(message: string): void {
+  try {
+    showSnackbar(message, "success");
+  } catch (error) {
+    console.error("Failed to show success message:", error);
+  }
+}
+
+export function showWarningMessage(message: string): void {
+  try {
+    showSnackbar(message, "warning");
+  } catch (error) {
+    console.error("Failed to show warning message:", error);
+  }
 }

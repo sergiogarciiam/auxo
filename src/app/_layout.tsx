@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 import { SQLiteProvider } from "expo-sqlite";
+import { Snackbar } from "../components/snackbar";
 import { Colors } from "../constants/theme";
 import { dbRepository } from "../repositories/dbRepository";
 
@@ -9,6 +10,7 @@ export default function RootLayout() {
       databaseName="workout_timer.db"
       onInit={dbRepository.onInit}
     >
+      <Snackbar />
       <Stack
         screenOptions={{
           headerShadowVisible: false,

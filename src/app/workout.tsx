@@ -20,7 +20,7 @@ import { useSections } from "../hooks/useSections";
 import { useWorkouts } from "../hooks/useWorkouts";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
 import { UISection, UIWorkout } from "../types/ui";
-import { handleAndShowError } from "../utils/ui";
+import { handleAndShowError, showSuccessMessage } from "../utils/ui";
 import { validateWorkout } from "../utils/validation";
 
 export default function WorkoutScreen() {
@@ -70,7 +70,7 @@ export default function WorkoutScreen() {
   useEffect(() => {
     if (workout && !section?.id.toString().startsWith("temp-"))
       initialWorkoutRef.current = JSON.parse(JSON.stringify(workout));
-  }, [workout?.id]);
+  }, [workout, section?.id]);
 
   const handleDone = useCallback(async () => {
     try {
@@ -79,6 +79,7 @@ export default function WorkoutScreen() {
         throw new Error(validationError);
       }
       await saveWorkout(workout!);
+      showSuccessMessage("Workout saved");
       reset();
       router.replace("/");
     } catch (error) {
@@ -159,6 +160,7 @@ export default function WorkoutScreen() {
               );
 
               await deleteWorkout(Number(workout!.id));
+              showSuccessMessage("Workout deleted");
               reset();
               router.replace("/");
             } catch (error) {

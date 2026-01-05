@@ -14,6 +14,7 @@ export const Colors = {
   ERROR_TEXT: "#d17a7aff",
   SUCCESS: "#7ad18fff",
   DESTRUCTIVE: "#d17a7aff",
+  WARNING: "#f6b042ff",
   NEUTRAL: "#7a96d1ff",
 } as const;
 

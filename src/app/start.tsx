@@ -1,13 +1,20 @@
 import { MaterialIcons } from "@expo/vector-icons";
+import { useAudioPlayer } from "expo-audio";
 import { Stack, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
 import { Colors, IconColors, IconSizes, Spacing } from "../constants/theme";
 import { useStartWorkoutStore } from "../stores/useStartWorkoutStore";
 
+const beep = require("../../assets/beep.wav");
+const doubleBeep = require("../../assets/double-beep.wav");
+
 export default function StartWorkout() {
+  const beepPlayer = useAudioPlayer(beep);
+  const doubleBeepPlayer = useAudioPlayer(doubleBeep);
+
   const { workout, executionPlan, stopWorkout } = useStartWorkoutStore();
   const [index, setIndex] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
@@ -47,12 +54,43 @@ export default function StartWorkout() {
     setIsPaused(false);
     if (index > 0) setIndex((i) => i - 1);
   };
+
+  const handleExit = () => {
+    if (!isFinished) {
+      Alert.alert(
+        "Exit workout?",
+        "Are you sure you want to exit this workout?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Delete",
+            style: "destructive",
+            onPress: async () => {
+              stopWorkout();
+              router.replace("/");
+            },
+          },
+        ],
+      );
+    } else {
+      stopWorkout();
+      router.replace("/");
+    }
+  };
+
   const startInterval = () => {
     clearIntervalTimer();
+
     timerRef.current = setInterval(() => {
       setRemaining((prev) => {
         if (prev === null) return null;
+        if (prev <= 4 && prev > 1) {
+          beepPlayer.seekTo(0);
+          beepPlayer.play();
+        }
         if (prev <= 1) {
+          doubleBeepPlayer.seekTo(0);
+          doubleBeepPlayer.play();
           // reached zero
           clearIntervalTimer();
           // advance to next step after a short delay to allow UI update
@@ -224,13 +262,7 @@ export default function StartWorkout() {
         </View>
       </View>
       <View style={styles.bottomControls}>
-        <ThemedButton
-          text="Exit"
-          onPress={() => {
-            stopWorkout();
-            router.replace("/");
-          }}
-        />
+        <ThemedButton text="Exit" onPress={handleExit} />
         {!isFinished && (
           <ThemedButton
             icon={

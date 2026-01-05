@@ -18,7 +18,7 @@ import {
 } from "../constants/theme";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
 import { UISection } from "../types/ui";
-import { handleAndShowError } from "../utils/ui";
+import { handleAndShowError, showSuccessMessage } from "../utils/ui";
 import { validateSection } from "../utils/validation";
 
 export default function SectionScreen() {
@@ -118,12 +118,26 @@ export default function SectionScreen() {
   );
 
   const handleDeleteSection = useCallback(() => {
-    try {
-      removeSection(sectionId as string);
-      router.replace("/workout");
-    } catch (error) {
-      handleAndShowError(error);
-    }
+    Alert.alert(
+      "Remove section?",
+      "Are you sure you want to remove this section?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              removeSection(sectionId as string);
+              router.replace("/workout");
+              showSuccessMessage("Section deleted");
+            } catch (error) {
+              handleAndShowError(error);
+            }
+          },
+        },
+      ],
+    );
   }, [sectionId, removeSection, router]);
 
   const isCreating = section?.id?.toString().startsWith("temp-") || false;
@@ -136,6 +150,7 @@ export default function SectionScreen() {
         throw new Error(validationError);
       }
       router.replace("/workout");
+      showSuccessMessage("Section saved");
     } catch (error) {
       handleAndShowError(error);
     }
