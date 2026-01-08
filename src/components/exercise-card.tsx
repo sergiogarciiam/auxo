@@ -71,7 +71,7 @@ export function ExerciseCard({
         <TextInput
           style={styles.input}
           keyboardType="numeric"
-          value={exercise.time_seconds.toString()}
+          value={exercise.time_seconds?.toString()}
           onChangeText={(text) => handleNumericChange("time_seconds", text)}
         />
       </Field>

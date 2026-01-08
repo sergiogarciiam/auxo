@@ -70,13 +70,17 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
       await db.execAsync(`
         INSERT INTO workouts (name, total_time) VALUES
           ('Full Body Beginner', 0),
-          ('Circuit Blast', 0);
+          ('Circuit Blast', 0),
+          ('Full Body Superset', 0);
+
 
         INSERT INTO sections (workout_id, name, type, rest_exercise, rest_group, position) VALUES
           (1, 'Warm up', 'warmup', 0, 0, 0),
           (1, 'Strength', 'traditional', 60, 90, 1),
           (2, 'Circuit', 'circuit', 15, 60, 0),
-          (2, 'Cooldown', 'cooldown', 0, 0, 1);
+          (2, 'Cooldown', 'cooldown', 0, 0, 1),
+          (3, 'Superset Strength', 'superset', 45, 60, 1),
+          (3, 'Cooldown', 'cooldown', 0, 0, 2);
 
         INSERT INTO exercises (section_id, name, reps, time_seconds, weight, sets, position) VALUES
           -- Workout 1 - Warm up
@@ -92,7 +96,15 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
           (3, 'Jump Lunges', NULL, 30, NULL, 3, 2),
           -- Workout 2 - Cooldown
           (4, 'Stretch Hamstrings', NULL, 60, NULL, 1, 0),
-          (4, 'Child Pose', NULL, 60, NULL, 1, 1);
+          (4, 'Child Pose', NULL, 60, NULL, 1, 1),
+          -- Workout 3 - Superset Strength
+          (5, 'Dumbbell Squats', 12, NULL, 10, 3, 0),
+          (5, 'Push Ups', 10, NULL, NULL, 3, 1),
+          (5, 'Lunges', 12, NULL, NULL, 3, 2),
+          (5, 'Plank Row', 10, NULL, 10, 3, 3),
+          -- Workout 3 - Cooldown
+          (6, 'Forward Fold', NULL, 60, NULL, 1, 0),
+          (6, 'Cat-Cow Stretch', NULL, 60, NULL, 1, 1);
       `);
     }
 

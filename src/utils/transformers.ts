@@ -14,7 +14,7 @@ export function transformExerciseToUI(exercise: Exercise): UIExercise {
     section_id: exercise.section_id,
     name: exercise.name,
     reps: exercise.reps ?? 0,
-    time_seconds: exercise.time ?? 0,
+    time_seconds: exercise.time_seconds ?? 0,
     weight: exercise.weight ?? 0,
     sets: exercise.sets ?? 0,
     position: exercise.position,

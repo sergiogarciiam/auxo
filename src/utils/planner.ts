@@ -17,41 +17,61 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
 
     // SUPERSET PLANNING
     if (section.type === "superset") {
-      const pairExercises = [];
+      const queue = exercises.map((ex) => ({
+        ...ex,
+        remainingSets: ex.sets || 0,
+        completedSets: 0,
+      }));
 
-      for (let i = 0; i < exercises.length; i += 2) {
-        const first = exercises[i];
-        const second = exercises[i + 1];
-        pairExercises.push([first, second]);
-      }
+      let first = 0;
+      let second = 1;
+      let nextExercise = true;
 
-      const maxSets = Math.max(...exercises.map((e) => e.sets || 0));
-      for (let setIdx = 0; setIdx < maxSets; setIdx++) {
-        exercises.forEach((ex) => {
-          if ((ex.sets || 0) > setIdx) {
-            plan.push({
-              id: nanoid(),
-              type: "exercise",
-              sectionId: section.id,
-              exerciseId: ex.id,
-              name: ex.name,
-              reps: ex.reps,
-              time_seconds: ex.time_seconds,
-              weight: ex.weight,
-              set: setIdx + 1,
-            });
+      while (queue.some((ex) => ex.remainingSets > 0)) {
+        let activeExercise = nextExercise ? first : second;
+
+        if (queue[activeExercise].remainingSets === 0) {
+          activeExercise = nextExercise ? second : first;
+
+          if (queue[activeExercise].remainingSets === 0) {
+            const nextIndex = queue.findIndex((ex) => ex.remainingSets > 0);
+            if (nextIndex === -1) break; // ya no quedan sets
+            first = nextIndex;
+            second = nextIndex + 1 < queue.length ? nextIndex + 1 : nextIndex;
+            activeExercise = first;
           }
+        }
+
+        const exercise = exercises[activeExercise];
+
+        // Añadir ejercicio
+        plan.push({
+          id: nanoid(),
+          type: "exercise",
+          sectionId: section.id,
+          exerciseId: exercise.id,
+          name: exercise.name,
+          reps: exercise.reps,
+          time_seconds: exercise.time_seconds,
+          weight: exercise.weight,
+          set: queue[activeExercise].completedSets + 1,
         });
 
-        if (setIdx < maxSets - 1 && section.rest_group > 0) {
-          plan.push({
-            id: nanoid(),
-            type: "rest",
-            sectionId: section.id,
-            name: "Rest",
-            duration_seconds: section.rest_group,
-          });
-        }
+        plan.push({
+          id: nanoid(),
+          type: "rest",
+          sectionId: section.id,
+          name: activeExercise % 2 === 0 ? "Rest" : "Group Rest",
+          duration_seconds:
+            activeExercise % 2 === 0
+              ? section.rest_exercise
+              : section.rest_group,
+        });
+
+        queue[activeExercise].remainingSets -= 1;
+        queue[activeExercise].completedSets += 1;
+
+        nextExercise = !nextExercise;
       }
 
       // CIRCUIT PLANNING
@@ -125,7 +145,7 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
         }
 
         // rest between exercises
-        if (exIdx < exercises.length - 1 && section.rest_exercise > 0) {
+        if (exIdx < exercises.length - 1 && section.rest_group > 0) {
           plan.push({
             id: nanoid(),
             type: "rest",

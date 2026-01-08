@@ -38,6 +38,7 @@ export const section = {
   }): Promise<any[]> => {
     const sql = `SELECT * FROM exercises WHERE section_id = ? ORDER BY position ASC;`;
     const result = await getAllRows(sql, [section_id]);
+    console.log("Fetched exercises for section_id", section_id, ":", result);
     return result;
   },
 

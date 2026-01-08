@@ -226,7 +226,7 @@ export default function StartWorkout() {
           {isFinished ? (
             <>
               <ThemedText type="title" style={styles.bigValue}>
-                You isFinished the workout!
+                You finished the workout!
               </ThemedText>
               <ThemedText type="subtitle">{workout?.name}</ThemedText>
             </>
@@ -237,10 +237,18 @@ export default function StartWorkout() {
                   ? formatTime(remaining)
                   : step.time_seconds && step.time_seconds > 0
                     ? formatTime(step.time_seconds)
-                    : `${step.reps ?? "-"} reps`}
+                    : step.reps
+                      ? `x${step.reps}`
+                      : "-"}
               </ThemedText>
 
               <ThemedText type="subtitle">{step.name}</ThemedText>
+              {step.time_seconds !== undefined &&
+                step.time_seconds > 0 &&
+                step.reps !== undefined &&
+                step.reps > 0 && (
+                  <ThemedText>{`Reps: ${step.reps}`}</ThemedText>
+                )}
               {step.weight !== undefined && step.weight !== 0 && (
                 <ThemedText>{`Weight: ${step.weight}`}</ThemedText>
               )}

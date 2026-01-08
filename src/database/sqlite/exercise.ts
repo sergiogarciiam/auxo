@@ -28,13 +28,13 @@ export const exercise = {
       (section_id, name, reps, time_seconds, weight, sets, position) 
       VALUES (?, ?, ?, ?, ?, ?, ?);
     `;
-    const { section_id, name, reps, time, weight, sets, position } =
+    const { section_id, name, reps, time_seconds, weight, sets, position } =
       exerciseData;
     const result = await runQuery(sql, [
       section_id,
       name,
       reps,
-      time,
+      time_seconds,
       weight,
       sets,
       position,
@@ -51,13 +51,13 @@ export const exercise = {
       SET section_id = ?, name = ?, reps = ?, time_seconds = ?, weight = ?, sets = ?, position = ?
       WHERE id = ?;
     `;
-    const { id, section_id, name, reps, time, weight, sets, position } =
+    const { id, section_id, name, reps, time_seconds, weight, sets, position } =
       exerciseData;
     const result = await runQuery(sql, [
       section_id,
       name,
       reps,
-      time,
+      time_seconds,
       weight,
       sets,
       position,

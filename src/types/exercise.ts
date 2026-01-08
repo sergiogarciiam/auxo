@@ -8,7 +8,7 @@ export interface Exercise {
   section_id: number;
   name: string;
   reps?: number;
-  time?: number;
+  time_seconds?: number;
   weight?: number;
   sets?: number;
   position: number;
@@ -18,7 +18,7 @@ export interface CreateExercisePayload {
   section_id: number;
   name: string;
   reps: number;
-  time: number;
+  time_seconds: number;
   weight: number;
   sets: number;
   position: number;
@@ -29,7 +29,7 @@ export interface UpdateExercisePayload {
   section_id?: number;
   name?: string;
   reps?: number;
-  time?: number;
+  time_seconds?: number;
   weight?: number;
   sets?: number;
   position?: number;
