@@ -2,7 +2,17 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import {
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
 import { ExerciseCard } from "../components/exercise-card";
 import { Field } from "../components/field";
 import { ThemedButton } from "../components/themed-button";
@@ -118,6 +128,8 @@ export default function SectionScreen() {
   );
 
   const handleDeleteSection = useCallback(() => {
+    Keyboard.dismiss();
+
     Alert.alert(
       "Remove section?",
       "Are you sure you want to remove this section?",
@@ -143,6 +155,8 @@ export default function SectionScreen() {
   const isCreating = section?.id?.toString().startsWith("temp-") || false;
 
   const handleDone = useCallback(() => {
+    Keyboard.dismiss();
+
     try {
       const currentSection = useWorkoutStore.getState().section;
       const validationError = validateSection(currentSection as UISection);
@@ -157,6 +171,8 @@ export default function SectionScreen() {
   }, [router]);
 
   const handleDiscard = useCallback(() => {
+    Keyboard.dismiss();
+
     Alert.alert(
       "Discard changes?",
       "Are you sure you want to discard changes to this section?",
@@ -233,125 +249,135 @@ export default function SectionScreen() {
           ),
         }}
       />
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.card}>
-          <Field label="Section name" required>
-            <TextInput
-              style={styles.input}
-              value={section.name}
-              onChangeText={(text) => handleUpdateSection({ name: text })}
-              accessibilityLabel="Section name input"
-            />
-          </Field>
-
-          <Field label="Section type">
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={section.type}
-                onValueChange={(value) => handleUpdateSection({ type: value })}
-                accessibilityLabel="Section type picker"
-              >
-                <Picker.Item label="Select Type" value="" />
-                {SECTION_TYPES.map((type) => (
-                  <Picker.Item
-                    key={type}
-                    label={SECTION_TYPE_LABELS[type]}
-                    value={type}
-                  />
-                ))}
-              </Picker>
-            </View>
-          </Field>
-
-          <Field label="Prepare time (seconds)">
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={section.prepare_time.toString()}
-              onChangeText={(text) =>
-                handleUpdateSection({
-                  prepare_time: Number(text) || 0,
-                })
-              }
-              accessibilityLabel="Prepare time input"
-            />
-          </Field>
-
-          <Field label="Rest between exercises (seconds)">
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={section.rest_exercise.toString()}
-              onChangeText={(text) =>
-                handleUpdateSection({
-                  rest_exercise: Number(text) || 0,
-                })
-              }
-              accessibilityLabel="Rest between exercises input"
-            />
-          </Field>
-
-          <Field label={`Rest between ${section.type || "group"}`}>
-            <TextInput
-              style={[
-                styles.input,
-                !isCircuitOrSuperset ? styles.inputDisabled : undefined,
-              ]}
-              editable={isCircuitOrSuperset}
-              keyboardType="numeric"
-              value={section.rest_group.toString()}
-              onChangeText={(text) =>
-                handleUpdateSection({
-                  rest_group: Number(text) || 0,
-                })
-              }
-              accessibilityLabel={`Rest between ${section.type} input`}
-            />
-          </Field>
-        </View>
-
-        <ThemedText type="subtitle">Exercises</ThemedText>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.exercisesScroll}
-        >
-          {localExercises.map((exercise, index) => (
-            <View key={exercise.id} style={styles.exerciseWrapper}>
-              <ExerciseCard
-                exercise={exercise}
-                exerciseId={exercise.id}
-                index={index}
-                handleMovePrev={handleMovePrevExercise}
-                handleMoveNext={handleMoveNextExercise}
-                isDisabledPrev={index === 0}
-                isDisabledNext={index === localExercises.length - 1}
-                setExercise={(exerciseId, ex) => {
-                  updateExercise(sectionId as string, exerciseId, ex);
-                }}
-                onRemoveExercise={() =>
-                  removeExercise(sectionId as string, exercise.id)
-                }
-              />
-            </View>
-          ))}
-
-          <View style={styles.newExerciseButtonContainer}>
-            <ThemedButton
-              text="New Exercise"
-              icon={
-                <MaterialIcons
-                  name="add"
-                  size={IconSizes.SMALL}
-                  color={IconColors.ON_PRIMARY}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView contentContainerStyle={styles.container}>
+            <View style={styles.card}>
+              <Field label="Section name" required>
+                <TextInput
+                  style={styles.input}
+                  value={section.name}
+                  onChangeText={(text) => handleUpdateSection({ name: text })}
+                  accessibilityLabel="Section name input"
                 />
-              }
-              onPress={handleAddExercise}
-            />
-          </View>
-        </ScrollView>
-      </ScrollView>
+              </Field>
+
+              <Field label="Section type">
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={section.type}
+                    onValueChange={(value) =>
+                      handleUpdateSection({ type: value })
+                    }
+                    accessibilityLabel="Section type picker"
+                  >
+                    <Picker.Item label="Select Type" value="" />
+                    {SECTION_TYPES.map((type) => (
+                      <Picker.Item
+                        key={type}
+                        label={SECTION_TYPE_LABELS[type]}
+                        value={type}
+                      />
+                    ))}
+                  </Picker>
+                </View>
+              </Field>
+
+              <Field label="Prepare time (seconds)">
+                <TextInput
+                  style={styles.input}
+                  keyboardType="numeric"
+                  value={section.prepare_time.toString()}
+                  onChangeText={(text) =>
+                    handleUpdateSection({
+                      prepare_time: Number(text) || 0,
+                    })
+                  }
+                  accessibilityLabel="Prepare time input"
+                />
+              </Field>
+
+              <Field label="Rest between exercises (seconds)">
+                <TextInput
+                  style={styles.input}
+                  keyboardType="numeric"
+                  value={section.rest_exercise.toString()}
+                  onChangeText={(text) =>
+                    handleUpdateSection({
+                      rest_exercise: Number(text) || 0,
+                    })
+                  }
+                  accessibilityLabel="Rest between exercises input"
+                />
+              </Field>
+
+              <Field label={`Rest between ${section.type || "group"}`}>
+                <TextInput
+                  style={[
+                    styles.input,
+                    !isCircuitOrSuperset ? styles.inputDisabled : undefined,
+                  ]}
+                  editable={isCircuitOrSuperset}
+                  keyboardType="numeric"
+                  value={section.rest_group.toString()}
+                  onChangeText={(text) =>
+                    handleUpdateSection({
+                      rest_group: Number(text) || 0,
+                    })
+                  }
+                  accessibilityLabel={`Rest between ${section.type} input`}
+                />
+              </Field>
+            </View>
+
+            <ThemedText type="subtitle">Exercises</ThemedText>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.exercisesScroll}
+            >
+              {localExercises.map((exercise, index) => (
+                <View key={exercise.id} style={styles.exerciseWrapper}>
+                  <ExerciseCard
+                    exercise={exercise}
+                    exerciseId={exercise.id}
+                    index={index}
+                    handleMovePrev={handleMovePrevExercise}
+                    handleMoveNext={handleMoveNextExercise}
+                    isDisabledPrev={index === 0}
+                    isDisabledNext={index === localExercises.length - 1}
+                    setExercise={(exerciseId, ex) => {
+                      updateExercise(sectionId as string, exerciseId, ex);
+                    }}
+                    onRemoveExercise={() =>
+                      removeExercise(sectionId as string, exercise.id)
+                    }
+                  />
+                </View>
+              ))}
+
+              <View style={styles.newExerciseButtonContainer}>
+                <ThemedButton
+                  text="New Exercise"
+                  icon={
+                    <MaterialIcons
+                      name="add"
+                      size={IconSizes.SMALL}
+                      color={IconColors.ON_PRIMARY}
+                    />
+                  }
+                  onPress={handleAddExercise}
+                />
+              </View>
+            </ScrollView>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </>
   );
 }

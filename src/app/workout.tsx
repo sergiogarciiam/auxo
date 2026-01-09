@@ -1,7 +1,17 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import {
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
 import { Card } from "../components/card";
 import { Field } from "../components/field";
 import { ThemedButton } from "../components/themed-button";
@@ -73,6 +83,8 @@ export default function WorkoutScreen() {
   }, [workout, section?.id]);
 
   const handleDone = useCallback(async () => {
+    Keyboard.dismiss();
+
     try {
       const validationError = validateWorkout(workout as UIWorkout);
       if (validationError) {
@@ -88,6 +100,8 @@ export default function WorkoutScreen() {
   }, [saveWorkout, workout, reset, router]);
 
   const handleDiscard = useCallback(() => {
+    Keyboard.dismiss();
+
     Alert.alert(
       "Discard changes?",
       "Are you sure you want to discard changes to this workout?",
@@ -133,6 +147,8 @@ export default function WorkoutScreen() {
   );
 
   const handleDeleteWorkout = useCallback(async () => {
+    Keyboard.dismiss();
+
     Alert.alert(
       "Remove section?",
       "Are you sure you want to remove this workout?",
@@ -297,51 +313,61 @@ export default function WorkoutScreen() {
           ),
         }}
       />
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.card}>
-          <Field label="Workout name" required>
-            <TextInput
-              style={styles.input}
-              value={workout.name}
-              onChangeText={setName}
-              accessibilityLabel="Workout name input"
-            />
-          </Field>
-
-          <ThemedText type="subtitle">Sections</ThemedText>
-
-          {localSections.length > 0 ? (
-            localSections.map((section, index) => (
-              <View key={section.id} style={{ marginBottom: 12 }}>
-                <Card
-                  text={section.name}
-                  onEdit={() => handleEditSection(section.id.toString())}
-                  onDelete={() => handleDeleteSection(section.id.toString())}
-                  index={index}
-                  handleMovePrev={handleMovePrevSection}
-                  handleMoveNext={handleMoveNextSection}
-                  isDisabledPrev={index === 0}
-                  isDisabledNext={index === localSections.length - 1}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView contentContainerStyle={styles.container}>
+            <View style={styles.card}>
+              <Field label="Workout name" required>
+                <TextInput
+                  style={styles.input}
+                  value={workout.name}
+                  onChangeText={setName}
+                  accessibilityLabel="Workout name input"
                 />
-              </View>
-            ))
-          ) : (
-            <ThemedText>No sections yet</ThemedText>
-          )}
+              </Field>
 
-          <ThemedButton
-            text="New Section"
-            icon={
-              <MaterialIcons
-                name="add"
-                size={IconSizes.SMALL}
-                color={IconColors.ON_PRIMARY}
+              <ThemedText type="subtitle">Sections</ThemedText>
+
+              {localSections.length > 0 ? (
+                localSections.map((section, index) => (
+                  <View key={section.id} style={{ marginBottom: 12 }}>
+                    <Card
+                      text={section.name}
+                      onEdit={() => handleEditSection(section.id.toString())}
+                      onDelete={() =>
+                        handleDeleteSection(section.id.toString())
+                      }
+                      index={index}
+                      handleMovePrev={handleMovePrevSection}
+                      handleMoveNext={handleMoveNextSection}
+                      isDisabledPrev={index === 0}
+                      isDisabledNext={index === localSections.length - 1}
+                    />
+                  </View>
+                ))
+              ) : (
+                <ThemedText>No sections yet</ThemedText>
+              )}
+
+              <ThemedButton
+                text="New Section"
+                icon={
+                  <MaterialIcons
+                    name="add"
+                    size={IconSizes.SMALL}
+                    color={IconColors.ON_PRIMARY}
+                  />
+                }
+                onPress={handleAddSection}
               />
-            }
-            onPress={handleAddSection}
-          />
-        </View>
-      </ScrollView>
+            </View>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </>
   );
 }
