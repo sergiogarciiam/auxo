@@ -2,29 +2,10 @@ import { useCallback } from "react";
 import { exerciseRepository } from "../repositories/exerciseRepository";
 import {
   CreateExercisePayload,
-  Exercise,
   UpdateExercisePayload,
 } from "../types/exercise";
 
 export const useExercises = () => {
-  /**
-   * Fetches all exercises for a section
-   */
-  const getExercisesBySectionId = useCallback(
-    async (section_id: number): Promise<Exercise[]> => {
-      try {
-        const exercises = await exerciseRepository.getBySectionId({
-          section_id,
-        });
-        return exercises;
-      } catch (error) {
-        console.error("Failed to fetch exercises:", error);
-        throw error;
-      }
-    },
-    [],
-  );
-
   /**
    * Creates a new exercise
    */
@@ -68,7 +49,6 @@ export const useExercises = () => {
   }, []);
 
   return {
-    getExercisesBySectionId,
     createExercise,
     updateExercise,
     deleteExercise,

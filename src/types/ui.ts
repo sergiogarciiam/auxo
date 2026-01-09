@@ -22,6 +22,7 @@ export interface UISection {
   workout_id: number | string;
   name: string;
   type: string;
+  prepare_time: number;
   rest_exercise: number;
   rest_group: number;
   position: number;

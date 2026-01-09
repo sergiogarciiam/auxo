@@ -263,6 +263,20 @@ export default function SectionScreen() {
             </View>
           </Field>
 
+          <Field label="Prepare time (seconds)">
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              value={section.prepare_time.toString()}
+              onChangeText={(text) =>
+                handleUpdateSection({
+                  prepare_time: Number(text) || 0,
+                })
+              }
+              accessibilityLabel="Prepare time input"
+            />
+          </Field>
+
           <Field label="Rest between exercises (seconds)">
             <TextInput
               style={styles.input}

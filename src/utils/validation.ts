@@ -44,6 +44,10 @@ export function validateSection(section: UISection): string | null {
     return "Section type is required";
   }
 
+  if (!isNumberDefined(section.prepare_time)) {
+    return "Prepare time is required";
+  }
+
   if (!isNumberDefined(section.rest_exercise)) {
     return "Rest between exercises is requiered";
   }

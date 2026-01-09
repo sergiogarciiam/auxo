@@ -34,6 +34,7 @@ export function transformSectionToUI(
     workout_id: section.workout_id,
     name: section.name,
     type: section.type,
+    prepare_time: (section as any).prepare_time ?? 0,
     rest_exercise: section.rest_exercise,
     rest_group: section.rest_group ?? 0,
     position: section.position,

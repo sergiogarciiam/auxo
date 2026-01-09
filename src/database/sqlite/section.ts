@@ -16,19 +16,6 @@ export const section = {
   },
 
   /**
-   * Fetches all sections for a workout ordered by position
-   */
-  getByWorkoutId: async ({
-    workout_id,
-  }: {
-    workout_id: number;
-  }): Promise<Section[]> => {
-    const sql = `SELECT * FROM sections WHERE workout_id = ? ORDER BY position ASC;`;
-    const result = await getAllRows(sql, [workout_id]);
-    return result;
-  },
-
-  /**
    * Fetches all exercises for a section ordered by position
    */
   getAllExercisesBySectionId: async ({
@@ -38,7 +25,6 @@ export const section = {
   }): Promise<any[]> => {
     const sql = `SELECT * FROM exercises WHERE section_id = ? ORDER BY position ASC;`;
     const result = await getAllRows(sql, [section_id]);
-    console.log("Fetched exercises for section_id", section_id, ":", result);
     return result;
   },
 
@@ -58,15 +44,17 @@ export const section = {
     workout_id,
     name,
     type,
+    prepare_time,
     rest_exercise,
     rest_group,
     position,
   }: CreateSectionPayload): Promise<any> => {
-    const sql = `INSERT INTO sections (workout_id, name, type, rest_exercise, rest_group, position) VALUES (?, ?, ?, ?, ?, ?);`;
+    const sql = `INSERT INTO sections (workout_id, name, type, prepare_time, rest_exercise, rest_group, position) VALUES (?, ?, ?, ?, ?, ?, ?);`;
     const result = await runQuery(sql, [
       workout_id,
       name,
       type,
+      prepare_time,
       rest_exercise,
       rest_group,
       position,
@@ -82,19 +70,21 @@ export const section = {
     workout_id,
     name,
     type,
+    prepare_time,
     rest_exercise,
     rest_group,
     position,
   }: UpdateSectionPayload): Promise<any> => {
     const sql = `
       UPDATE sections 
-      SET workout_id = ?, name = ?, type = ?, rest_exercise = ?, rest_group = ?, position = ? 
+      SET workout_id = ?, name = ?, type = ?, prepare_time = ?, rest_exercise = ?, rest_group = ?, position = ? 
       WHERE id = ?;
     `;
     const result = await runQuery(sql, [
       workout_id,
       name,
       type,
+      prepare_time,
       rest_exercise,
       rest_group,
       position,

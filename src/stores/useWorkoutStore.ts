@@ -51,6 +51,7 @@ const createTempSection = (
   workout_id: workoutId,
   type: "",
   rest_exercise: 0,
+  prepare_time: 0,
   name: "",
   exercises: [],
   position,

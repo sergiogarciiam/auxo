@@ -46,6 +46,7 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
         workout_id INTEGER NOT NULL,
         name TEXT NOT NULL,
         type TEXT NOT NULL CHECK(type IN ('warmup','cooldown','traditional','superset','circuit')),
+        prepare_time INTEGER DEFAULT 0,
         rest_exercise INTEGER DEFAULT 0,
         rest_group INTEGER DEFAULT 0,
         position INTEGER NOT NULL,
@@ -74,13 +75,13 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
           ('Full Body Superset', 0);
 
 
-        INSERT INTO sections (workout_id, name, type, rest_exercise, rest_group, position) VALUES
-          (1, 'Warm up', 'warmup', 0, 0, 0),
-          (1, 'Strength', 'traditional', 60, 90, 1),
-          (2, 'Circuit', 'circuit', 15, 60, 0),
-          (2, 'Cooldown', 'cooldown', 0, 0, 1),
-          (3, 'Superset Strength', 'superset', 45, 60, 1),
-          (3, 'Cooldown', 'cooldown', 0, 0, 2);
+        INSERT INTO sections (workout_id, name, type, prepare_time, rest_exercise, rest_group, position) VALUES
+          (1, 'Warm up', 'warmup', 10, 0, 0, 0),
+          (1, 'Strength', 'traditional', 10, 60, 90, 1),
+          (2, 'Circuit', 'circuit', 10, 15, 60, 0),
+          (2, 'Cooldown', 'cooldown', 10, 0, 0, 1),
+          (3, 'Superset Strength', 'superset', 10, 45, 60, 1),
+          (3, 'Cooldown', 'cooldown', 10, 0, 0, 2);
 
         INSERT INTO exercises (section_id, name, reps, time_seconds, weight, sets, position) VALUES
           -- Workout 1 - Warm up

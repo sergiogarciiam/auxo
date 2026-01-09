@@ -15,6 +15,16 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
 
     if (exercises.length === 0) return;
 
+    if (section.prepare_time > 0) {
+      plan.push({
+        id: nanoid(),
+        type: "rest",
+        sectionId: section.id,
+        name: `Prepare`,
+        duration_seconds: section.prepare_time,
+      });
+    }
+
     // SUPERSET PLANNING
     if (section.type === "superset") {
       const queue = exercises.map((ex) => ({

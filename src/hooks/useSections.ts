@@ -23,19 +23,6 @@ export const useSections = () => {
   }, []);
 
   /**
-   * Fetches all sections for a workout
-   */
-  const getSectionByWorkoutId = useCallback(async (workout_id: number) => {
-    try {
-      const sections = await sectionRepository.getByWorkoutId({ workout_id });
-      return sections;
-    } catch (error) {
-      console.error("Failed to fetch sections by workout:", error);
-      throw error;
-    }
-  }, []);
-
-  /**
    * Fetches all exercises for a section
    */
   const getAllExercisesBySectionId = useCallback(async (section_id: number) => {
@@ -87,6 +74,7 @@ export const useSections = () => {
     async (sectionData: UpdateSectionPayload) => {
       try {
         await sectionRepository.update(sectionData);
+        console.log("Section updated:", sectionData);
         await fetchSections();
       } catch (error) {
         console.error("Failed to update section:", error);
@@ -120,7 +108,6 @@ export const useSections = () => {
   return {
     sections,
     fetchSections,
-    getSectionByWorkoutId,
     getAllExercisesBySectionId,
     getSectionById,
     createSection,
