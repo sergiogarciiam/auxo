@@ -156,6 +156,9 @@ export default function StartWorkout() {
           title: screenTitle,
         }}
       />
+
+      {isPaused && <View style={styles.pausedScreen}></View>}
+
       <View style={styles.container}>
         <View style={styles.progressBarWrapper}>
           <View style={styles.progressBarInner}>
@@ -282,6 +285,7 @@ export default function StartWorkout() {
             }
             onPress={() => setIsPaused((p) => !p)}
             disabled={remaining === null}
+            style={styles.playButton}
           />
         )}
       </View>
@@ -375,5 +379,18 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     alignItems: "center",
     marginBottom: Spacing.LARGE,
+  },
+  pausedScreen: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: Colors.BACKGROUND,
+    opacity: 0.7,
+    zIndex: 2,
+  },
+  playButton: {
+    zIndex: 3,
   },
 });

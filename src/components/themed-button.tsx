@@ -8,6 +8,7 @@ interface ThemedButtonProps {
   disabled?: boolean;
   variant?: "primary" | "success" | "destructive" | "icon";
   icon?: React.ReactNode;
+  style?: object;
 }
 
 /**
@@ -20,6 +21,7 @@ export const ThemedButton = ({
   disabled = false,
   variant = "primary",
   icon,
+  style,
 }: ThemedButtonProps) => {
   const getButtonColor = () => {
     switch (variant) {
@@ -43,6 +45,7 @@ export const ThemedButton = ({
         { backgroundColor: getButtonColor() },
         disabled && styles.buttonDisabled,
         pressed && !disabled && styles.buttonPressed,
+        style,
       ]}
     >
       <View style={styles.content}>
