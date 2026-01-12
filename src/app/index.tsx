@@ -246,7 +246,6 @@ export default function Homepage() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     padding: Sizes.PADDING_LARGE,
     gap: Spacing.LARGE,
   },

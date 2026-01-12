@@ -1,5 +1,7 @@
 import { MaterialIcons } from "@expo/vector-icons";
+import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { Menu } from "react-native-paper";
 import {
   Colors,
   IconColors,
@@ -21,9 +23,6 @@ interface CardProps {
   isDisabledNext?: boolean;
 }
 
-/**
- * Reusable card component for displaying workout/section information
- */
 export function Card({
   text,
   onStart,
@@ -35,52 +34,71 @@ export function Card({
   isDisabledPrev,
   isDisabledNext,
 }: CardProps) {
+  const [menuVisible, setMenuVisible] = useState(false);
+
   return (
     <View style={styles.card}>
-      <Text>{text}</Text>
+      <Text style={styles.text} numberOfLines={1} ellipsizeMode="tail">
+        {text}
+      </Text>
 
       <View style={styles.rightContainer}>
-        <View style={styles.buttonsContainer}>
+        <Menu
+          visible={menuVisible}
+          onDismiss={() => setMenuVisible(false)}
+          anchor={
+            <ThemedButton
+              variant="icon"
+              onPress={() => {
+                setMenuVisible((prev) => !prev);
+                console.log("Menu opened");
+              }}
+              icon={
+                <MaterialIcons
+                  name="more-vert"
+                  size={IconSizes.MEDIUM}
+                  color={IconColors.ON_PRIMARY}
+                />
+              }
+              style={styles.menuButton}
+            />
+          }
+        >
           {onStart && (
-            <ThemedButton
-              icon={
-                <MaterialIcons
-                  name="play-arrow"
-                  size={IconSizes.MEDIUM}
-                  color={IconColors.ON_PRIMARY}
-                />
-              }
-              onPress={onStart}
+            <Menu.Item
+              onPress={() => {
+                setMenuVisible(false);
+                onStart();
+              }}
+              title="Start"
+              leadingIcon="play"
             />
           )}
-          {onEdit && (
-            <ThemedButton
-              icon={
-                <MaterialIcons
-                  name="edit"
-                  size={IconSizes.MEDIUM}
-                  color={IconColors.ON_PRIMARY}
-                />
-              }
-              onPress={onEdit}
-            />
-          )}
-          {onDelete && (
-            <ThemedButton
-              icon={
-                <MaterialIcons
-                  name="delete"
-                  size={IconSizes.MEDIUM}
-                  color={IconColors.ON_PRIMARY}
-                />
-              }
-              onPress={onDelete}
-              variant="destructive"
-            />
-          )}
-        </View>
 
-        <View style={styles.arrwosContainer}>
+          {onEdit && (
+            <Menu.Item
+              onPress={() => {
+                setMenuVisible(false);
+                onEdit();
+              }}
+              title="Edit"
+              leadingIcon="pencil"
+            />
+          )}
+
+          {onDelete && (
+            <Menu.Item
+              onPress={() => {
+                setMenuVisible(false);
+                onDelete();
+              }}
+              title="Delete"
+              leadingIcon="delete"
+            />
+          )}
+        </Menu>
+
+        <View style={styles.arrowsContainer}>
           <ThemedButton
             icon={
               <MaterialIcons
@@ -92,7 +110,9 @@ export function Card({
             variant="icon"
             disabled={isDisabledPrev}
             onPress={() => handleMovePrev(index)}
+            style={styles.upButton}
           />
+
           <ThemedButton
             icon={
               <MaterialIcons
@@ -104,6 +124,7 @@ export function Card({
             variant="icon"
             disabled={isDisabledNext}
             onPress={() => handleMoveNext(index)}
+            style={styles.downButton}
           />
         </View>
       </View>
@@ -115,7 +136,6 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.BACKGROUND,
     borderRadius: Sizes.BORDER_RADIUS,
-    padding: Sizes.PADDING_LARGE,
     shadowColor: "#000",
     shadowOffset: {
       width: Sizes.SHADOW_OFFSET_WIDTH,
@@ -124,25 +144,49 @@ const styles = StyleSheet.create({
     shadowOpacity: Sizes.SHADOW_OPACITY,
     shadowRadius: Sizes.SHADOW_RADIUS,
     elevation: Sizes.ELEVATION,
+
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+
+    paddingVertical: Sizes.PADDING_LARGE,
+    minHeight: 88,
   },
+  text: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: "500",
+    padding: Sizes.PADDING_LARGE,
+  },
+
   rightContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.LARGE,
+    gap: Spacing.MEDIUM,
+    flexShrink: 0,
   },
 
-  buttonsContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.LARGE,
-  },
-
-  arrwosContainer: {
+  arrowsContainer: {
     flexDirection: "column",
     alignItems: "center",
     gap: Spacing.SMALL,
+  },
+
+  upButton: {
+    borderTopEndRadius: Sizes.BORDER_RADIUS,
+    borderBottomEndRadius: 0,
+    padding: Sizes.PADDING,
+  },
+
+  downButton: {
+    borderTopEndRadius: 0,
+    borderBottomEndRadius: Sizes.BORDER_RADIUS,
+    padding: Sizes.PADDING,
+  },
+
+  menuButton: {
+    minWidth: 48,
+    minHeight: 48,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

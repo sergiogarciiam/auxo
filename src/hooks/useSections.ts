@@ -74,7 +74,6 @@ export const useSections = () => {
     async (sectionData: UpdateSectionPayload) => {
       try {
         await sectionRepository.update(sectionData);
-        console.log("Section updated:", sectionData);
         await fetchSections();
       } catch (error) {
         console.error("Failed to update section:", error);

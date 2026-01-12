@@ -65,7 +65,6 @@ export const workout = {
   getAllSections: async ({ id }: { id: number }): Promise<any[]> => {
     const sql = `SELECT * FROM sections WHERE workout_id = ? ORDER BY position ASC;`;
     const result = await getAllRows(sql, [id]);
-    console.log("Fetched sections for workout_id", id, ":", result);
     return result;
   },
 
