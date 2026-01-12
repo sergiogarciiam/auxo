@@ -11,6 +11,7 @@ import {
 import { UIExercise } from "../types/ui";
 import { Field } from "./field";
 import { ThemedButton } from "./themed-button";
+import { TimeInput } from "./time-input";
 
 interface ExerciseCardProps {
   exercise: UIExercise;
@@ -67,16 +68,16 @@ export function ExerciseCard({
         />
       </Field>
 
-      <Field label="Time (seconds)">
-        <TextInput
-          style={styles.input}
-          keyboardType="numeric"
-          value={exercise.time_seconds?.toString()}
-          onChangeText={(text) => handleNumericChange("time_seconds", text)}
+      <Field label="Time">
+        <TimeInput
+          value={exercise.time_seconds}
+          onChange={(seconds) =>
+            handleNumericChange("time_seconds", seconds.toString())
+          }
         />
       </Field>
 
-      <Field label="Weight (optional)">
+      <Field label="Weight">
         <TextInput
           style={styles.input}
           keyboardType="numeric"

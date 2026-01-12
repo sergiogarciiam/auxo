@@ -17,6 +17,7 @@ import { ExerciseCard } from "../components/exercise-card";
 import { Field } from "../components/field";
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
+import { TimeInput } from "../components/time-input";
 import { SECTION_TYPE_LABELS, SECTION_TYPES } from "../constants/constants";
 import {
   Colors,
@@ -287,49 +288,35 @@ export default function SectionScreen() {
                 </View>
               </Field>
 
-              <Field label="Prepare time (seconds)">
-                <TextInput
-                  style={styles.input}
-                  keyboardType="numeric"
-                  value={section.prepare_time.toString()}
-                  onChangeText={(text) =>
-                    handleUpdateSection({
-                      prepare_time: Number(text) || 0,
-                    })
+              <Field label="Prepare time">
+                <TimeInput
+                  value={section.prepare_time}
+                  onChange={(seconds) =>
+                    handleUpdateSection({ prepare_time: seconds })
                   }
-                  accessibilityLabel="Prepare time input"
                 />
               </Field>
 
-              <Field label="Rest between exercises (seconds)">
-                <TextInput
-                  style={styles.input}
-                  keyboardType="numeric"
-                  value={section.rest_exercise.toString()}
-                  onChangeText={(text) =>
+              <Field label="Rest between exercises">
+                <TimeInput
+                  value={section.rest_exercise}
+                  onChange={(seconds) =>
                     handleUpdateSection({
-                      rest_exercise: Number(text) || 0,
+                      rest_exercise: seconds,
                     })
                   }
-                  accessibilityLabel="Rest between exercises input"
                 />
               </Field>
 
               <Field label={`Rest between ${section.type || "group"}`}>
-                <TextInput
-                  style={[
-                    styles.input,
-                    !isCircuitOrSuperset ? styles.inputDisabled : undefined,
-                  ]}
-                  editable={isCircuitOrSuperset}
-                  keyboardType="numeric"
-                  value={section.rest_group.toString()}
-                  onChangeText={(text) =>
+                <TimeInput
+                  disabled={!isCircuitOrSuperset}
+                  value={section.rest_group}
+                  onChange={(seconds) =>
                     handleUpdateSection({
-                      rest_group: Number(text) || 0,
+                      rest_group: seconds,
                     })
                   }
-                  accessibilityLabel={`Rest between ${section.type} input`}
                 />
               </Field>
             </View>
