@@ -1,7 +1,13 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { Menu } from "react-native-paper";
+import { useRef, useState } from "react";
+import {
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import {
   Colors,
   IconColors,
@@ -35,6 +41,22 @@ export function Card({
   isDisabledNext,
 }: CardProps) {
   const [menuVisible, setMenuVisible] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+  const menuButtonRef = useRef<View>(null);
+
+  const openMenu = () => {
+    if (menuButtonRef.current) {
+      menuButtonRef.current.measure((x, y, width, height, pageX, pageY) => {
+        setMenuPosition({ x: pageX, y: pageY });
+        setMenuVisible(true);
+      });
+    }
+  };
+
+  const handleMenuPress = (action?: () => void) => {
+    setMenuVisible(false);
+    action?.();
+  };
 
   return (
     <View style={styles.card}>
@@ -43,61 +65,82 @@ export function Card({
       </Text>
 
       <View style={styles.rightContainer}>
-        <Menu
-          visible={menuVisible}
-          onDismiss={() => setMenuVisible(false)}
-          anchor={
-            <ThemedButton
-              variant="icon"
-              onPress={() => {
-                setMenuVisible((prev) => !prev);
-                console.log("Menu opened");
-              }}
-              icon={
-                <MaterialIcons
-                  name="more-vert"
-                  size={IconSizes.MEDIUM}
-                  color={IconColors.ON_PRIMARY}
-                />
-              }
-              style={styles.menuButton}
-            />
-          }
+        {/* CUSTOM MODAL BUTTON */}
+        <TouchableOpacity
+          ref={menuButtonRef}
+          onPress={openMenu}
+          style={styles.menuButton}
         >
-          {onStart && (
-            <Menu.Item
-              onPress={() => {
-                setMenuVisible(false);
-                onStart();
-              }}
-              title="Start"
-              leadingIcon="play"
-            />
-          )}
+          <MaterialIcons
+            name="more-vert"
+            size={24}
+            color={IconColors.ON_PRIMARY}
+          />
+        </TouchableOpacity>
 
-          {onEdit && (
-            <Menu.Item
-              onPress={() => {
-                setMenuVisible(false);
-                onEdit();
-              }}
-              title="Edit"
-              leadingIcon="pencil"
-            />
-          )}
+        {/* MODAL */}
+        <Modal
+          transparent
+          visible={menuVisible}
+          animationType="fade"
+          onRequestClose={() => setMenuVisible(false)}
+        >
+          <Pressable
+            style={styles.modalOverlay}
+            onPress={() => setMenuVisible(false)}
+          >
+            <View
+              style={[
+                styles.menu,
+                { top: menuPosition.y, left: menuPosition.x - 150 + 48 },
+              ]}
+            >
+              {onStart && (
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => handleMenuPress(onStart)}
+                >
+                  <MaterialIcons
+                    name="play-arrow"
+                    size={IconSizes.MEDIUM}
+                    color={IconColors.ON_PRIMARY}
+                  />
+                  <Text style={styles.menuText}>Start</Text>
+                </TouchableOpacity>
+              )}
 
-          {onDelete && (
-            <Menu.Item
-              onPress={() => {
-                setMenuVisible(false);
-                onDelete();
-              }}
-              title="Delete"
-              leadingIcon="delete"
-            />
-          )}
-        </Menu>
+              {onEdit && (
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => handleMenuPress(onEdit)}
+                >
+                  <MaterialIcons
+                    name="edit"
+                    size={IconSizes.MEDIUM}
+                    color={IconColors.ON_PRIMARY}
+                  />
+                  <Text style={styles.menuText}>Edit</Text>
+                </TouchableOpacity>
+              )}
 
+              {onDelete && (
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => handleMenuPress(onDelete)}
+                >
+                  <MaterialIcons
+                    name="delete"
+                    size={IconSizes.MEDIUM}
+                    color={IconColors.ON_PRIMARY}
+                  />
+                  <Text style={styles.menuText}>Delete</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </Pressable>
+        </Modal>
+
+        {/* ARROWS */}
         <View style={styles.arrowsContainer}>
           <ThemedButton
             icon={
@@ -144,10 +187,8 @@ const styles = StyleSheet.create({
     shadowOpacity: Sizes.SHADOW_OPACITY,
     shadowRadius: Sizes.SHADOW_RADIUS,
     elevation: Sizes.ELEVATION,
-
     flexDirection: "row",
     alignItems: "center",
-
     paddingVertical: Sizes.PADDING_LARGE,
     minHeight: 88,
   },
@@ -157,36 +198,61 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     padding: Sizes.PADDING_LARGE,
   },
-
   rightContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.MEDIUM,
-    flexShrink: 0,
+    marginLeft: Spacing.MEDIUM,
   },
-
   arrowsContainer: {
     flexDirection: "column",
     alignItems: "center",
-    gap: Spacing.SMALL,
+    marginLeft: Spacing.SMALL,
   },
-
   upButton: {
     borderTopEndRadius: Sizes.BORDER_RADIUS,
     borderBottomEndRadius: 0,
     padding: Sizes.PADDING,
+    marginBottom: Spacing.SMALL,
   },
-
   downButton: {
     borderTopEndRadius: 0,
     borderBottomEndRadius: Sizes.BORDER_RADIUS,
     padding: Sizes.PADDING,
   },
-
   menuButton: {
     minWidth: 48,
     minHeight: 48,
+    marginRight: Spacing.MEDIUM,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: Colors.PRIMARY,
+    borderRadius: Sizes.BORDER_RADIUS,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "transparent",
+  },
+  menu: {
+    position: "absolute",
+    backgroundColor: Colors.DARK_GRAY,
+    borderRadius: Sizes.BORDER_RADIUS,
+    paddingVertical: 8,
+    width: 150,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+  menuText: {
+    marginLeft: 12,
+    fontSize: 16,
+    color: IconColors.ON_PRIMARY,
   },
 });

@@ -16,6 +16,7 @@ export const Colors = {
   DESTRUCTIVE: "#d17a7aff",
   WARNING: "#f6b042ff",
   NEUTRAL: "#7a96d1ff",
+  DARK_GRAY: "#333",
 } as const;
 
 export const Sizes = {
