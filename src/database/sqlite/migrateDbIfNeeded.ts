@@ -38,7 +38,8 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
       CREATE TABLE IF NOT EXISTS workouts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
-        total_time INTEGER DEFAULT 0
+        total_time INTEGER DEFAULT 0,
+        position INTEGER NOT NULL
       );
 
       CREATE TABLE IF NOT EXISTS sections (
@@ -69,10 +70,10 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
     // If in dev, insert sample data so the app has two example workouts
     if (IS_DEV) {
       await db.execAsync(`
-        INSERT INTO workouts (name, total_time) VALUES
-          ('Full Body Beginner', 0),
-          ('Circuit Blast', 0),
-          ('Full Body Superset', 0);
+        INSERT INTO workouts (name, total_time, position) VALUES
+          ('Full Body Beginner', 0, 0),
+          ('Circuit Blast', 0, 1),
+          ('Full Body Superset', 0, 2);
 
 
         INSERT INTO sections (workout_id, name, type, prepare_time, rest_exercise, rest_group, position) VALUES

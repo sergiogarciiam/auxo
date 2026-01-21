@@ -10,7 +10,7 @@ export const workout = {
    * Fetches all workouts ordered by creation date (newest first)
    */
   getAll: async (): Promise<Workout[]> => {
-    const sql = `SELECT * FROM workouts ORDER BY id DESC;`;
+    const sql = `SELECT * FROM workouts ORDER BY position ASC;`;
     const result = (await getAllRows(sql)) as Workout[];
     return result;
   },
@@ -27,9 +27,9 @@ export const workout = {
   /**
    * Creates a new workout
    */
-  create: async ({ name }: CreateWorkoutPayload): Promise<any> => {
-    const sql = `INSERT INTO workouts (name) VALUES (?);`;
-    const result = await runQuery(sql, [name]);
+  create: async ({ name, position }: CreateWorkoutPayload): Promise<any> => {
+    const sql = `INSERT INTO workouts (name, position) VALUES (?, ?);`;
+    const result = await runQuery(sql, [name, position]);
     return result;
   },
 
@@ -40,13 +40,14 @@ export const workout = {
     id,
     name,
     total_time,
+    position,
   }: UpdateWorkoutPayload): Promise<any> => {
     const sql = `
       UPDATE workouts 
-      SET name = ?, total_time = ?
+      SET name = ?, total_time = ?, position = ?
       WHERE id = ?;
     `;
-    const result = await runQuery(sql, [name, total_time, id]);
+    const result = await runQuery(sql, [name, total_time, position, id]);
     return result;
   },
 

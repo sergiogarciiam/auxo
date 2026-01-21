@@ -3,7 +3,8 @@
  */
 import { Exercise } from "@/src/types/exercise";
 import { Section } from "@/src/types/section";
-import { UIExercise, UISection } from "@/src/types/ui";
+import { UIExercise, UISection, UIWorkout } from "@/src/types/ui";
+import { Workout } from "../types/workout";
 
 /**
  * Transforms a database exercise to UI format with localStatus
@@ -41,4 +42,14 @@ export function transformSectionToUI(
     localStatus: "unchanged",
     exercises: exercises.map(transformExerciseToUI),
   };
+}
+
+export function transformWorkoutsToUI(wokouts: Workout[]): UIWorkout[] {
+  return wokouts.map((workout) => ({
+    id: workout.id,
+    name: workout.name,
+    position: workout.position,
+    sections: [],
+    localStatus: "unchanged",
+  }));
 }

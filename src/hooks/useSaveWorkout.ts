@@ -20,11 +20,15 @@ export const useSaveWorkout = () => {
       try {
         // 1. WORKOUT
         if (uiWorkout.localStatus === "new") {
-          workoutId = await createWorkout({ name: uiWorkout.name });
+          workoutId = await createWorkout({
+            name: uiWorkout.name,
+            position: uiWorkout.position,
+          });
         } else if (uiWorkout.localStatus === "updated") {
           await updateWorkout({
             id: workoutId as number,
             name: uiWorkout.name,
+            position: uiWorkout.position,
           });
         }
 

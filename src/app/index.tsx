@@ -1,7 +1,7 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { Stack, useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
-import { Alert, ScrollView, StyleSheet } from "react-native";
+import { Stack, useNavigation, useRouter } from "expo-router";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { Alert, Keyboard, ScrollView, StyleSheet, View } from "react-native";
 import { Card } from "../components/card";
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
@@ -11,26 +11,34 @@ import { useSections } from "../hooks/useSections";
 import { useWorkouts } from "../hooks/useWorkouts";
 import { useStartWorkoutStore } from "../stores/useStartWorkoutStore";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
-import { UIWorkout } from "../types/ui";
 import { buildExecutionPlan } from "../utils/planner";
-import { transformSectionToUI } from "../utils/transformers";
-import { handleAndShowError } from "../utils/ui";
+import {
+  transformSectionToUI,
+  transformWorkoutsToUI,
+} from "../utils/transformers";
+import { handleAndShowError, showSuccessMessage } from "../utils/ui";
 
 export default function Homepage() {
   const router = useRouter();
-  const { workouts, getWorkoutById, getAllSections, deleteWorkout } =
-    useWorkouts();
+  const {
+    workouts,
+    getWorkoutById,
+    getAllSections,
+    updateWorkout,
+    deleteWorkout,
+  } = useWorkouts();
   const { getAllExercisesBySectionId, deleteSection } = useSections();
   const { deleteExercise } = useExercises();
-  const { loadWorkout, reset } = useWorkoutStore();
+  const { localWorkouts, loadWorkouts, loadWorkout, reset } = useWorkoutStore();
   const { startWorkout } = useStartWorkoutStore();
 
-  const [localWorkouts, setLocalWorkouts] = useState<UIWorkout[] | any[]>([]);
+  const [isReordering, setIsReordering] = useState(false);
+  const navigation = useNavigation();
 
-  // Keep a local copy of workouts for reordering in the UI
   useEffect(() => {
-    setLocalWorkouts(workouts || []);
-  }, [workouts]);
+    if (isReordering) return;
+    loadWorkouts(transformWorkoutsToUI(workouts));
+  }, [workouts, loadWorkouts, isReordering]);
 
   const handleMovePrevWorkout = useCallback(
     (index: number) => {
@@ -40,9 +48,10 @@ export default function Homepage() {
         newWorkouts[index - 1],
       ];
 
-      setLocalWorkouts(newWorkouts);
+      loadWorkouts(newWorkouts);
+      setIsReordering(true);
     },
-    [localWorkouts],
+    [localWorkouts, loadWorkouts],
   );
 
   const handleMoveNextWorkout = useCallback(
@@ -53,9 +62,10 @@ export default function Homepage() {
         newWorkouts[index],
       ];
 
-      setLocalWorkouts(newWorkouts);
+      loadWorkouts(newWorkouts);
+      setIsReordering(true);
     },
-    [localWorkouts],
+    [localWorkouts, loadWorkouts],
   );
 
   /**
@@ -65,6 +75,42 @@ export default function Homepage() {
     reset();
     router.push("/workout");
   }, [reset, router]);
+
+  const handleDone = useCallback(async () => {
+    try {
+      for (let i = 0; i < localWorkouts.length; i++) {
+        const w = localWorkouts[i];
+        if (typeof w.id !== "number") continue;
+
+        await updateWorkout({ id: w.id, name: w.name, position: i });
+      }
+      showSuccessMessage("Workout order updated");
+    } catch (error) {
+      handleAndShowError(error);
+      return;
+    }
+    setIsReordering(false);
+  }, [localWorkouts, updateWorkout]);
+
+  const handleDiscard = useCallback(() => {
+    Keyboard.dismiss();
+
+    Alert.alert(
+      "Discard changes?",
+      "Are you sure you want to discard reordering?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Discard",
+          style: "destructive",
+          onPress: () => {
+            loadWorkouts(transformWorkoutsToUI(workouts));
+            setIsReordering(false);
+          },
+        },
+      ],
+    );
+  }, [loadWorkouts, workouts]);
 
   /**
    * Loads an existing workout for editing
@@ -199,6 +245,38 @@ export default function Homepage() {
     ],
   );
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () =>
+        isReordering ? (
+          <View style={styles.headerButtonRow}>
+            <ThemedButton
+              onPress={handleDiscard}
+              icon={
+                <MaterialIcons
+                  name="backspace"
+                  size={IconSizes.MEDIUM}
+                  color={IconColors.ON_PRIMARY}
+                />
+              }
+              variant="destructive"
+            />
+            <ThemedButton
+              icon={
+                <MaterialIcons
+                  name="check"
+                  size={IconSizes.MEDIUM}
+                  color={IconColors.ON_PRIMARY}
+                />
+              }
+              onPress={handleDone}
+              variant="success"
+            />
+          </View>
+        ) : null,
+    });
+  }, [navigation, isReordering, handleDone, handleDiscard]);
+
   return (
     <>
       <Stack.Screen
@@ -247,6 +325,11 @@ export default function Homepage() {
 const styles = StyleSheet.create({
   container: {
     padding: Sizes.PADDING_LARGE,
+    gap: Spacing.LARGE,
+  },
+  headerButtonRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
     gap: Spacing.LARGE,
   },
 });

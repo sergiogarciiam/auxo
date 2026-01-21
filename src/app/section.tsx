@@ -67,7 +67,7 @@ export default function SectionScreen() {
       loadSection(sectionId as string);
     } else {
       const newSection = startNewSection(`temp-${Date.now()}`);
-      setSectionId(newSection.id.toString());
+      if (newSection) setSectionId(newSection.id.toString());
     }
   }, [sectionId, loadSection, startNewSection]);
 

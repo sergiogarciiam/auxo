@@ -63,7 +63,7 @@ export default function StartWorkout() {
         [
           { text: "Cancel", style: "cancel" },
           {
-            text: "Delete",
+            text: "Exit",
             style: "destructive",
             onPress: async () => {
               stopWorkout();

@@ -3,14 +3,18 @@ import { create } from "zustand";
 import { LocalStatus, UIExercise, UISection, UIWorkout } from "../types/ui";
 
 interface WorkoutStore {
+  localWorkouts: UIWorkout[];
+
   workout: UIWorkout | null;
   section: UISection | null;
+
+  loadWorkouts: (workouts: UIWorkout[]) => void;
 
   loadWorkout: (workout: UIWorkout) => void;
   startNewWorkout: () => void;
   setName: (name: string) => void;
 
-  startNewSection: (newSectionId: string) => UISection;
+  startNewSection: (newSectionId: string) => UISection | undefined;
   loadSection: (sectionId: string) => void;
   updateSection: (tempId: string | number, data: Partial<UISection>) => void;
   removeSection: (tempId: string | number) => void;
@@ -32,10 +36,11 @@ interface WorkoutStore {
 /**
  * Helper to create a new temporary workout
  */
-const createTempWorkout = (): UIWorkout => ({
+const createTempWorkout = (position: number): UIWorkout => ({
   id: `temp-${nanoid()}`,
   name: "",
   sections: [],
+  position,
   localStatus: "new",
 });
 
@@ -79,16 +84,26 @@ const createTempExercise = (
 });
 
 export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
+  localWorkouts: [],
+
   workout: null,
   section: null,
 
   /**
+   * Loads multiple workouts into the store
+   */
+  loadWorkouts: (workouts) => set({ localWorkouts: workouts }),
+
+  /**
    * Initializes a new empty workout
    */
-  startNewWorkout: () =>
-    set({
-      workout: createTempWorkout(),
-    }),
+  startNewWorkout: () => {
+    const state = get();
+
+    return set({
+      workout: createTempWorkout(state.localWorkouts.length),
+    });
+  },
 
   /**
    * Loads an existing workout from database
@@ -130,9 +145,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     const state = get();
 
     // Ensure a workout exists before creating a section
-    if (!state.workout) {
-      set({ workout: createTempWorkout() });
-    }
+    if (!state.workout) return;
 
     const workout = get().workout!;
     const newSection = createTempSection(

@@ -33,6 +33,7 @@ export interface UISection {
 export interface UIWorkout {
   id: number | string;
   name: string;
+  position: number;
   sections: UISection[];
   localStatus: LocalStatus;
 }
