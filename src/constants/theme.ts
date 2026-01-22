@@ -2,6 +2,8 @@
  * Constants for UI styling and common values
  */
 
+import { ColorSchemeName } from "react-native";
+
 export const Colors = {
   PRIMARY: "#7a96d1ff",
   BACKGROUND: "#fff",
@@ -17,6 +19,24 @@ export const Colors = {
   WARNING: "#f6b042ff",
   NEUTRAL: "#7a96d1ff",
   DARK_GRAY: "#333",
+} as const;
+
+export const DarkColors = {
+  PRIMARY: "#7a96d1ff",
+  BACKGROUND: "#121212",
+  BORDER: "#2c2c2c",
+  LIGHT_BACKGROUND: "#1e1e1e",
+  DISABLED_BACKGROUND: "#2a2a2a",
+  DISABLED_TEXT: "#777",
+  TEXT_PRIMARY: "#fff",
+  TEXT_SECONDARY: "#bbb",
+  INDICATOR_INACTIVE: "#555",
+  ERROR_TEXT: "#ff8a8a",
+  SUCCESS: "#8affb1",
+  DESTRUCTIVE: "#ff8a8a",
+  WARNING: "#ffd27a",
+  NEUTRAL: "#7a96d1ff",
+  DARK_GRAY: "#aaa",
 } as const;
 
 export const Sizes = {
@@ -63,3 +83,6 @@ export const IconSizes = {
 export const IconColors = {
   ON_PRIMARY: "#fff",
 } as const;
+
+export const getColors = (scheme: ColorSchemeName) =>
+  scheme === "dark" ? DarkColors : Colors;

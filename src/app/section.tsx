@@ -1,7 +1,7 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef } from "react";
 import {
   Alert,
   Keyboard,
@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { ExerciseCard } from "../components/exercise-card";
 import { Field } from "../components/field";
+import { Header } from "../components/header";
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
 import { TimeInput } from "../components/time-input";
@@ -27,22 +28,20 @@ import {
   Spacing,
   Typography,
 } from "../constants/theme";
+import { useOrderedExercises } from "../hooks/useOrdererExercises";
+import { useSectionLifecycle } from "../hooks/useSectionLifecycle";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
 import { UISection } from "../types/ui";
+import { swapItems } from "../utils/reorder";
 import { handleAndShowError, showSuccessMessage } from "../utils/ui";
 import { validateSection } from "../utils/validation";
 
 export default function SectionScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const [sectionId, setSectionId] = useState(params.sectionId);
-
   const initialSectionRef = useRef<UISection | null>(null);
 
   const {
-    section,
-    startNewSection,
-    loadSection,
     updateSection,
     removeSection,
     addExercise,
@@ -50,26 +49,10 @@ export default function SectionScreen() {
     removeExercise,
   } = useWorkoutStore();
 
-  const [localExercises, setLocalExercises] = useState<any[]>([]);
-
-  useEffect(() => {
-    if (section) {
-      const filtered = section.exercises
-        .filter((e) => e.localStatus !== "deleted")
-        .sort((a, b) => a.position - b.position);
-      setLocalExercises(filtered);
-    }
-  }, [section]);
-
-  // Load or create section
-  useEffect(() => {
-    if (sectionId) {
-      loadSection(sectionId as string);
-    } else {
-      const newSection = startNewSection(`temp-${Date.now()}`);
-      if (newSection) setSectionId(newSection.id.toString());
-    }
-  }, [sectionId, loadSection, startNewSection]);
+  const { section, sectionId } = useSectionLifecycle(
+    params.sectionId as string | undefined,
+  );
+  const localExercises = useOrderedExercises(section);
 
   const handleAddExercise = useCallback(() => {
     try {
@@ -79,48 +62,27 @@ export default function SectionScreen() {
     }
   }, [sectionId, addExercise]);
 
-  const handleMovePrevExercise = useCallback(
-    (index: number) => {
-      const newExercises = [...localExercises];
-      [newExercises[index - 1], newExercises[index]] = [
-        newExercises[index],
-        newExercises[index - 1],
-      ];
+  const handleMovePrevExercise = (index: number) => {
+    const reordered = swapItems(localExercises, index, index - 1);
 
-      const updated = newExercises.map((e, idx) => ({ ...e, position: idx }));
-      setLocalExercises(updated);
+    reordered.forEach((e, idx) => {
+      updateExercise(sectionId!, e.id, { position: idx });
+    });
+  };
 
-      // Persist positions to store
-      updated.forEach((e) => {
-        updateExercise(sectionId as string, e.id, { position: e.position });
-      });
-    },
-    [localExercises, updateExercise, sectionId],
-  );
+  const handleMoveNextExercise = (index: number) => {
+    const reordered = swapItems(localExercises, index, index + 1);
 
-  const handleMoveNextExercise = useCallback(
-    (index: number) => {
-      const newExercises = [...localExercises];
-      [newExercises[index], newExercises[index + 1]] = [
-        newExercises[index + 1],
-        newExercises[index],
-      ];
-
-      const updated = newExercises.map((e, idx) => ({ ...e, position: idx }));
-      setLocalExercises(updated);
-
-      // Persist positions to store
-      updated.forEach((e) => {
-        updateExercise(sectionId as string, e.id, { position: e.position });
-      });
-    },
-    [localExercises, updateExercise, sectionId],
-  );
+    reordered.forEach((e, idx) => {
+      updateExercise(sectionId!, e.id, { position: idx });
+    });
+  };
 
   const handleUpdateSection = useCallback(
     (data: any) => {
       try {
-        updateSection(sectionId?.toString(), data);
+        if (!sectionId) return;
+        updateSection(sectionId.toString(), data);
       } catch (error) {
         handleAndShowError(error);
       }
@@ -187,7 +149,8 @@ export default function SectionScreen() {
               if (section?.localStatus === "new") {
                 removeSection(sectionId as string);
               } else if (initialSectionRef.current) {
-                updateSection(sectionId?.toString(), initialSectionRef.current);
+                if (!sectionId) return;
+                updateSection(sectionId.toString(), initialSectionRef.current);
               }
               router.replace("/workout");
             } catch (error) {
@@ -210,43 +173,12 @@ export default function SectionScreen() {
         options={{
           title: "Section",
           headerRight: () => (
-            <View style={styles.headerButtonRow}>
-              <ThemedButton
-                icon={
-                  <MaterialIcons
-                    name="arrow-back"
-                    size={IconSizes.MEDIUM}
-                    color={IconColors.ON_PRIMARY}
-                  />
-                }
-                onPress={handleDiscard}
-              />
-
-              {!isCreating && (
-                <ThemedButton
-                  icon={
-                    <MaterialIcons
-                      name="delete"
-                      size={IconSizes.MEDIUM}
-                      color={IconColors.ON_PRIMARY}
-                    />
-                  }
-                  onPress={handleDeleteSection}
-                  variant="destructive"
-                />
-              )}
-              <ThemedButton
-                icon={
-                  <MaterialIcons
-                    name="check"
-                    size={IconSizes.MEDIUM}
-                    color={IconColors.ON_PRIMARY}
-                  />
-                }
-                onPress={handleDone}
-                variant="success"
-              />
-            </View>
+            <Header
+              handleDiscard={handleDiscard}
+              handleDelete={handleDeleteSection}
+              handleDone={handleDone}
+              isCreating={isCreating}
+            />
           ),
         }}
       />
@@ -401,11 +333,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.LIGHT_BACKGROUND,
     overflow: "hidden",
   },
-  headerButtonRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: Spacing.LARGE,
-  },
+
   exercisesScroll: {
     paddingVertical: Spacing.MEDIUM,
   },

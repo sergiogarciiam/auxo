@@ -1,4 +1,4 @@
-import { StyleSheet, TextInput, View } from "react-native";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 import { Colors, Sizes, Spacing, Typography } from "../constants/theme";
 
 type Props = {
@@ -28,11 +28,11 @@ export function TimeInput({ value, onChange, disabled }: Props) {
         style={[styles.input, disabled && styles.disabled]}
         keyboardType="numeric"
         editable={!disabled}
-        value={minutes.toString()}
+        value={minutes.toString().padStart(2, "0")}
         onChangeText={updateMinutes}
         placeholder="0"
       />
-
+      <Text>:</Text>
       <TextInput
         style={[styles.input, disabled && styles.disabled]}
         keyboardType="numeric"
@@ -49,6 +49,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     gap: Spacing.MEDIUM,
+    alignItems: "center",
   },
   input: {
     flex: 1,

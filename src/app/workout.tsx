@@ -1,6 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import {
   Alert,
   Keyboard,
@@ -24,12 +24,15 @@ import {
   Spacing,
 } from "../constants/theme";
 
+import { Header } from "../components/header";
 import { useExercises } from "../hooks/useExercises";
+import { useOrderedSections } from "../hooks/useOrderedSections";
 import { useSaveWorkout } from "../hooks/useSaveWorkout";
 import { useSections } from "../hooks/useSections";
 import { useWorkouts } from "../hooks/useWorkouts";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
-import { UISection, UIWorkout } from "../types/ui";
+import { UIWorkout } from "../types/ui";
+import { swapItems } from "../utils/reorder";
 import { handleAndShowError, showSuccessMessage } from "../utils/ui";
 import { validateWorkout } from "../utils/validation";
 
@@ -53,23 +56,8 @@ export default function WorkoutScreen() {
   } = useWorkoutStore();
 
   const initialWorkoutRef = useRef<any | null>(null);
+  const sections = useOrderedSections(workout);
 
-  const [localSections, setLocalSections] = useState<UISection[]>([]);
-
-  useEffect(() => {
-    if (workout) {
-      const filtered = workout.sections
-        .filter(
-          (s) =>
-            s.localStatus !== "deleted" &&
-            !(s.localStatus === "new" && (!s.name || s.name.trim() === "")),
-        )
-        .sort((a, b) => a.position - b.position);
-      setLocalSections(filtered);
-    }
-  }, [workout]);
-
-  // Initialize workout on mount
   useEffect(() => {
     if (!workout) {
       startNewWorkout();
@@ -216,53 +204,13 @@ export default function WorkoutScreen() {
     [removeSection],
   );
 
-  const handleMovePrevSection = useCallback(
-    (index: number) => {
-      const newSections = [...localSections];
-      [newSections[index - 1], newSections[index]] = [
-        newSections[index],
-        newSections[index - 1],
-      ];
+  const moveSection = (from: number, to: number) => {
+    const reordered = swapItems(sections, from, to);
 
-      const updatedSections = newSections.map((s, idx) => ({
-        ...s,
-        position: idx,
-      }));
-
-      setLocalSections(updatedSections);
-
-      updatedSections.forEach((s) => {
-        updateSection(s.id.toString(), {
-          position: s.position,
-        });
-      });
-    },
-    [localSections, updateSection],
-  );
-
-  const handleMoveNextSection = useCallback(
-    (index: number) => {
-      const newSections = [...localSections];
-      [newSections[index], newSections[index + 1]] = [
-        newSections[index + 1],
-        newSections[index],
-      ];
-
-      const updatedSections = newSections.map((s, idx) => ({
-        ...s,
-        position: idx,
-      }));
-
-      setLocalSections(updatedSections);
-
-      updatedSections.forEach((s) => {
-        updateSection(s.id.toString(), {
-          position: s.position,
-        });
-      });
-    },
-    [localSections, updateSection],
-  );
+    reordered.forEach((section, index) => {
+      updateSection(section.id.toString(), { position: index });
+    });
+  };
 
   if (!workout) return null;
 
@@ -274,42 +222,12 @@ export default function WorkoutScreen() {
         options={{
           title: "Workout",
           headerRight: () => (
-            <View style={styles.headerButtonRow}>
-              <ThemedButton
-                icon={
-                  <MaterialIcons
-                    name="arrow-back"
-                    size={IconSizes.MEDIUM}
-                    color={IconColors.ON_PRIMARY}
-                  />
-                }
-                onPress={handleDiscard}
-              />
-              <ThemedButton
-                icon={
-                  <MaterialIcons
-                    name="delete"
-                    size={IconSizes.MEDIUM}
-                    color={IconColors.ON_PRIMARY}
-                  />
-                }
-                onPress={handleDeleteWorkout}
-                disabled={isCreating}
-                variant="destructive"
-              />
-
-              <ThemedButton
-                icon={
-                  <MaterialIcons
-                    name="check"
-                    size={IconSizes.MEDIUM}
-                    color={IconColors.ON_PRIMARY}
-                  />
-                }
-                onPress={handleDone}
-                variant="success"
-              />
-            </View>
+            <Header
+              handleDelete={handleDeleteWorkout}
+              handleDiscard={handleDiscard}
+              handleDone={handleDone}
+              isCreating={isCreating}
+            ></Header>
           ),
         }}
       />
@@ -332,8 +250,8 @@ export default function WorkoutScreen() {
 
               <ThemedText type="subtitle">Sections</ThemedText>
 
-              {localSections.length > 0 ? (
-                localSections.map((section, index) => (
+              {sections.length > 0 ? (
+                sections.map((section, index) => (
                   <View key={section.id} style={{ marginBottom: 12 }}>
                     <Card
                       text={section.name}
@@ -342,10 +260,10 @@ export default function WorkoutScreen() {
                         handleDeleteSection(section.id.toString())
                       }
                       index={index}
-                      handleMovePrev={handleMovePrevSection}
-                      handleMoveNext={handleMoveNextSection}
+                      handleMovePrev={() => moveSection(index, index - 1)}
+                      handleMoveNext={() => moveSection(index, index + 1)}
                       isDisabledPrev={index === 0}
-                      isDisabledNext={index === localSections.length - 1}
+                      isDisabledNext={index === sections.length - 1}
                     />
                   </View>
                 ))

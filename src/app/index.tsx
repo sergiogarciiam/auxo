@@ -1,39 +1,37 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Stack, useNavigation, useRouter } from "expo-router";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
-import { Alert, Keyboard, ScrollView, StyleSheet, View } from "react-native";
+import { Alert, Keyboard, ScrollView, StyleSheet } from "react-native";
 import { Card } from "../components/card";
+import { ReorderHeader } from "../components/reorder-header";
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
 import { IconColors, IconSizes, Sizes, Spacing } from "../constants/theme";
 import { useExercises } from "../hooks/useExercises";
+import { useLoadWorkout } from "../hooks/useLoadWorkout";
 import { useSections } from "../hooks/useSections";
 import { useWorkouts } from "../hooks/useWorkouts";
 import { useStartWorkoutStore } from "../stores/useStartWorkoutStore";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
 import { buildExecutionPlan } from "../utils/planner";
-import {
-  transformSectionToUI,
-  transformWorkoutsToUI,
-} from "../utils/transformers";
+import { swapItems } from "../utils/reorder";
+import { transformWorkoutsToUI } from "../utils/transformers";
 import { handleAndShowError, showSuccessMessage } from "../utils/ui";
 
 export default function Homepage() {
   const router = useRouter();
-  const {
-    workouts,
-    getWorkoutById,
-    getAllSections,
-    updateWorkout,
-    deleteWorkout,
-  } = useWorkouts();
-  const { getAllExercisesBySectionId, deleteSection } = useSections();
-  const { deleteExercise } = useExercises();
+  const navigation = useNavigation();
+
   const { localWorkouts, loadWorkouts, loadWorkout, reset } = useWorkoutStore();
   const { startWorkout } = useStartWorkoutStore();
 
+  const loadWorkoutWithData = useLoadWorkout();
+  const { workouts, getAllSections, updateWorkout, deleteWorkout } =
+    useWorkouts();
+  const { getAllExercisesBySectionId, deleteSection } = useSections();
+  const { deleteExercise } = useExercises();
+
   const [isReordering, setIsReordering] = useState(false);
-  const navigation = useNavigation();
 
   useEffect(() => {
     if (isReordering) return;
@@ -42,13 +40,7 @@ export default function Homepage() {
 
   const handleMovePrevWorkout = useCallback(
     (index: number) => {
-      const newWorkouts = [...localWorkouts];
-      [newWorkouts[index - 1], newWorkouts[index]] = [
-        newWorkouts[index],
-        newWorkouts[index - 1],
-      ];
-
-      loadWorkouts(newWorkouts);
+      loadWorkouts(swapItems(localWorkouts, index, index - 1));
       setIsReordering(true);
     },
     [localWorkouts, loadWorkouts],
@@ -56,21 +48,12 @@ export default function Homepage() {
 
   const handleMoveNextWorkout = useCallback(
     (index: number) => {
-      const newWorkouts = [...localWorkouts];
-      [newWorkouts[index], newWorkouts[index + 1]] = [
-        newWorkouts[index + 1],
-        newWorkouts[index],
-      ];
-
-      loadWorkouts(newWorkouts);
+      loadWorkouts(swapItems(localWorkouts, index, index + 1));
       setIsReordering(true);
     },
     [localWorkouts, loadWorkouts],
   );
 
-  /**
-   * Creates a new blank workout
-   */
   const handleCreateWorkout = useCallback(() => {
     reset();
     router.push("/workout");
@@ -112,84 +95,33 @@ export default function Homepage() {
     );
   }, [loadWorkouts, workouts]);
 
-  /**
-   * Loads an existing workout for editing
-   */
   const handleEditWorkout = useCallback(
     async (id: number) => {
       try {
         reset();
-        const workoutFromDb = await getWorkoutById(id);
-        const sectionsFromDb = await getAllSections(id);
-
-        // Transform sections with exercises
-        const sectionsWithExercises = await Promise.all(
-          sectionsFromDb.map(async (section) => {
-            const exercises = await getAllExercisesBySectionId(section.id);
-            return transformSectionToUI(section, exercises);
-          }),
-        );
-
-        const workoutState = {
-          ...workoutFromDb,
-          sections: sectionsWithExercises,
-          localStatus: "updated" as const,
-        };
-
-        loadWorkout(workoutState);
+        const workout = await loadWorkoutWithData(id);
+        loadWorkout(workout);
         router.push("/workout");
       } catch (error) {
         handleAndShowError(error);
       }
     },
-    [
-      reset,
-      getWorkoutById,
-      getAllSections,
-      getAllExercisesBySectionId,
-      loadWorkout,
-      router,
-    ],
+    [loadWorkoutWithData, loadWorkout, reset, router],
   );
 
   const handleStartWorkout = useCallback(
     async (id: number) => {
       try {
-        const workoutFromDb = await getWorkoutById(id);
-        const sectionsFromDb = await getAllSections(id);
-
-        // Transform sections with exercises
-        const sectionsWithExercises = await Promise.all(
-          sectionsFromDb.map(async (section) => {
-            const exercises = await getAllExercisesBySectionId(section.id);
-            return transformSectionToUI(section, exercises);
-          }),
-        );
-
-        const workoutState = {
-          ...workoutFromDb,
-          sections: sectionsWithExercises,
-          localStatus: "updated" as const,
-        };
-
-        const plan = buildExecutionPlan(workoutState as any);
-
-        startWorkout(workoutState as any, plan);
+        const workout = await loadWorkoutWithData(id);
+        const plan = buildExecutionPlan(workout);
+        startWorkout(workout, plan);
         router.push("/start");
       } catch (error) {
         handleAndShowError(error);
       }
     },
-    [
-      getAllExercisesBySectionId,
-      getAllSections,
-      getWorkoutById,
-      router,
-      startWorkout,
-    ],
+    [loadWorkoutWithData, startWorkout, router],
   );
-
-  const hasWorkouts = localWorkouts.filter(Boolean).length > 0;
 
   const handleDeleteWorkout = useCallback(
     (id: number) => {
@@ -249,33 +181,15 @@ export default function Homepage() {
     navigation.setOptions({
       headerRight: () =>
         isReordering ? (
-          <View style={styles.headerButtonRow}>
-            <ThemedButton
-              onPress={handleDiscard}
-              icon={
-                <MaterialIcons
-                  name="backspace"
-                  size={IconSizes.MEDIUM}
-                  color={IconColors.ON_PRIMARY}
-                />
-              }
-              variant="destructive"
-            />
-            <ThemedButton
-              icon={
-                <MaterialIcons
-                  name="check"
-                  size={IconSizes.MEDIUM}
-                  color={IconColors.ON_PRIMARY}
-                />
-              }
-              onPress={handleDone}
-              variant="success"
-            />
-          </View>
+          <ReorderHeader
+            handleDiscard={handleDiscard}
+            handleDone={handleDone}
+          />
         ) : null,
     });
   }, [navigation, isReordering, handleDone, handleDiscard]);
+
+  const hasWorkouts = localWorkouts.filter(Boolean).length > 0;
 
   return (
     <>
@@ -325,11 +239,6 @@ export default function Homepage() {
 const styles = StyleSheet.create({
   container: {
     padding: Sizes.PADDING_LARGE,
-    gap: Spacing.LARGE,
-  },
-  headerButtonRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
     gap: Spacing.LARGE,
   },
 });

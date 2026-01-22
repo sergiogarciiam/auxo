@@ -137,7 +137,7 @@ export default function StartWorkout() {
   const formatTime = (s: number) => {
     const mm = Math.floor(s / 60);
     const ss = s % 60;
-    return `${mm}:${ss.toString().padStart(2, "0")}`;
+    return `${mm.toString().padStart(2, "0")}:${ss.toString().padStart(2, "0")}`;
   };
 
   if (!executionPlan || executionPlan.length === 0) {
@@ -154,6 +154,13 @@ export default function StartWorkout() {
       <Stack.Screen
         options={{
           title: screenTitle,
+          headerRight: () => (
+            <ThemedButton
+              text="Exit"
+              onPress={handleExit}
+              variant="destructive"
+            />
+          ),
         }}
       />
 
@@ -179,51 +186,6 @@ export default function StartWorkout() {
             </View>
           </View>
         </View>
-
-        {!isFinished && (
-          <View style={styles.controls}>
-            <ThemedButton
-              text="Prev"
-              icon={
-                <MaterialIcons
-                  name="chevron-left"
-                  size={IconSizes.MEDIUM}
-                  color={IconColors.ON_PRIMARY}
-                />
-              }
-              onPress={handlePrev}
-              disabled={index === 0}
-            />
-
-            {!isFinished && (
-              <ThemedText
-                style={styles.progressText}
-              >{`${index + 1} / ${executionPlan.length}`}</ThemedText>
-            )}
-
-            <ThemedButton
-              text={isLast ? "Finish" : "Next"}
-              icon={
-                <MaterialIcons
-                  name="chevron-right"
-                  size={IconSizes.MEDIUM}
-                  color={IconColors.ON_PRIMARY}
-                />
-              }
-              onPress={
-                isLast
-                  ? () => {
-                      // mark isFinished in-place
-                      clearIntervalTimer();
-                      setRemaining(null);
-                      setIsPaused(false);
-                      setIsFinished(true);
-                    }
-                  : handleNext
-              }
-            />
-          </View>
-        )}
 
         <View style={styles.stepContainer}>
           {isFinished ? (
@@ -272,9 +234,21 @@ export default function StartWorkout() {
           )}
         </View>
       </View>
-      <View style={styles.bottomControls}>
-        <ThemedButton text="Exit" onPress={handleExit} />
-        {!isFinished && (
+      {!isFinished && (
+        <View style={styles.controls}>
+          <ThemedButton
+            text="Prev"
+            icon={
+              <MaterialIcons
+                name="chevron-left"
+                size={IconSizes.MEDIUM}
+                color={IconColors.ON_PRIMARY}
+              />
+            }
+            onPress={handlePrev}
+            disabled={index === 0}
+          />
+
           <ThemedButton
             icon={
               <MaterialIcons
@@ -287,8 +261,30 @@ export default function StartWorkout() {
             disabled={remaining === null}
             style={styles.playButton}
           />
-        )}
-      </View>
+
+          <ThemedButton
+            text={isLast ? "Finish" : "Next"}
+            icon={
+              <MaterialIcons
+                name="chevron-right"
+                size={IconSizes.MEDIUM}
+                color={IconColors.ON_PRIMARY}
+              />
+            }
+            onPress={
+              isLast
+                ? () => {
+                    // mark isFinished in-place
+                    clearIntervalTimer();
+                    setRemaining(null);
+                    setIsPaused(false);
+                    setIsFinished(true);
+                  }
+                : handleNext
+            }
+          />
+        </View>
+      )}
     </>
   );
 }
@@ -373,12 +369,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     gap: Spacing.LARGE,
-  },
-  bottomControls: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    marginBottom: Spacing.LARGE,
+    margin: Spacing.LARGE,
   },
   pausedScreen: {
     position: "absolute",
