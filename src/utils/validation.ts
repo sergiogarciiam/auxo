@@ -1,7 +1,4 @@
-/**
- * Validation utilities for common checks
- */
-
+import { LOCAL_STATUS_DELETED } from "../constants/constants";
 import { UISection, UIWorkout } from "../types/ui";
 
 export const ValidationErrors = {
@@ -10,31 +7,19 @@ export const ValidationErrors = {
   INVALID_EMAIL: "Invalid email format",
 } as const;
 
-/**
- * Validates that a string is not empty or whitespace
- */
 export function isNonEmptyString(value: unknown): boolean {
   return typeof value === "string" && value.trim().length > 0;
 }
 
-/**
- * Validates that a number is defined
- */
 function isNumberDefined(value: unknown): boolean {
   return typeof value === "number" && !isNaN(value);
 }
 
-/**
- * Validates that a value is a valid positive number
- */
 export function isPositiveNumber(value: unknown): boolean {
   const num = Number(value);
   return Number.isFinite(num) && num >= 0;
 }
 
-/**
- * Validates a complete section before saving
- */
 export function validateSection(section: UISection): string | null {
   if (!isNonEmptyString(section.name)) {
     return "Section name is required";
@@ -53,14 +38,15 @@ export function validateSection(section: UISection): string | null {
   }
 
   if (
-    section.exercises.filter((exercise) => exercise.localStatus !== "deleted")
-      .length === 0
+    section.exercises.filter(
+      (exercise) => exercise.localStatus !== LOCAL_STATUS_DELETED,
+    ).length === 0
   ) {
     return "Section requiere at least one exercise";
   }
 
   for (const exercise of section.exercises) {
-    if (exercise.localStatus === "deleted") continue;
+    if (exercise.localStatus === LOCAL_STATUS_DELETED) continue;
 
     if (!isNonEmptyString(exercise.name)) {
       return "Exercise name is required";
@@ -81,17 +67,15 @@ export function validateSection(section: UISection): string | null {
   return null;
 }
 
-/**
- * Validates a complete workout before saving
- */
 export function validateWorkout(workout: UIWorkout): string | null {
   if (!isNonEmptyString(workout.name)) {
     return "Workout name is required";
   }
 
   if (
-    workout.sections.filter((section) => section.localStatus !== "deleted")
-      .length === 0
+    workout.sections.filter(
+      (section) => section.localStatus !== LOCAL_STATUS_DELETED,
+    ).length === 0
   ) {
     return "Workout requiere at least one section";
   }

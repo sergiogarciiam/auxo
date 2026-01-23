@@ -1,14 +1,9 @@
-/**
- * Data transformation utilities for converting between database and UI formats
- */
 import { Exercise } from "@/src/types/exercise";
 import { Section } from "@/src/types/section";
 import { UIExercise, UISection, UIWorkout } from "@/src/types/ui";
+import { LOCAL_STATUS_UNCHANGED } from "../constants/constants";
 import { Workout } from "../types/workout";
 
-/**
- * Transforms a database exercise to UI format with localStatus
- */
 export function transformExerciseToUI(exercise: Exercise): UIExercise {
   return {
     id: exercise.id,
@@ -19,13 +14,10 @@ export function transformExerciseToUI(exercise: Exercise): UIExercise {
     weight: exercise.weight ?? 0,
     sets: exercise.sets ?? 0,
     position: exercise.position,
-    localStatus: "unchanged",
+    localStatus: LOCAL_STATUS_UNCHANGED,
   };
 }
 
-/**
- * Transforms database section with exercises to UI format
- */
 export function transformSectionToUI(
   section: Section,
   exercises: Exercise[],
@@ -39,7 +31,7 @@ export function transformSectionToUI(
     rest_exercise: section.rest_exercise,
     rest_group: section.rest_group ?? 0,
     position: section.position,
-    localStatus: "unchanged",
+    localStatus: LOCAL_STATUS_UNCHANGED,
     exercises: exercises.map(transformExerciseToUI),
   };
 }
@@ -50,6 +42,6 @@ export function transformWorkoutsToUI(wokouts: Workout[]): UIWorkout[] {
     name: workout.name,
     position: workout.position,
     sections: [],
-    localStatus: "unchanged",
+    localStatus: LOCAL_STATUS_UNCHANGED,
   }));
 }

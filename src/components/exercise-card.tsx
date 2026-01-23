@@ -25,9 +25,6 @@ interface ExerciseCardProps {
   isDisabledNext?: boolean;
 }
 
-/**
- * Card component for editing individual exercise details
- */
 export function ExerciseCard({
   exercise,
   exerciseId,

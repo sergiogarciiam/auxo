@@ -25,11 +25,12 @@ import {
 } from "../constants/theme";
 
 import { Header } from "../components/header";
-import { useExercises } from "../hooks/useExercises";
-import { useOrderedSections } from "../hooks/useOrderedSections";
-import { useSaveWorkout } from "../hooks/useSaveWorkout";
-import { useSections } from "../hooks/useSections";
-import { useWorkouts } from "../hooks/useWorkouts";
+import { LOCAL_STATUS_NEW } from "../constants/constants";
+import { useExercises } from "../hooks/base/useExercises";
+import { useSaveWorkout } from "../hooks/base/useSaveWorkout";
+import { useSections } from "../hooks/base/useSections";
+import { useWorkouts } from "../hooks/base/useWorkouts";
+import { useOrderedSections } from "../hooks/other/useOrderedSections";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
 import { UIWorkout } from "../types/ui";
 import { swapItems } from "../utils/reorder";
@@ -105,7 +106,7 @@ export default function WorkoutScreen() {
               // if this is a temporary workout, just reset
               if (
                 workout.id?.toString().startsWith("temp-") ||
-                workout.localStatus === "new"
+                workout.localStatus === LOCAL_STATUS_NEW
               ) {
                 reset();
                 return router.replace("/");

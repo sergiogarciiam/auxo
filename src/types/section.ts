@@ -1,8 +1,3 @@
-/**
- * Types for Section domain
- * Follows a consistent naming pattern: Entity, CreateEntity, UpdateEntity
- */
-
 export interface Section {
   id: number;
   workout_id: number;

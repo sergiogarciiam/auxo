@@ -1,7 +1,3 @@
-/**
- * Constants for UI styling and common values
- */
-
 import { ColorSchemeName } from "react-native";
 
 export const Colors = {

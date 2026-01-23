@@ -1,8 +1,3 @@
-/**
- * UI-specific types and entities
- * These represent the state of entities in the UI, including local change tracking
- */
-
 export type LocalStatus = "new" | "updated" | "deleted" | "unchanged";
 
 export interface UIExercise {
@@ -45,7 +40,7 @@ export interface ExecutionStep {
   type: ExecutionStepType;
   sectionId: number | string;
   exerciseId?: number | string;
-  name?: string; // exercise name or 'Rest'
+  name?: string;
   reps?: number;
   time_seconds?: number;
   set?: number;

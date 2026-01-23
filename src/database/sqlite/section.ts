@@ -16,19 +16,6 @@ export const section = {
   },
 
   /**
-   * Fetches all exercises for a section ordered by position
-   */
-  getAllExercisesBySectionId: async ({
-    section_id,
-  }: {
-    section_id: number;
-  }): Promise<any[]> => {
-    const sql = `SELECT * FROM exercises WHERE section_id = ? ORDER BY position ASC;`;
-    const result = await getAllRows(sql, [section_id]);
-    return result;
-  },
-
-  /**
    * Fetches a section by ID
    */
   getById: async ({ id }: { id: number }): Promise<Section> => {
@@ -102,6 +89,16 @@ export const section = {
     return result;
   },
 
-  // Legacy aliases for backwards compatibility
-  getALl: async () => section.getAll(),
+  /**
+   * Fetches all exercises for a section ordered by position
+   */
+  getAllExercisesBySectionId: async ({
+    section_id,
+  }: {
+    section_id: number;
+  }): Promise<any[]> => {
+    const sql = `SELECT * FROM exercises WHERE section_id = ? ORDER BY position ASC;`;
+    const result = await getAllRows(sql, [section_id]);
+    return result;
+  },
 } as const;

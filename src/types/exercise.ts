@@ -1,8 +1,3 @@
-/**
- * Types for Exercise domain
- * Follows a consistent naming pattern: Entity, CreateEntity, UpdateEntity
- */
-
 export interface Exercise {
   id: number;
   section_id: number;

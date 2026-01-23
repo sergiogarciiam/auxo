@@ -7,10 +7,10 @@ import { ReorderHeader } from "../components/reorder-header";
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
 import { IconColors, IconSizes, Sizes, Spacing } from "../constants/theme";
-import { useExercises } from "../hooks/useExercises";
-import { useLoadWorkout } from "../hooks/useLoadWorkout";
-import { useSections } from "../hooks/useSections";
-import { useWorkouts } from "../hooks/useWorkouts";
+import { useExercises } from "../hooks/base/useExercises";
+import { useSections } from "../hooks/base/useSections";
+import { useWorkouts } from "../hooks/base/useWorkouts";
+import { useLoadWorkout } from "../hooks/other/useLoadWorkout";
 import { useStartWorkoutStore } from "../stores/useStartWorkoutStore";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
 import { buildExecutionPlan } from "../utils/planner";
@@ -26,7 +26,7 @@ export default function Homepage() {
   const { startWorkout } = useStartWorkoutStore();
 
   const loadWorkoutWithData = useLoadWorkout();
-  const { workouts, getAllSections, updateWorkout, deleteWorkout } =
+  const { workouts, getAllSectionsByWorkoutId, updateWorkout, deleteWorkout } =
     useWorkouts();
   const { getAllExercisesBySectionId, deleteSection } = useSections();
   const { deleteExercise } = useExercises();
@@ -135,7 +135,7 @@ export default function Homepage() {
             style: "destructive",
             onPress: async () => {
               try {
-                const sectionsToDelete = await getAllSections(id);
+                const sectionsToDelete = await getAllSectionsByWorkoutId(id);
 
                 const exercisesToDelete = (
                   await Promise.all(
@@ -169,7 +169,7 @@ export default function Homepage() {
       );
     },
     [
-      getAllSections,
+      getAllSectionsByWorkoutId,
       getAllExercisesBySectionId,
       deleteSection,
       deleteExercise,

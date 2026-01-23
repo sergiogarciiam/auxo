@@ -7,9 +7,6 @@ interface FieldProps {
   children: React.ReactNode;
 }
 
-/**
- * Component for form field layout
- */
 export function Field({ label, required = false, children }: FieldProps) {
   return (
     <View style={styles.field}>

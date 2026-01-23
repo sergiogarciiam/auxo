@@ -1,6 +1,17 @@
 import { nanoid } from "nanoid/non-secure";
 import { create } from "zustand";
+import {
+  LOCAL_STATUS_DELETED,
+  LOCAL_STATUS_NEW,
+  LOCAL_STATUS_UNCHANGED,
+  LOCAL_STATUS_UPDATED,
+} from "../constants/constants";
 import { LocalStatus, UIExercise, UISection, UIWorkout } from "../types/ui";
+import {
+  createTempExercise,
+  createTempSection,
+  createTempWorkout,
+} from "../utils/workout-store-utils";
 
 interface WorkoutStore {
   localWorkouts: UIWorkout[];
@@ -33,70 +44,14 @@ interface WorkoutStore {
   reset: () => void;
 }
 
-/**
- * Helper to create a new temporary workout
- */
-const createTempWorkout = (position: number): UIWorkout => ({
-  id: `temp-${nanoid()}`,
-  name: "",
-  sections: [],
-  position,
-  localStatus: "new",
-});
-
-/**
- * Helper to create a new temporary section
- */
-const createTempSection = (
-  newSectionId: string,
-  workoutId: string | number,
-  position: number,
-): UISection => ({
-  id: newSectionId,
-  workout_id: workoutId,
-  type: "",
-  rest_exercise: 0,
-  prepare_time: 0,
-  name: "",
-  exercises: [],
-  position,
-  rest_group: 0,
-  localStatus: "new",
-});
-
-/**
- * Helper to create a new temporary exercise
- */
-const createTempExercise = (
-  tmpId: string,
-  sectionId: string | number,
-  position: number,
-): UIExercise => ({
-  id: tmpId,
-  section_id: sectionId,
-  name: "",
-  reps: 0,
-  time_seconds: 0,
-  position,
-  weight: 0,
-  sets: 0,
-  localStatus: "new",
-});
-
 export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   localWorkouts: [],
 
   workout: null,
   section: null,
 
-  /**
-   * Loads multiple workouts into the store
-   */
   loadWorkouts: (workouts) => set({ localWorkouts: workouts }),
 
-  /**
-   * Initializes a new empty workout
-   */
   startNewWorkout: () => {
     const state = get();
 
@@ -105,22 +60,19 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     });
   },
 
-  /**
-   * Loads an existing workout from database
-   */
   loadWorkout: (workoutFromDb) =>
     set({
       workout: {
         ...workoutFromDb,
         sections: (workoutFromDb.sections || []).map((section) => ({
           ...section,
-          localStatus: "unchanged",
+          localStatus: LOCAL_STATUS_UNCHANGED,
           exercises: (section.exercises || []).map((exercise) => ({
             ...exercise,
-            localStatus: "unchanged",
+            localStatus: LOCAL_STATUS_UNCHANGED,
           })),
         })),
-        localStatus: "updated",
+        localStatus: LOCAL_STATUS_UPDATED,
       },
     }),
 
@@ -137,10 +89,6 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         : null,
     })),
 
-  /**
-   * Creates a new section in the current workout
-   * Ensures a workout exists before creating a section
-   */
   startNewSection: (newSectionId) => {
     const state = get();
 
@@ -167,9 +115,6 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     return newSection;
   },
 
-  /**
-   * Loads a section into the current context
-   */
   loadSection: (sectionId) => {
     set({ section: null });
     set((state) => {
@@ -182,9 +127,6 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     });
   },
 
-  /**
-   * Updates a section's data
-   */
   updateSection: (id, data) =>
     set((state) => {
       const idToFind = id?.toString();
@@ -193,7 +135,10 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
           ? {
               ...s,
               ...data,
-              localStatus: s.localStatus === "new" ? "new" : "updated",
+              localStatus:
+                s.localStatus === LOCAL_STATUS_NEW
+                  ? LOCAL_STATUS_NEW
+                  : LOCAL_STATUS_UPDATED,
             }
           : s,
       );
@@ -206,9 +151,6 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       };
     }),
 
-  /**
-   * Marks a section as deleted
-   */
   removeSection: (id) =>
     set((state) => {
       const idToFind = id?.toString();
@@ -218,7 +160,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       );
 
       if (
-        section?.localStatus === "new" ||
+        section?.localStatus === LOCAL_STATUS_NEW ||
         section?.id?.toString().startsWith("temp-")
       ) {
         const sections = state.workout!.sections.filter(
@@ -229,16 +171,13 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
 
       const sections = state.workout!.sections.map((section) =>
         section.id?.toString() === idToFind
-          ? { ...section, localStatus: "deleted" as LocalStatus }
+          ? { ...section, localStatus: LOCAL_STATUS_DELETED as LocalStatus }
           : section,
       );
 
       return { workout: { ...state.workout!, sections } };
     }),
 
-  /**
-   * Adds a new exercise to a section
-   */
   addExercise: (sectionId) =>
     set((state) => {
       const tmpId = `tmp-ex-${nanoid()}`;
@@ -268,9 +207,6 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       };
     }),
 
-  /**
-   * Updates an exercise's data
-   */
   updateExercise: (sectionId, exerciseId, data) =>
     set((state) => {
       const sectionIdStr = sectionId?.toString();
@@ -286,7 +222,9 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
                   ...exercise,
                   ...data,
                   localStatus:
-                    exercise.localStatus === "new" ? "new" : "updated",
+                    exercise.localStatus === LOCAL_STATUS_NEW
+                      ? LOCAL_STATUS_NEW
+                      : LOCAL_STATUS_UPDATED,
                 }
               : exercise,
         );
@@ -303,9 +241,6 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       };
     }),
 
-  /**
-   * Marks an exercise as deleted
-   */
   removeExercise: (sectionId, exerciseId) =>
     set((state) => {
       const sectionIdStr = sectionId?.toString();
@@ -316,7 +251,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
 
         const exercises: UIExercise[] = section.exercises.map((exercise) =>
           exercise.id?.toString() === exerciseIdStr
-            ? { ...exercise, localStatus: "deleted" }
+            ? { ...exercise, localStatus: LOCAL_STATUS_DELETED }
             : exercise,
         );
 
@@ -332,8 +267,5 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       };
     }),
 
-  /**
-   * Clears the current workout state
-   */
   reset: () => set({ workout: null, section: null }),
 }));

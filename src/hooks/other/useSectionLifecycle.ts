@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useWorkoutStore } from "../stores/useWorkoutStore";
+import { useWorkoutStore } from "../../stores/useWorkoutStore";
 
 export const useSectionLifecycle = (initialSectionId?: string) => {
   const { section, loadSection, startNewSection } = useWorkoutStore();

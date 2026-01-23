@@ -1,17 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
-import { sectionRepository } from "../repositories/sectionRepository";
+import { sectionRepository } from "../../repositories/sectionRepository";
 import {
   CreateSectionPayload,
   Section,
   UpdateSectionPayload,
-} from "../types/section";
+} from "../../types/section";
 
 export const useSections = () => {
   const [sections, setSections] = useState<Section[]>([]);
 
-  /**
-   * Fetches all sections from database
-   */
   const fetchSections = useCallback(async () => {
     try {
       const data = await sectionRepository.getAll();
@@ -22,24 +19,6 @@ export const useSections = () => {
     }
   }, []);
 
-  /**
-   * Fetches all exercises for a section
-   */
-  const getAllExercisesBySectionId = useCallback(async (section_id: number) => {
-    try {
-      const exercises = await sectionRepository.getAllExercisesBySectionId({
-        section_id,
-      });
-      return exercises;
-    } catch (error) {
-      console.error("Failed to fetch exercises:", error);
-      throw error;
-    }
-  }, []);
-
-  /**
-   * Fetches a specific section by ID
-   */
   const getSectionById = useCallback(async (id: number) => {
     try {
       const section = await sectionRepository.getById({ id });
@@ -50,9 +29,6 @@ export const useSections = () => {
     }
   }, []);
 
-  /**
-   * Creates a new section
-   */
   const createSection = useCallback(
     async (sectionData: CreateSectionPayload) => {
       try {
@@ -67,9 +43,6 @@ export const useSections = () => {
     [fetchSections],
   );
 
-  /**
-   * Updates an existing section
-   */
   const updateSection = useCallback(
     async (sectionData: UpdateSectionPayload) => {
       try {
@@ -83,9 +56,6 @@ export const useSections = () => {
     [fetchSections],
   );
 
-  /**
-   * Deletes a section
-   */
   const deleteSection = useCallback(
     async (id: number) => {
       try {
@@ -99,7 +69,18 @@ export const useSections = () => {
     [fetchSections],
   );
 
-  // Load sections on mount
+  const getAllExercisesBySectionId = useCallback(async (section_id: number) => {
+    try {
+      const exercises = await sectionRepository.getAllExercisesBySectionId({
+        section_id,
+      });
+      return exercises;
+    } catch (error) {
+      console.error("Failed to fetch exercises:", error);
+      throw error;
+    }
+  }, []);
+
   useEffect(() => {
     fetchSections();
   }, [fetchSections]);
@@ -107,10 +88,10 @@ export const useSections = () => {
   return {
     sections,
     fetchSections,
-    getAllExercisesBySectionId,
     getSectionById,
     createSection,
     updateSection,
     deleteSection,
+    getAllExercisesBySectionId,
   };
 };

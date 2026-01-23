@@ -1,16 +1,21 @@
 import { nanoid } from "nanoid/non-secure";
+import {
+  EXERCISE_STEP_TYPE,
+  LOCAL_STATUS_DELETED,
+  REST_STEP_TYPE,
+} from "../constants/constants";
 import { ExecutionStep, UIWorkout } from "../types/ui";
 
 export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
   const plan: ExecutionStep[] = [];
 
   const sections = [...workout.sections]
-    .filter((s) => s.localStatus !== "deleted")
+    .filter((s) => s.localStatus !== LOCAL_STATUS_DELETED)
     .sort((a, b) => a.position - b.position);
 
   sections.forEach((section) => {
     const exercises = (section.exercises || [])
-      .filter((e) => e.localStatus !== "deleted")
+      .filter((e) => e.localStatus !== LOCAL_STATUS_DELETED)
       .sort((a, b) => a.position - b.position);
 
     if (exercises.length === 0) return;
@@ -18,7 +23,7 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
     if (section.prepare_time > 0) {
       plan.push({
         id: nanoid(),
-        type: "rest",
+        type: REST_STEP_TYPE,
         sectionId: section.id,
         name: `Prepare`,
         duration_seconds: section.prepare_time,
@@ -54,10 +59,9 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
 
         const exercise = exercises[activeExercise];
 
-        // Añadir ejercicio
         plan.push({
           id: nanoid(),
-          type: "exercise",
+          type: EXERCISE_STEP_TYPE,
           sectionId: section.id,
           exerciseId: exercise.id,
           name: exercise.name,
@@ -69,7 +73,7 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
 
         plan.push({
           id: nanoid(),
-          type: "rest",
+          type: REST_STEP_TYPE,
           sectionId: section.id,
           name: activeExercise % 2 === 0 ? "Rest" : "Group Rest",
           duration_seconds:
@@ -92,7 +96,7 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
           if ((ex.sets || 0) > round) {
             plan.push({
               id: nanoid(),
-              type: "exercise",
+              type: EXERCISE_STEP_TYPE,
               sectionId: section.id,
               exerciseId: ex.id,
               name: ex.name,
@@ -106,9 +110,9 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
             if (section.rest_exercise > 0 && idx < exercises.length - 1) {
               plan.push({
                 id: nanoid(),
-                type: "rest",
+                type: REST_STEP_TYPE,
                 sectionId: section.id,
-                name: "Rest",
+                name: REST_STEP_TYPE,
                 duration_seconds: section.rest_exercise,
               });
             }
@@ -118,7 +122,7 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
         if (round < maxSets - 1 && section.rest_group > 0) {
           plan.push({
             id: nanoid(),
-            type: "rest",
+            type: REST_STEP_TYPE,
             sectionId: section.id,
             name: "Round Rest",
             duration_seconds: section.rest_group,
@@ -132,7 +136,7 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
         for (let s = 0; s < (ex.sets || 0); s++) {
           plan.push({
             id: nanoid(),
-            type: "exercise",
+            type: EXERCISE_STEP_TYPE,
             sectionId: section.id,
             exerciseId: ex.id,
             name: ex.name,
@@ -146,9 +150,9 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
           if (s < (ex.sets || 0) - 1 && section.rest_exercise > 0) {
             plan.push({
               id: nanoid(),
-              type: "rest",
+              type: REST_STEP_TYPE,
               sectionId: section.id,
-              name: "Rest",
+              name: REST_STEP_TYPE,
               duration_seconds: section.rest_exercise,
             });
           }
@@ -158,9 +162,9 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
         if (exIdx < exercises.length - 1 && section.rest_group > 0) {
           plan.push({
             id: nanoid(),
-            type: "rest",
+            type: REST_STEP_TYPE,
             sectionId: section.id,
-            name: "Rest",
+            name: REST_STEP_TYPE,
             duration_seconds: section.rest_exercise,
           });
         }

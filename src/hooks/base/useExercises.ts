@@ -1,14 +1,11 @@
 import { useCallback } from "react";
-import { exerciseRepository } from "../repositories/exerciseRepository";
+import { exerciseRepository } from "../../repositories/exerciseRepository";
 import {
   CreateExercisePayload,
   UpdateExercisePayload,
-} from "../types/exercise";
+} from "../../types/exercise";
 
 export const useExercises = () => {
-  /**
-   * Creates a new exercise
-   */
   const createExercise = useCallback(
     async (exerciseData: CreateExercisePayload) => {
       try {
@@ -21,9 +18,6 @@ export const useExercises = () => {
     [],
   );
 
-  /**
-   * Updates an existing exercise
-   */
   const updateExercise = useCallback(
     async (exerciseData: UpdateExercisePayload) => {
       try {
@@ -36,9 +30,6 @@ export const useExercises = () => {
     [],
   );
 
-  /**
-   * Deletes an exercise
-   */
   const deleteExercise = useCallback(async (id: number) => {
     try {
       await exerciseRepository.delete({ id });

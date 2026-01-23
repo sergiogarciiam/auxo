@@ -11,10 +11,6 @@ interface ThemedButtonProps {
   style?: object;
 }
 
-/**
- * Themed button component with consistent styling
- * Custom styled button that fully respects disabled state with color changes
- */
 export const ThemedButton = ({
   text,
   onPress,

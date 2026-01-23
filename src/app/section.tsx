@@ -19,7 +19,13 @@ import { Header } from "../components/header";
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
 import { TimeInput } from "../components/time-input";
-import { SECTION_TYPE_LABELS, SECTION_TYPES } from "../constants/constants";
+import {
+  CIRCUIT_TYPE,
+  LOCAL_STATUS_NEW,
+  SECTION_TYPE_LABELS,
+  SECTION_TYPES,
+  SUPERSET_TYPE,
+} from "../constants/constants";
 import {
   Colors,
   IconColors,
@@ -28,8 +34,8 @@ import {
   Spacing,
   Typography,
 } from "../constants/theme";
-import { useOrderedExercises } from "../hooks/useOrdererExercises";
-import { useSectionLifecycle } from "../hooks/useSectionLifecycle";
+import { useOrderedExercises } from "../hooks/other/useOrdererExercises";
+import { useSectionLifecycle } from "../hooks/other/useSectionLifecycle";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
 import { UISection } from "../types/ui";
 import { swapItems } from "../utils/reorder";
@@ -146,7 +152,7 @@ export default function SectionScreen() {
           style: "destructive",
           onPress: () => {
             try {
-              if (section?.localStatus === "new") {
+              if (section?.localStatus === LOCAL_STATUS_NEW) {
                 removeSection(sectionId as string);
               } else if (initialSectionRef.current) {
                 if (!sectionId) return;
@@ -165,7 +171,7 @@ export default function SectionScreen() {
   if (!section) return null;
 
   const isCircuitOrSuperset =
-    section.type === "circuit" || section.type === "superset";
+    section.type === CIRCUIT_TYPE || section.type === SUPERSET_TYPE;
 
   return (
     <>

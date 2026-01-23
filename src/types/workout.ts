@@ -1,8 +1,3 @@
-/**
- * Types for Workout domain
- * Follows a consistent naming pattern: Entity, CreateEntity, UpdateEntity
- */
-
 export interface Workout {
   id: number;
   name: string;

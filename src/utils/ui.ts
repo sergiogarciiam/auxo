@@ -1,23 +1,18 @@
-/**
- * UI utilities and helpers
- */
+import {
+  SNACKBAR_VARIANT_ERROR,
+  SNACKBAR_VARIANT_SUCCESS,
+  SNACKBAR_VARIANT_WARNING,
+} from "../constants/constants";
 import { showSnackbar } from "../stores/useSnackbarStore";
 
-/**
- * Shows a platform-appropriate error message
- * Uses Toast on Android and Alert on iOS
- */
 export function showErrorMessage(message: string): void {
   try {
-    showSnackbar(message, "error");
+    showSnackbar(message, SNACKBAR_VARIANT_ERROR);
   } catch (error) {
     console.error("Failed to show error message:", error);
   }
 }
 
-/**
- * Extracts error message from various error types
- */
 export function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     return error.message;
@@ -34,21 +29,14 @@ export function getErrorMessage(error: unknown): string {
   return "An unknown error occurred";
 }
 
-/**
- * Combines showErrorMessage and getErrorMessage
- */
 export function handleAndShowError(error: unknown): void {
   const message = getErrorMessage(error);
   showErrorMessage(message);
 }
 
-/**
- * Shows a platform-appropriate success message
- * Uses Toast on Android and Alert on iOS
- */
 export function showSuccessMessage(message: string): void {
   try {
-    showSnackbar(message, "success");
+    showSnackbar(message, SNACKBAR_VARIANT_SUCCESS);
   } catch (error) {
     console.error("Failed to show success message:", error);
   }
@@ -56,7 +44,7 @@ export function showSuccessMessage(message: string): void {
 
 export function showWarningMessage(message: string): void {
   try {
-    showSnackbar(message, "warning");
+    showSnackbar(message, SNACKBAR_VARIANT_WARNING);
   } catch (error) {
     console.error("Failed to show warning message:", error);
   }

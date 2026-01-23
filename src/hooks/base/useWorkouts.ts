@@ -1,18 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
-import { workoutRepository } from "../repositories/workoutRepository";
-import { Section } from "../types/section";
+import { workoutRepository } from "../../repositories/workoutRepository";
+import { Section } from "../../types/section";
 import {
   CreateWorkoutPayload,
   UpdateWorkoutPayload,
   Workout,
-} from "../types/workout";
+} from "../../types/workout";
 
 export const useWorkouts = () => {
   const [workouts, setWorkouts] = useState<Workout[]>([]);
 
-  /**
-   * Fetches all workouts from database
-   */
   const fetchWorkouts = useCallback(async () => {
     try {
       const data = await workoutRepository.getAll();
@@ -23,9 +20,6 @@ export const useWorkouts = () => {
     }
   }, []);
 
-  /**
-   * Fetches a specific workout by ID
-   */
   const getWorkoutById = useCallback(async (id: number) => {
     try {
       const workout = await workoutRepository.getById({ id });
@@ -36,9 +30,6 @@ export const useWorkouts = () => {
     }
   }, []);
 
-  /**
-   * Creates a new workout
-   */
   const createWorkout = useCallback(
     async (workoutData: CreateWorkoutPayload) => {
       try {
@@ -53,9 +44,6 @@ export const useWorkouts = () => {
     [fetchWorkouts],
   );
 
-  /**
-   * Updates an existing workout
-   */
   const updateWorkout = useCallback(
     async (workoutData: UpdateWorkoutPayload) => {
       try {
@@ -69,9 +57,6 @@ export const useWorkouts = () => {
     [fetchWorkouts],
   );
 
-  /**
-   * Deletes a workout
-   */
   const deleteWorkout = useCallback(
     async (id: number) => {
       try {
@@ -85,22 +70,21 @@ export const useWorkouts = () => {
     [fetchWorkouts],
   );
 
-  /**
-   * Fetches all sections for a workout
-   */
-  const getAllSections = useCallback(async (id: number): Promise<Section[]> => {
-    try {
-      const sections = (await workoutRepository.getAllSections({
-        id,
-      })) as Section[];
-      return sections;
-    } catch (error) {
-      console.error("Failed to fetch sections:", error);
-      throw error;
-    }
-  }, []);
+  const getAllSectionsByWorkoutId = useCallback(
+    async (id: number): Promise<Section[]> => {
+      try {
+        const sections = (await workoutRepository.getAllSectionsByWorkoutId({
+          id,
+        })) as Section[];
+        return sections;
+      } catch (error) {
+        console.error("Failed to fetch sections:", error);
+        throw error;
+      }
+    },
+    [],
+  );
 
-  // Load workouts on mount
   useEffect(() => {
     fetchWorkouts();
   }, [fetchWorkouts]);
@@ -112,6 +96,6 @@ export const useWorkouts = () => {
     createWorkout,
     updateWorkout,
     deleteWorkout,
-    getAllSections,
+    getAllSectionsByWorkoutId,
   };
 };
