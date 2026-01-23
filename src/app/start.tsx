@@ -1,14 +1,16 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { useAudioPlayer } from "expo-audio";
 import { Stack, useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Alert, StyleSheet, View } from "react-native";
 
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
-import { EXERCISE_STEP_TYPE } from "../constants/constants";
 import { Colors, IconColors, IconSizes, Spacing } from "../constants/theme";
+import { usePauseTimer } from "../hooks/start/usePauseTimer";
+import { useStartTimer } from "../hooks/start/useStartTimer";
 import { useStartWorkoutStore } from "../stores/useStartWorkoutStore";
+import { formatTime } from "../utils/formatTime";
 
 const beep = require("../../assets/beep.wav");
 const doubleBeep = require("../../assets/double-beep.wav");
@@ -26,47 +28,6 @@ export default function StartWorkout() {
   const [isFinished, setIsFinished] = useState(false);
 
   const timerRef = useRef<number | null>(null);
-
-  const step = executionPlan?.[index];
-  const isLast = index >= executionPlan.length - 1;
-
-  const percent = isFinished
-    ? 100
-    : Math.round(((index + 1) / executionPlan.length) * 100);
-
-  const showReps =
-    step.time_seconds !== undefined &&
-    step.time_seconds > 0 &&
-    step.reps !== undefined &&
-    step.reps > 0;
-
-  const showWeight = step.weight !== undefined && step.weight > 0;
-
-  const clearTimer = () => {
-    if (timerRef.current !== null) {
-      clearInterval(timerRef.current as unknown as number);
-      timerRef.current = null;
-    }
-  };
-
-  const handleExit = () => {
-    Alert.alert(
-      "Exit workout?",
-      "Are you sure you want to exit this workout?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Exit",
-          style: "destructive",
-          onPress: () => {
-            clearTimer();
-            stopWorkout();
-            router.replace("/");
-          },
-        },
-      ],
-    );
-  };
 
   const startTimer = (seconds: number) => {
     clearTimer();
@@ -98,6 +59,13 @@ export default function StartWorkout() {
     }, 1000) as unknown as number;
   };
 
+  const clearTimer = () => {
+    if (timerRef.current !== null) {
+      clearInterval(timerRef.current as unknown as number);
+      timerRef.current = null;
+    }
+  };
+
   const handleNext = () => {
     clearTimer();
     setRemaining(null);
@@ -112,52 +80,61 @@ export default function StartWorkout() {
     if (index > 0) setIndex((i) => i - 1);
   };
 
-  // Start timer when step changes
-  useEffect(() => {
-    if (!step) return;
-
-    clearTimer();
-
-    const initial =
-      step.type === EXERCISE_STEP_TYPE
-        ? (step.time_seconds ?? null)
-        : (step.duration_seconds ?? null);
-
-    if (initial && initial > 0 && !isPaused) {
-      startTimer(initial);
-    } else {
-      setRemaining(null);
-    }
-
-    return clearTimer;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [index]);
-
-  // Pause / resume
-  useEffect(() => {
-    if (isPaused) {
-      clearTimer();
-    } else if (remaining && remaining > 0) {
-      startTimer(remaining);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPaused]);
-
-  const formatTime = (s: number) => {
-    const mm = Math.floor(s / 60);
-    const ss = s % 60;
-    return `${mm.toString().padStart(2, "0")}:${ss
-      .toString()
-      .padStart(2, "0")}`;
+  const handleExit = () => {
+    Alert.alert(
+      "Exit workout?",
+      "Are you sure you want to exit this workout?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Exit",
+          style: "destructive",
+          onPress: () => {
+            clearTimer();
+            stopWorkout();
+            router.replace("/");
+          },
+        },
+      ],
+    );
   };
 
-  if (!workout || !executionPlan.length || !step) {
+  // Start timer when step changes
+  useStartTimer(
+    executionPlan?.[index],
+    startTimer,
+    setRemaining,
+    isPaused,
+    clearTimer,
+    index,
+  );
+
+  // Pause / Resume timer
+  usePauseTimer(isPaused, clearTimer, startTimer, remaining);
+
+  const step = executionPlan?.[index];
+
+  if (!workout || !executionPlan || !step || executionPlan.length === 0) {
     return (
       <View style={styles.container}>
         <ThemedText>No execution plan available</ThemedText>
       </View>
     );
   }
+
+  const isLast = index >= executionPlan.length - 1;
+
+  const percent = isFinished
+    ? 100
+    : Math.round(((index + 1) / executionPlan.length) * 100);
+
+  const showReps =
+    step.time_seconds !== undefined &&
+    step.time_seconds > 0 &&
+    step.reps !== undefined &&
+    step.reps > 0;
+
+  const showWeight = step.weight !== undefined && step.weight > 0;
 
   return (
     <>
