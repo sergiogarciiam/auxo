@@ -6,7 +6,7 @@ import { Alert, StyleSheet, View } from "react-native";
 
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
-import { Colors, IconColors, IconSizes, Spacing } from "../constants/theme";
+import { Colors, IconSizes, Spacing } from "../constants/theme";
 import { usePauseTimer } from "../hooks/start/usePauseTimer";
 import { useStartTimer } from "../hooks/start/useStartTimer";
 import { useStartWorkoutStore } from "../stores/useStartWorkoutStore";
@@ -151,6 +151,8 @@ export default function StartWorkout() {
         }}
       />
 
+      {isPaused && <View style={styles.pausedOverlay}></View>}
+
       <View style={styles.container}>
         <View style={styles.progressBarWrapper}>
           <View style={[styles.progressBarFill, { width: `${percent}%` }]}>
@@ -204,7 +206,7 @@ export default function StartWorkout() {
               <MaterialIcons
                 name="chevron-left"
                 size={IconSizes.MEDIUM}
-                color={IconColors.ON_PRIMARY}
+                color={Colors.PRIMARY_ICON_COLOR}
               />
             }
             onPress={handlePrev}
@@ -212,11 +214,12 @@ export default function StartWorkout() {
           />
 
           <ThemedButton
+            style={styles.playButton}
             icon={
               <MaterialIcons
                 name={isPaused ? "play-arrow" : "pause"}
                 size={IconSizes.MEDIUM}
-                color={IconColors.ON_PRIMARY}
+                color={Colors.PRIMARY_ICON_COLOR}
               />
             }
             onPress={() => setIsPaused((p) => !p)}
@@ -229,7 +232,7 @@ export default function StartWorkout() {
               <MaterialIcons
                 name="chevron-right"
                 size={IconSizes.MEDIUM}
-                color={IconColors.ON_PRIMARY}
+                color={Colors.PRIMARY_ICON_COLOR}
               />
             }
             onPress={
@@ -291,5 +294,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: Spacing.LARGE,
     margin: Spacing.LARGE,
+  },
+  pausedOverlay: {
+    opacity: 0.7,
+    backgroundColor: Colors.BACKGROUND,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 2,
+  },
+  playButton: {
+    zIndex: 3,
   },
 });

@@ -8,13 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import {
-  Colors,
-  IconColors,
-  IconSizes,
-  Sizes,
-  Spacing,
-} from "../constants/theme";
+import { Colors, IconSizes, Sizes, Spacing } from "../constants/theme";
 import { ThemedButton } from "./themed-button";
 
 interface CardProps {
@@ -27,6 +21,7 @@ interface CardProps {
   handleMoveNext: (index: number) => void;
   isDisabledPrev?: boolean;
   isDisabledNext?: boolean;
+  isDisabled?: boolean;
 }
 
 export function Card({
@@ -39,6 +34,7 @@ export function Card({
   handleMoveNext,
   isDisabledPrev,
   isDisabledNext,
+  isDisabled = false,
 }: CardProps) {
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
@@ -69,12 +65,15 @@ export function Card({
         <TouchableOpacity
           ref={menuButtonRef}
           onPress={openMenu}
-          style={styles.menuButton}
+          style={[styles.menuButton, isDisabled && styles.menuButtonDisabled]}
+          disabled={isDisabled}
         >
           <MaterialIcons
             name="more-vert"
             size={24}
-            color={IconColors.ON_PRIMARY}
+            color={
+              isDisabled ? Colors.DISABLE_ICON_COLOR : Colors.PRIMARY_ICON_COLOR
+            }
           />
         </TouchableOpacity>
 
@@ -103,7 +102,7 @@ export function Card({
                   <MaterialIcons
                     name="play-arrow"
                     size={IconSizes.MEDIUM}
-                    color={IconColors.ON_PRIMARY}
+                    color={Colors.PRIMARY_ICON_COLOR}
                   />
                   <Text style={styles.menuText}>Start</Text>
                 </TouchableOpacity>
@@ -117,7 +116,7 @@ export function Card({
                   <MaterialIcons
                     name="edit"
                     size={IconSizes.MEDIUM}
-                    color={IconColors.ON_PRIMARY}
+                    color={Colors.PRIMARY_ICON_COLOR}
                   />
                   <Text style={styles.menuText}>Edit</Text>
                 </TouchableOpacity>
@@ -131,7 +130,7 @@ export function Card({
                   <MaterialIcons
                     name="delete"
                     size={IconSizes.MEDIUM}
-                    color={IconColors.ON_PRIMARY}
+                    color={Colors.PRIMARY_ICON_COLOR}
                   />
                   <Text style={styles.menuText}>Delete</Text>
                 </TouchableOpacity>
@@ -147,7 +146,11 @@ export function Card({
               <MaterialIcons
                 name="keyboard-arrow-up"
                 size={IconSizes.LARGE}
-                color={IconColors.ON_PRIMARY}
+                color={
+                  isDisabledPrev
+                    ? Colors.DISABLE_ICON_COLOR
+                    : Colors.PRIMARY_ICON_COLOR
+                }
               />
             }
             variant="icon"
@@ -161,7 +164,11 @@ export function Card({
               <MaterialIcons
                 name="keyboard-arrow-down"
                 size={IconSizes.LARGE}
-                color={IconColors.ON_PRIMARY}
+                color={
+                  isDisabledNext
+                    ? Colors.DISABLE_ICON_COLOR
+                    : Colors.PRIMARY_ICON_COLOR
+                }
               />
             }
             variant="icon"
@@ -197,6 +204,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
     padding: Sizes.PADDING_LARGE,
+    color: Colors.TEXT_PRIMARY,
   },
   rightContainer: {
     flexDirection: "row",
@@ -228,13 +236,16 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PRIMARY,
     borderRadius: Sizes.BORDER_RADIUS,
   },
+  menuButtonDisabled: {
+    backgroundColor: Colors.DISABLED_BACKGROUND,
+  },
   modalOverlay: {
     flex: 1,
     backgroundColor: "transparent",
   },
   menu: {
     position: "absolute",
-    backgroundColor: Colors.DARK_GRAY,
+    backgroundColor: Colors.MENU_BACKGROUND,
     borderRadius: Sizes.BORDER_RADIUS,
     paddingVertical: 8,
     width: 150,
@@ -253,6 +264,6 @@ const styles = StyleSheet.create({
   menuText: {
     marginLeft: 12,
     fontSize: 16,
-    color: IconColors.ON_PRIMARY,
+    color: Colors.PRIMARY_ICON_COLOR,
   },
 });

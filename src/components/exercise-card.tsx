@@ -2,7 +2,6 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { StyleSheet, TextInput, View } from "react-native";
 import {
   Colors,
-  IconColors,
   IconSizes,
   Sizes,
   Spacing,
@@ -98,7 +97,7 @@ export function ExerciseCard({
           <MaterialIcons
             name="delete"
             size={IconSizes.SMALL}
-            color={IconColors.ON_PRIMARY}
+            color={Colors.PRIMARY_ICON_COLOR}
           />
         }
         onPress={onRemoveExercise}
@@ -111,7 +110,11 @@ export function ExerciseCard({
             <MaterialIcons
               name="chevron-left"
               size={IconSizes.MEDIUM}
-              color={IconColors.ON_PRIMARY}
+              color={
+                !handleMovePrev || isDisabledPrev
+                  ? Colors.DISABLE_ICON_COLOR
+                  : Colors.PRIMARY_ICON_COLOR
+              }
             />
           }
           variant="icon"
@@ -127,7 +130,11 @@ export function ExerciseCard({
             <MaterialIcons
               name="chevron-right"
               size={IconSizes.MEDIUM}
-              color={IconColors.ON_PRIMARY}
+              color={
+                !handleMoveNext || isDisabledNext
+                  ? Colors.DISABLE_ICON_COLOR
+                  : Colors.PRIMARY_ICON_COLOR
+              }
             />
           }
           variant="icon"
@@ -163,6 +170,7 @@ const styles = StyleSheet.create({
     borderRadius: Sizes.BORDER_RADIUS,
     padding: Sizes.PADDING,
     fontSize: Typography.FONT_SIZE_DEFAULT,
+    color: Colors.TEXT_PRIMARY,
   },
   arrowsRow: {
     flexDirection: "row",

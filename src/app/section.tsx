@@ -28,7 +28,6 @@ import {
 } from "../constants/constants";
 import {
   Colors,
-  IconColors,
   IconSizes,
   Sizes,
   Spacing,
@@ -196,7 +195,7 @@ export default function SectionScreen() {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView contentContainerStyle={styles.container}>
             <View style={styles.card}>
-              <Field label="Section name" required>
+              <Field label="Section name">
                 <TextInput
                   style={styles.input}
                   value={section.name}
@@ -213,13 +212,19 @@ export default function SectionScreen() {
                       handleUpdateSection({ type: value })
                     }
                     accessibilityLabel="Section type picker"
+                    itemStyle={styles.pickerItem}
                   >
-                    <Picker.Item label="Select Type" value="" />
+                    <Picker.Item
+                      label="Select Type"
+                      value=""
+                      style={styles.pickerItem}
+                    />
                     {SECTION_TYPES.map((type) => (
                       <Picker.Item
                         key={type}
                         label={SECTION_TYPE_LABELS[type]}
                         value={type}
+                        style={styles.pickerItem}
                       />
                     ))}
                   </Picker>
@@ -293,7 +298,7 @@ export default function SectionScreen() {
                     <MaterialIcons
                       name="add"
                       size={IconSizes.SMALL}
-                      color={IconColors.ON_PRIMARY}
+                      color={Colors.PRIMARY_ICON_COLOR}
                     />
                   }
                   onPress={handleAddExercise}
@@ -311,6 +316,8 @@ const styles = StyleSheet.create({
   container: {
     padding: Sizes.PADDING_LARGE,
     gap: Spacing.DOUBLE_EXTRA_LARGE,
+    backgroundColor: Colors.BACKGROUND_SECONDARY,
+    flexGrow: 1,
   },
   card: {
     padding: Sizes.PADDING_LARGE,
@@ -323,6 +330,7 @@ const styles = StyleSheet.create({
     borderWidth: Sizes.BORDER_WIDTH,
     borderColor: Colors.BORDER,
     padding: Sizes.PADDING,
+    color: Colors.TEXT_PRIMARY,
     borderRadius: Sizes.BORDER_RADIUS,
     backgroundColor: Colors.LIGHT_BACKGROUND,
     fontSize: Typography.FONT_SIZE_DEFAULT,
@@ -337,9 +345,13 @@ const styles = StyleSheet.create({
     borderColor: Colors.BORDER,
     borderRadius: Sizes.BORDER_RADIUS,
     backgroundColor: Colors.LIGHT_BACKGROUND,
+    color: Colors.TEXT_PRIMARY,
     overflow: "hidden",
   },
-
+  pickerItem: {
+    color: Colors.TEXT_PRIMARY,
+    backgroundColor: Colors.PICKER_BACKGROUND,
+  },
   exercisesScroll: {
     paddingVertical: Spacing.MEDIUM,
   },

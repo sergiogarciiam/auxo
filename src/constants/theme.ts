@@ -3,10 +3,12 @@ import { ColorSchemeName } from "react-native";
 export const Colors = {
   PRIMARY: "#7a96d1ff",
   BACKGROUND: "#fff",
+  BACKGROUND_SECONDARY: "#f5f5f5",
   BORDER: "#ccc",
   LIGHT_BACKGROUND: "#fafafa",
   DISABLED_BACKGROUND: "#ddd",
   DISABLED_TEXT: "#999",
+  TEXT_PRIMARY: "#000",
   TEXT_SECONDARY: "#555",
   INDICATOR_INACTIVE: "#ccc",
   ERROR_TEXT: "#d17a7aff",
@@ -14,12 +16,16 @@ export const Colors = {
   DESTRUCTIVE: "#d17a7aff",
   WARNING: "#f6b042ff",
   NEUTRAL: "#7a96d1ff",
-  DARK_GRAY: "#333",
+  MENU_BACKGROUND: "#333",
+  PICKER_BACKGROUND: "#fff",
+  PRIMARY_ICON_COLOR: "#fff",
+  DISABLE_ICON_COLOR: "#777",
 } as const;
 
 export const DarkColors = {
-  PRIMARY: "#7a96d1ff",
+  PRIMARY: "rgb(58, 81, 129)",
   BACKGROUND: "#121212",
+  BACKGROUND_SECONDARY: "#1e1e1e",
   BORDER: "#2c2c2c",
   LIGHT_BACKGROUND: "#1e1e1e",
   DISABLED_BACKGROUND: "#2a2a2a",
@@ -27,12 +33,15 @@ export const DarkColors = {
   TEXT_PRIMARY: "#fff",
   TEXT_SECONDARY: "#bbb",
   INDICATOR_INACTIVE: "#555",
-  ERROR_TEXT: "#ff8a8a",
-  SUCCESS: "#8affb1",
-  DESTRUCTIVE: "#ff8a8a",
-  WARNING: "#ffd27a",
-  NEUTRAL: "#7a96d1ff",
-  DARK_GRAY: "#aaa",
+  ERROR_TEXT: "#6d3232",
+  SUCCESS: "#1d542f",
+  DESTRUCTIVE: "#6d3232",
+  WARNING: "rgb(135, 89, 36)",
+  NEUTRAL: "rgb(58, 81, 129)",
+  MENU_BACKGROUND: "#1e1e1e",
+  PICKER_BACKGROUND: "#1e1e1e",
+  PRIMARY_ICON_COLOR: "#fff",
+  DISABLE_ICON_COLOR: "#555",
 } as const;
 
 export const Sizes = {
@@ -74,10 +83,6 @@ export const IconSizes = {
   SMALL: 16,
   MEDIUM: 18,
   LARGE: 20,
-} as const;
-
-export const IconColors = {
-  ON_PRIMARY: "#fff",
 } as const;
 
 export const getColors = (scheme: ColorSchemeName) =>

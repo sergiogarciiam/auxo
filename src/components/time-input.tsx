@@ -60,6 +60,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.LIGHT_BACKGROUND,
     fontSize: Typography.FONT_SIZE_DEFAULT,
     textAlign: "center",
+    color: Colors.TEXT_PRIMARY,
   },
   disabled: {
     backgroundColor: Colors.DISABLED_BACKGROUND,

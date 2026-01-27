@@ -1,6 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { StyleSheet, View } from "react-native";
-import { IconColors, IconSizes, Spacing } from "../constants/theme";
+import { Colors, IconSizes, Spacing } from "../constants/theme";
 import { ThemedButton } from "./themed-button";
 
 interface ReorderHeaderProps {
@@ -20,7 +20,7 @@ export function ReorderHeader({
           <MaterialIcons
             name="backspace"
             size={IconSizes.MEDIUM}
-            color={IconColors.ON_PRIMARY}
+            color={Colors.PRIMARY_ICON_COLOR}
           />
         }
         variant="destructive"
@@ -30,7 +30,7 @@ export function ReorderHeader({
           <MaterialIcons
             name="check"
             size={IconSizes.MEDIUM}
-            color={IconColors.ON_PRIMARY}
+            color={Colors.PRIMARY_ICON_COLOR}
           />
         }
         onPress={handleDone}

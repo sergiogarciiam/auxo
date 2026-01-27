@@ -16,13 +16,7 @@ import { Card } from "../components/card";
 import { Field } from "../components/field";
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
-import {
-  Colors,
-  IconColors,
-  IconSizes,
-  Sizes,
-  Spacing,
-} from "../constants/theme";
+import { Colors, IconSizes, Sizes, Spacing } from "../constants/theme";
 
 import { Header } from "../components/header";
 import { LOCAL_STATUS_NEW } from "../constants/constants";
@@ -240,7 +234,7 @@ export default function WorkoutScreen() {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView contentContainerStyle={styles.container}>
             <View style={styles.card}>
-              <Field label="Workout name" required>
+              <Field label="Workout name">
                 <TextInput
                   style={styles.input}
                   value={workout.name}
@@ -248,42 +242,40 @@ export default function WorkoutScreen() {
                   accessibilityLabel="Workout name input"
                 />
               </Field>
-
-              <ThemedText type="subtitle">Sections</ThemedText>
-
-              {sections.length > 0 ? (
-                sections.map((section, index) => (
-                  <View key={section.id} style={{ marginBottom: 12 }}>
-                    <Card
-                      text={section.name}
-                      onEdit={() => handleEditSection(section.id.toString())}
-                      onDelete={() =>
-                        handleDeleteSection(section.id.toString())
-                      }
-                      index={index}
-                      handleMovePrev={() => moveSection(index, index - 1)}
-                      handleMoveNext={() => moveSection(index, index + 1)}
-                      isDisabledPrev={index === 0}
-                      isDisabledNext={index === sections.length - 1}
-                    />
-                  </View>
-                ))
-              ) : (
-                <ThemedText>No sections yet</ThemedText>
-              )}
-
-              <ThemedButton
-                text="New Section"
-                icon={
-                  <MaterialIcons
-                    name="add"
-                    size={IconSizes.SMALL}
-                    color={IconColors.ON_PRIMARY}
-                  />
-                }
-                onPress={handleAddSection}
-              />
             </View>
+
+            <ThemedText type="subtitle">Sections</ThemedText>
+
+            {sections.length > 0 ? (
+              sections.map((section, index) => (
+                <View key={section.id} style={{ marginBottom: 12 }}>
+                  <Card
+                    text={section.name}
+                    onEdit={() => handleEditSection(section.id.toString())}
+                    onDelete={() => handleDeleteSection(section.id.toString())}
+                    index={index}
+                    handleMovePrev={() => moveSection(index, index - 1)}
+                    handleMoveNext={() => moveSection(index, index + 1)}
+                    isDisabledPrev={index === 0}
+                    isDisabledNext={index === sections.length - 1}
+                  />
+                </View>
+              ))
+            ) : (
+              <ThemedText>No sections yet</ThemedText>
+            )}
+
+            <ThemedButton
+              text="New Section"
+              icon={
+                <MaterialIcons
+                  name="add"
+                  size={IconSizes.SMALL}
+                  color={Colors.PRIMARY_ICON_COLOR}
+                />
+              }
+              onPress={handleAddSection}
+            />
           </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
@@ -295,12 +287,18 @@ const styles = StyleSheet.create({
   container: {
     padding: Sizes.PADDING_LARGE,
     gap: Spacing.DOUBLE_EXTRA_LARGE,
+    backgroundColor: Colors.BACKGROUND_SECONDARY,
+    flexGrow: 1,
   },
   card: {
     padding: Sizes.PADDING_LARGE,
-    backgroundColor: "white",
+    backgroundColor: Colors.BACKGROUND,
     borderRadius: Sizes.BORDER_RADIUS_LARGE,
-    gap: Spacing.DOUBLE_EXTRA_LARGE,
+    borderWidth: Sizes.BORDER_WIDTH,
+    gap: Spacing.LARGE,
+  },
+  text: {
+    color: Colors.TEXT_PRIMARY,
   },
   input: {
     borderWidth: Sizes.BORDER_WIDTH,
@@ -308,6 +306,7 @@ const styles = StyleSheet.create({
     padding: Sizes.PADDING,
     borderRadius: Sizes.BORDER_RADIUS,
     backgroundColor: Colors.LIGHT_BACKGROUND,
+    color: Colors.TEXT_PRIMARY,
   },
   headerButtonRow: {
     flexDirection: "row",

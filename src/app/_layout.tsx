@@ -21,6 +21,7 @@ export default function RootLayout() {
           headerTitleStyle: {
             fontWeight: "600",
             fontSize: 18,
+            color: Colors.TEXT_PRIMARY,
           },
         }}
       />

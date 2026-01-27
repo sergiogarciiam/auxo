@@ -6,7 +6,7 @@ import { Card } from "../components/card";
 import { ReorderHeader } from "../components/reorder-header";
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
-import { IconColors, IconSizes, Sizes, Spacing } from "../constants/theme";
+import { Colors, IconSizes, Sizes, Spacing } from "../constants/theme";
 import { useExercises } from "../hooks/base/useExercises";
 import { useSections } from "../hooks/base/useSections";
 import { useWorkouts } from "../hooks/base/useWorkouts";
@@ -214,6 +214,7 @@ export default function Homepage() {
                 handleMoveNext={handleMoveNextWorkout}
                 isDisabledPrev={index === 0}
                 isDisabledNext={index === localWorkouts.length - 1}
+                isDisabled={isReordering}
               />
             ))
         ) : (
@@ -226,7 +227,7 @@ export default function Homepage() {
             <MaterialIcons
               name="add"
               size={IconSizes.SMALL}
-              color={IconColors.ON_PRIMARY}
+              color={Colors.PRIMARY_ICON_COLOR}
             />
           }
           onPress={handleCreateWorkout}
@@ -240,5 +241,7 @@ const styles = StyleSheet.create({
   container: {
     padding: Sizes.PADDING_LARGE,
     gap: Spacing.LARGE,
+    backgroundColor: Colors.BACKGROUND_SECONDARY,
+    height: "100%",
   },
 });
