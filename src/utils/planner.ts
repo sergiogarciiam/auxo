@@ -39,7 +39,7 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
       }));
 
       let first = 0;
-      let second = 1;
+      let second = exercises.length > 1 ? 1 : 0;
       let nextExercise = true;
 
       while (queue.some((ex) => ex.remainingSets > 0)) {
@@ -48,7 +48,7 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
         if (queue[activeExercise].remainingSets === 0) {
           activeExercise = nextExercise ? second : first;
 
-          if (queue[activeExercise].remainingSets === 0) {
+          if (queue[activeExercise]?.remainingSets === 0) {
             const nextIndex = queue.findIndex((ex) => ex.remainingSets > 0);
             if (nextIndex === -1) break; // ya no quedan sets
             first = nextIndex;
@@ -159,7 +159,7 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
         }
 
         // rest between exercises
-        if (exIdx < exercises.length - 1 && section.rest_group > 0) {
+        if (exIdx < exercises.length - 1 && section.rest_exercise > 0) {
           plan.push({
             id: nanoid(),
             type: REST_STEP_TYPE,
