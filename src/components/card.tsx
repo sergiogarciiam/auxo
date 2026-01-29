@@ -8,7 +8,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Colors, IconSizes, Sizes, Spacing } from "../constants/theme";
+import { IconSizes, Sizes, Spacing } from "../constants/theme";
+import { useTheme } from "../hooks/useTheme";
 import { ThemedButton } from "./themed-button";
 
 interface CardProps {
@@ -36,6 +37,8 @@ export function Card({
   isDisabledNext,
   isDisabled = false,
 }: CardProps) {
+  const colors = useTheme();
+  const styles = createStyles(colors);
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
   const menuButtonRef = useRef<View>(null);
@@ -72,7 +75,7 @@ export function Card({
             name="more-vert"
             size={24}
             color={
-              isDisabled ? Colors.DISABLE_ICON_COLOR : Colors.PRIMARY_ICON_COLOR
+              isDisabled ? colors.DISABLE_ICON_COLOR : colors.PRIMARY_ICON_COLOR
             }
           />
         </TouchableOpacity>
@@ -102,7 +105,7 @@ export function Card({
                   <MaterialIcons
                     name="play-arrow"
                     size={IconSizes.MEDIUM}
-                    color={Colors.PRIMARY_ICON_COLOR}
+                    color={colors.PRIMARY_ICON_COLOR}
                   />
                   <Text style={styles.menuText}>Start</Text>
                 </TouchableOpacity>
@@ -116,7 +119,7 @@ export function Card({
                   <MaterialIcons
                     name="edit"
                     size={IconSizes.MEDIUM}
-                    color={Colors.PRIMARY_ICON_COLOR}
+                    color={colors.PRIMARY_ICON_COLOR}
                   />
                   <Text style={styles.menuText}>Edit</Text>
                 </TouchableOpacity>
@@ -130,7 +133,7 @@ export function Card({
                   <MaterialIcons
                     name="delete"
                     size={IconSizes.MEDIUM}
-                    color={Colors.PRIMARY_ICON_COLOR}
+                    color={colors.PRIMARY_ICON_COLOR}
                   />
                   <Text style={styles.menuText}>Delete</Text>
                 </TouchableOpacity>
@@ -148,8 +151,8 @@ export function Card({
                 size={IconSizes.LARGE}
                 color={
                   isDisabledPrev
-                    ? Colors.DISABLE_ICON_COLOR
-                    : Colors.PRIMARY_ICON_COLOR
+                    ? colors.DISABLE_ICON_COLOR
+                    : colors.PRIMARY_ICON_COLOR
                 }
               />
             }
@@ -166,8 +169,8 @@ export function Card({
                 size={IconSizes.LARGE}
                 color={
                   isDisabledNext
-                    ? Colors.DISABLE_ICON_COLOR
-                    : Colors.PRIMARY_ICON_COLOR
+                    ? colors.DISABLE_ICON_COLOR
+                    : colors.PRIMARY_ICON_COLOR
                 }
               />
             }
@@ -182,88 +185,83 @@ export function Card({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: Colors.BACKGROUND,
-    borderRadius: Sizes.BORDER_RADIUS,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: Sizes.SHADOW_OFFSET_WIDTH,
-      height: Sizes.SHADOW_OFFSET_HEIGHT,
+const createStyles = (colors: ReturnType<typeof useTheme>) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: colors.BACKGROUND,
+      borderRadius: Sizes.BORDER_RADIUS_LARGE,
+      borderWidth: Sizes.BORDER_WIDTH,
+      borderColor: colors.BORDER,
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: Sizes.PADDING_LARGE,
+      minHeight: 88,
     },
-    shadowOpacity: Sizes.SHADOW_OPACITY,
-    shadowRadius: Sizes.SHADOW_RADIUS,
-    elevation: Sizes.ELEVATION,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: Sizes.PADDING_LARGE,
-    minHeight: 88,
-  },
-  text: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: "500",
-    padding: Sizes.PADDING_LARGE,
-    color: Colors.TEXT_PRIMARY,
-  },
-  rightContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginLeft: Spacing.MEDIUM,
-  },
-  arrowsContainer: {
-    flexDirection: "column",
-    alignItems: "center",
-    marginLeft: Spacing.SMALL,
-  },
-  upButton: {
-    borderTopEndRadius: Sizes.BORDER_RADIUS,
-    borderBottomEndRadius: 0,
-    padding: Sizes.PADDING,
-    marginBottom: Spacing.SMALL,
-  },
-  downButton: {
-    borderTopEndRadius: 0,
-    borderBottomEndRadius: Sizes.BORDER_RADIUS,
-    padding: Sizes.PADDING,
-  },
-  menuButton: {
-    minWidth: 48,
-    minHeight: 48,
-    marginRight: Spacing.MEDIUM,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: Colors.PRIMARY,
-    borderRadius: Sizes.BORDER_RADIUS,
-  },
-  menuButtonDisabled: {
-    backgroundColor: Colors.DISABLED_BACKGROUND,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "transparent",
-  },
-  menu: {
-    position: "absolute",
-    backgroundColor: Colors.MENU_BACKGROUND,
-    borderRadius: Sizes.BORDER_RADIUS,
-    paddingVertical: 8,
-    width: 150,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-  },
-  menuText: {
-    marginLeft: 12,
-    fontSize: 16,
-    color: Colors.PRIMARY_ICON_COLOR,
-  },
-});
+    text: {
+      flex: 1,
+      fontSize: 16,
+      fontWeight: "500",
+      padding: Sizes.PADDING_LARGE,
+      color: colors.TEXT_PRIMARY,
+    },
+    rightContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginLeft: Spacing.MEDIUM,
+    },
+    arrowsContainer: {
+      flexDirection: "column",
+      alignItems: "center",
+      marginLeft: Spacing.SMALL,
+    },
+    upButton: {
+      borderTopEndRadius: Sizes.BORDER_RADIUS,
+      borderBottomEndRadius: 0,
+      padding: Sizes.PADDING,
+      marginBottom: Spacing.SMALL,
+    },
+    downButton: {
+      borderTopEndRadius: 0,
+      borderBottomEndRadius: Sizes.BORDER_RADIUS,
+      padding: Sizes.PADDING,
+    },
+    menuButton: {
+      minWidth: 48,
+      minHeight: 48,
+      marginRight: Spacing.MEDIUM,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: colors.PRIMARY,
+      borderRadius: Sizes.BORDER_RADIUS,
+    },
+    menuButtonDisabled: {
+      backgroundColor: colors.DISABLED_BACKGROUND,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "transparent",
+    },
+    menu: {
+      position: "absolute",
+      backgroundColor: colors.MENU_BACKGROUND,
+      borderRadius: Sizes.BORDER_RADIUS,
+      paddingVertical: 8,
+      width: 150,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 5,
+    },
+    menuItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+    },
+    menuText: {
+      marginLeft: 12,
+      fontSize: 16,
+      color: colors.PRIMARY_ICON_COLOR,
+    },
+  });

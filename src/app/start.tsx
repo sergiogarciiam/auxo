@@ -6,9 +6,10 @@ import { Alert, StyleSheet, View } from "react-native";
 
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
-import { Colors, IconSizes, Spacing } from "../constants/theme";
+import { IconSizes, Spacing } from "../constants/theme";
 import { usePauseTimer } from "../hooks/start/usePauseTimer";
 import { useStartTimer } from "../hooks/start/useStartTimer";
+import { useTheme } from "../hooks/useTheme";
 import { useStartWorkoutStore } from "../stores/useStartWorkoutStore";
 import { formatTime } from "../utils/formatTime";
 
@@ -17,6 +18,7 @@ const doubleBeep = require("../../assets/double-beep.wav");
 
 export default function StartWorkout() {
   const router = useRouter();
+  const colors = useTheme();
   const beepPlayer = useAudioPlayer(beep);
   const doubleBeepPlayer = useAudioPlayer(doubleBeep);
 
@@ -110,13 +112,15 @@ export default function StartWorkout() {
   );
 
   // Pause / Resume timer
+  const contentStyle = createStyles(colors);
+
   usePauseTimer(isPaused, clearTimer, startTimer, remaining);
 
   const step = executionPlan?.[index];
 
   if (!workout || !executionPlan || !step || executionPlan.length === 0) {
     return (
-      <View style={styles.container}>
+      <View style={contentStyle.container}>
         <ThemedText>No execution plan available</ThemedText>
       </View>
     );
@@ -151,32 +155,37 @@ export default function StartWorkout() {
         }}
       />
 
-      {isPaused && <View style={styles.pausedOverlay}></View>}
+      {isPaused && <View style={contentStyle.pausedOverlay}></View>}
 
-      <View style={styles.container}>
-        <View style={styles.progressBarWrapper}>
-          <View style={[styles.progressBarFill, { width: `${percent}%` }]}>
+      <View style={contentStyle.container}>
+        <View style={contentStyle.progressBarWrapper}>
+          <View
+            style={[contentStyle.progressBarFill, { width: `${percent}%` }]}
+          >
             {percent > 10 && (
-              <ThemedText style={styles.progressTextInside}>
+              <ThemedText style={contentStyle.progressTextInside}>
                 {percent}%
               </ThemedText>
             )}
           </View>
         </View>
 
-        <View style={styles.stepContainer}>
+        <View style={contentStyle.stepContainer}>
           {isFinished ? (
             <>
-              <ThemedText type="title" style={styles.bigValue}>
-                Workout completed!
-              </ThemedText>
+              <ThemedText type="title">Workout completed!</ThemedText>
               <ThemedText type="subtitle">{workout.name}</ThemedText>
+              <ThemedButton
+                variant="primary"
+                onPress={() => router.replace("/")}
+                text="Return homepage"
+              ></ThemedButton>
             </>
           ) : (
             <>
               <ThemedText type="subtitle">{step.name}</ThemedText>
 
-              <ThemedText type="title" style={styles.bigValue}>
+              <ThemedText type="title" style={contentStyle.bigValue}>
                 {remaining !== null
                   ? formatTime(remaining)
                   : step.time_seconds
@@ -199,14 +208,14 @@ export default function StartWorkout() {
       </View>
 
       {!isFinished && (
-        <View style={styles.controls}>
+        <View style={contentStyle.controls}>
           <ThemedButton
             text="Prev"
             icon={
               <MaterialIcons
                 name="chevron-left"
                 size={IconSizes.MEDIUM}
-                color={Colors.PRIMARY_ICON_COLOR}
+                color={colors.PRIMARY_ICON_COLOR}
               />
             }
             onPress={handlePrev}
@@ -214,12 +223,12 @@ export default function StartWorkout() {
           />
 
           <ThemedButton
-            style={styles.playButton}
+            style={contentStyle.playButton}
             icon={
               <MaterialIcons
                 name={isPaused ? "play-arrow" : "pause"}
                 size={IconSizes.MEDIUM}
-                color={Colors.PRIMARY_ICON_COLOR}
+                color={colors.PRIMARY_ICON_COLOR}
               />
             }
             onPress={() => setIsPaused((p) => !p)}
@@ -232,7 +241,7 @@ export default function StartWorkout() {
               <MaterialIcons
                 name="chevron-right"
                 size={IconSizes.MEDIUM}
-                color={Colors.PRIMARY_ICON_COLOR}
+                color={colors.PRIMARY_ICON_COLOR}
               />
             }
             onPress={
@@ -252,60 +261,64 @@ export default function StartWorkout() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: Spacing.LARGE,
-    gap: Spacing.LARGE,
-  },
-  stepContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: Spacing.EXTRA_LARGE,
-  },
-  bigValue: {
-    fontSize: 100,
-    fontWeight: "bold",
-    lineHeight: 86,
-    textAlign: "center",
-  },
-  progressBarWrapper: {
-    width: "100%",
-    height: 28,
-    backgroundColor: "#e6e6e6",
-    borderRadius: 14,
-    overflow: "hidden",
-  },
-  progressBarFill: {
-    height: "100%",
-    backgroundColor: Colors.SUCCESS,
-    justifyContent: "center",
-    alignItems: "flex-end",
-    paddingRight: Spacing.MEDIUM,
-  },
-  progressTextInside: {
-    color: "#fff",
-    fontWeight: "600",
-  },
-  controls: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: Spacing.LARGE,
-    margin: Spacing.LARGE,
-  },
-  pausedOverlay: {
-    opacity: 0.7,
-    backgroundColor: Colors.BACKGROUND,
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 2,
-  },
-  playButton: {
-    zIndex: 3,
-  },
-});
+const createStyles = (colors: ReturnType<typeof useTheme>) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: Spacing.LARGE,
+      gap: Spacing.LARGE,
+      backgroundColor: colors.BACKGROUND_SECONDARY,
+    },
+    stepContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      gap: Spacing.EXTRA_LARGE,
+    },
+    bigValue: {
+      fontSize: 100,
+      fontWeight: "bold",
+      lineHeight: 86,
+      textAlign: "center",
+      color: colors.TEXT_PRIMARY,
+    },
+    progressBarWrapper: {
+      width: "100%",
+      height: 28,
+      backgroundColor: "#e6e6e6",
+      borderRadius: 14,
+      overflow: "hidden",
+    },
+    progressBarFill: {
+      height: "100%",
+      backgroundColor: colors.SUCCESS,
+      justifyContent: "center",
+      alignItems: "flex-end",
+      paddingRight: Spacing.MEDIUM,
+    },
+    progressTextInside: {
+      color: "#fff",
+      fontWeight: "600",
+    },
+    controls: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: Spacing.LARGE,
+      padding: Spacing.LARGE,
+      backgroundColor: colors.BACKGROUND_SECONDARY,
+    },
+    pausedOverlay: {
+      opacity: 0.7,
+      backgroundColor: colors.BACKGROUND,
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 2,
+    },
+    playButton: {
+      zIndex: 3,
+    },
+  });

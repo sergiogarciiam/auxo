@@ -6,16 +6,18 @@ import {
   Text,
   TouchableOpacity,
 } from "react-native";
-import { Colors, Sizes } from "../constants/theme";
+import { Sizes } from "../constants/theme";
+import { useTheme } from "../hooks/useTheme";
 import { useSnackbarStore } from "../stores/useSnackbarStore";
 
-const variantBg: Record<string, string> = {
-  success: Colors.SUCCESS,
-  error: Colors.DESTRUCTIVE,
-  warning: Colors.WARNING,
-};
-
 export function Snackbar() {
+  const colors = useTheme();
+  const variantBg: Record<string, string> = {
+    success: colors.SUCCESS,
+    error: colors.DESTRUCTIVE,
+    warning: colors.WARNING,
+  };
+  const styles = createStyles(colors);
   const messages = useSnackbarStore((s: any) => s.messages);
   const hide = useSnackbarStore((s: any) => s.hide);
 
@@ -73,25 +75,26 @@ export function Snackbar() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    position: "absolute",
-    left: Sizes.PADDING_LARGE,
-    right: Sizes.PADDING_LARGE,
-    bottom: 24,
-    zIndex: 9999,
-  },
-  snackbar: {
-    padding: 12,
-    borderRadius: Sizes.BORDER_RADIUS,
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  text: {
-    color: "white",
-    fontWeight: "600",
-  },
-});
+const createStyles = (colors: ReturnType<typeof useTheme>) =>
+  StyleSheet.create({
+    container: {
+      position: "absolute",
+      left: Sizes.PADDING_LARGE,
+      right: Sizes.PADDING_LARGE,
+      bottom: 24,
+      zIndex: 9999,
+    },
+    snackbar: {
+      padding: 12,
+      borderRadius: Sizes.BORDER_RADIUS,
+      elevation: 4,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+    },
+    text: {
+      color: "white",
+      fontWeight: "600",
+    },
+  });

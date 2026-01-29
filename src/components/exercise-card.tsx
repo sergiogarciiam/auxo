@@ -1,12 +1,7 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { StyleSheet, TextInput, View } from "react-native";
-import {
-  Colors,
-  IconSizes,
-  Sizes,
-  Spacing,
-  Typography,
-} from "../constants/theme";
+import { IconSizes, Sizes, Spacing, Typography } from "../constants/theme";
+import { useTheme } from "../hooks/useTheme";
 import { UIExercise } from "../types/ui";
 import { Field } from "./field";
 import { ThemedButton } from "./themed-button";
@@ -35,6 +30,8 @@ export function ExerciseCard({
   isDisabledPrev,
   isDisabledNext,
 }: ExerciseCardProps) {
+  const colors = useTheme();
+  const styles = createStyles(colors);
   const handleInputChange = (field: keyof UIExercise, value: any) => {
     // Send only the changed field to avoid accidental overwrites
     setExercise(exerciseId, { [field]: value });
@@ -47,7 +44,7 @@ export function ExerciseCard({
 
   return (
     <View style={styles.card}>
-      <Field label="Name" required>
+      <Field label="Name">
         <TextInput
           style={styles.input}
           value={exercise.name}
@@ -82,7 +79,7 @@ export function ExerciseCard({
         />
       </Field>
 
-      <Field label="Sets" required>
+      <Field label="Sets">
         <TextInput
           style={styles.input}
           keyboardType="numeric"
@@ -97,7 +94,7 @@ export function ExerciseCard({
           <MaterialIcons
             name="delete"
             size={IconSizes.SMALL}
-            color={Colors.PRIMARY_ICON_COLOR}
+            color={colors.PRIMARY_ICON_COLOR}
           />
         }
         onPress={onRemoveExercise}
@@ -112,8 +109,8 @@ export function ExerciseCard({
               size={IconSizes.MEDIUM}
               color={
                 !handleMovePrev || isDisabledPrev
-                  ? Colors.DISABLE_ICON_COLOR
-                  : Colors.PRIMARY_ICON_COLOR
+                  ? colors.DISABLE_ICON_COLOR
+                  : colors.PRIMARY_ICON_COLOR
               }
             />
           }
@@ -132,8 +129,8 @@ export function ExerciseCard({
               size={IconSizes.MEDIUM}
               color={
                 !handleMoveNext || isDisabledNext
-                  ? Colors.DISABLE_ICON_COLOR
-                  : Colors.PRIMARY_ICON_COLOR
+                  ? colors.DISABLE_ICON_COLOR
+                  : colors.PRIMARY_ICON_COLOR
               }
             />
           }
@@ -149,32 +146,29 @@ export function ExerciseCard({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    padding: Sizes.PADDING_LARGE,
-    backgroundColor: Colors.BACKGROUND,
-    borderRadius: Sizes.BORDER_RADIUS_LARGE,
-    marginBottom: Spacing.DOUBLE_EXTRA_LARGE,
-    borderWidth: Sizes.BORDER_WIDTH,
-    borderColor: Colors.BORDER,
-    shadowColor: "#000",
-    shadowOpacity: Sizes.SHADOW_OPACITY,
-    shadowRadius: Sizes.SHADOW_RADIUS_LARGE,
-    elevation: Sizes.ELEVATION,
-    gap: Spacing.DOUBLE_EXTRA_LARGE,
-  },
-  input: {
-    borderWidth: Sizes.BORDER_WIDTH,
-    borderColor: Colors.BORDER,
-    backgroundColor: Colors.LIGHT_BACKGROUND,
-    borderRadius: Sizes.BORDER_RADIUS,
-    padding: Sizes.PADDING,
-    fontSize: Typography.FONT_SIZE_DEFAULT,
-    color: Colors.TEXT_PRIMARY,
-  },
-  arrowsRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: Spacing.MEDIUM,
-  },
-});
+const createStyles = (colors: ReturnType<typeof useTheme>) =>
+  StyleSheet.create({
+    card: {
+      padding: Sizes.PADDING_LARGE,
+      backgroundColor: colors.BACKGROUND,
+      borderRadius: Sizes.BORDER_RADIUS_LARGE,
+      marginBottom: Spacing.DOUBLE_EXTRA_LARGE,
+      borderWidth: Sizes.BORDER_WIDTH,
+      borderColor: colors.BORDER,
+      gap: Spacing.DOUBLE_EXTRA_LARGE,
+    },
+    input: {
+      borderWidth: Sizes.BORDER_WIDTH,
+      borderColor: colors.BORDER,
+      backgroundColor: colors.LIGHT_BACKGROUND,
+      borderRadius: Sizes.BORDER_RADIUS,
+      padding: Sizes.PADDING,
+      fontSize: Typography.FONT_SIZE_DEFAULT,
+      color: colors.TEXT_PRIMARY,
+    },
+    arrowsRow: {
+      flexDirection: "row",
+      justifyContent: "center",
+      gap: Spacing.MEDIUM,
+    },
+  });

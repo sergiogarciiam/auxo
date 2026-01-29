@@ -1,6 +1,7 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Colors, Sizes, Typography } from "../constants/theme";
+import { Sizes, Typography } from "../constants/theme";
+import { useTheme } from "../hooks/useTheme";
 
 interface ThemedButtonProps {
   text?: string;
@@ -19,15 +20,17 @@ export const ThemedButton = ({
   icon,
   style,
 }: ThemedButtonProps) => {
+  const colors = useTheme();
+  const styles = createStyles(colors);
   const getButtonColor = () => {
     switch (variant) {
       case "success":
-        return Colors.SUCCESS;
+        return colors.SUCCESS;
       case "destructive":
-        return Colors.DESTRUCTIVE;
+        return colors.DESTRUCTIVE;
       case "primary":
       default:
-        return Colors.NEUTRAL;
+        return colors.PRIMARY;
     }
   };
 
@@ -77,50 +80,51 @@ export const ThemedButton = ({
   );
 };
 
-const styles = StyleSheet.create({
-  button: {
-    paddingHorizontal: Sizes.PADDING_LARGE,
-    paddingVertical: Sizes.PADDING,
-    borderRadius: Sizes.BORDER_RADIUS,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+const createStyles = (colors: ReturnType<typeof useTheme>) =>
+  StyleSheet.create({
+    button: {
+      paddingHorizontal: Sizes.PADDING_LARGE,
+      paddingVertical: Sizes.PADDING,
+      borderRadius: Sizes.BORDER_RADIUS,
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-  iconButton: {
-    paddingHorizontal: 6,
-    paddingVertical: 4,
-    minWidth: 32,
-    minHeight: 32,
-    borderRadius: 16,
-  },
+    iconButton: {
+      paddingHorizontal: 6,
+      paddingVertical: 4,
+      minWidth: 32,
+      minHeight: 32,
+      borderRadius: 16,
+    },
 
-  content: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  iconWithTextRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  iconTextSpacing: {
-    marginLeft: Sizes.PADDING,
-  },
+    content: {
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    iconWithTextRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    iconTextSpacing: {
+      marginLeft: Sizes.PADDING,
+    },
 
-  buttonDisabled: {
-    backgroundColor: Colors.DISABLED_BACKGROUND,
-  },
-  buttonPressed: {
-    opacity: 0.8,
-  },
-  text: {
-    color: "#fff",
-    fontWeight: Typography.FONT_WEIGHT_SEMI_BOLD,
-    fontSize: Typography.FONT_SIZE_DEFAULT,
-  },
-  iconText: {
-    fontSize: 14,
-  },
-  textDisabled: {
-    color: Colors.DISABLED_TEXT,
-  },
-});
+    buttonDisabled: {
+      backgroundColor: colors.DISABLED_BACKGROUND,
+    },
+    buttonPressed: {
+      opacity: 0.8,
+    },
+    text: {
+      color: "#fff",
+      fontWeight: Typography.FONT_WEIGHT_SEMI_BOLD,
+      fontSize: Typography.FONT_SIZE_DEFAULT,
+    },
+    iconText: {
+      fontSize: 14,
+    },
+    textDisabled: {
+      color: colors.DISABLED_TEXT,
+    },
+  });

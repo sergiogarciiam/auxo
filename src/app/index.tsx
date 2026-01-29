@@ -6,11 +6,12 @@ import { Card } from "../components/card";
 import { ReorderHeader } from "../components/reorder-header";
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
-import { Colors, IconSizes, Sizes, Spacing } from "../constants/theme";
+import { IconSizes, Sizes, Spacing } from "../constants/theme";
 import { useExercises } from "../hooks/base/useExercises";
 import { useSections } from "../hooks/base/useSections";
 import { useWorkouts } from "../hooks/base/useWorkouts";
 import { useLoadWorkout } from "../hooks/other/useLoadWorkout";
+import { useTheme } from "../hooks/useTheme";
 import { useStartWorkoutStore } from "../stores/useStartWorkoutStore";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
 import { buildExecutionPlan } from "../utils/planner";
@@ -21,6 +22,7 @@ import { handleAndShowError, showSuccessMessage } from "../utils/ui";
 export default function Homepage() {
   const router = useRouter();
   const navigation = useNavigation();
+  const colors = useTheme();
 
   const { localWorkouts, loadWorkouts, loadWorkout, reset } = useWorkoutStore();
   const { startWorkout } = useStartWorkoutStore();
@@ -198,7 +200,7 @@ export default function Homepage() {
           title: "Your Workouts",
         }}
       />
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={createStyles(colors).container}>
         {hasWorkouts ? (
           localWorkouts
             .filter(Boolean)
@@ -227,7 +229,7 @@ export default function Homepage() {
             <MaterialIcons
               name="add"
               size={IconSizes.SMALL}
-              color={Colors.PRIMARY_ICON_COLOR}
+              color={colors.PRIMARY_ICON_COLOR}
             />
           }
           onPress={handleCreateWorkout}
@@ -237,11 +239,12 @@ export default function Homepage() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    padding: Sizes.PADDING_LARGE,
-    gap: Spacing.LARGE,
-    backgroundColor: Colors.BACKGROUND_SECONDARY,
-    height: "100%",
-  },
-});
+const createStyles = (colors: ReturnType<typeof useTheme>) =>
+  StyleSheet.create({
+    container: {
+      padding: Sizes.PADDING_LARGE,
+      gap: Spacing.LARGE,
+      backgroundColor: colors.BACKGROUND_SECONDARY,
+      height: "100%",
+    },
+  });

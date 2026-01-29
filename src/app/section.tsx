@@ -26,15 +26,10 @@ import {
   SECTION_TYPES,
   SUPERSET_TYPE,
 } from "../constants/constants";
-import {
-  Colors,
-  IconSizes,
-  Sizes,
-  Spacing,
-  Typography,
-} from "../constants/theme";
+import { IconSizes, Sizes, Spacing, Typography } from "../constants/theme";
 import { useOrderedExercises } from "../hooks/other/useOrdererExercises";
 import { useSectionLifecycle } from "../hooks/other/useSectionLifecycle";
+import { useTheme } from "../hooks/useTheme";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
 import { UISection } from "../types/ui";
 import { swapItems } from "../utils/reorder";
@@ -44,6 +39,7 @@ import { validateSection } from "../utils/validation";
 export default function SectionScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const colors = useTheme();
   const initialSectionRef = useRef<UISection | null>(null);
 
   const {
@@ -193,11 +189,11 @@ export default function SectionScreen() {
         keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView contentContainerStyle={styles.container}>
-            <View style={styles.card}>
+          <ScrollView contentContainerStyle={createStyles(colors).container}>
+            <View style={createStyles(colors).card}>
               <Field label="Section name">
                 <TextInput
-                  style={styles.input}
+                  style={createStyles(colors).input}
                   value={section.name}
                   onChangeText={(text) => handleUpdateSection({ name: text })}
                   accessibilityLabel="Section name input"
@@ -205,26 +201,26 @@ export default function SectionScreen() {
               </Field>
 
               <Field label="Section type">
-                <View style={styles.pickerContainer}>
+                <View style={createStyles(colors).pickerContainer}>
                   <Picker
                     selectedValue={section.type}
                     onValueChange={(value) =>
                       handleUpdateSection({ type: value })
                     }
                     accessibilityLabel="Section type picker"
-                    itemStyle={styles.pickerItem}
+                    itemStyle={createStyles(colors).pickerItem}
                   >
                     <Picker.Item
                       label="Select Type"
                       value=""
-                      style={styles.pickerItem}
+                      style={createStyles(colors).pickerItem}
                     />
                     {SECTION_TYPES.map((type) => (
                       <Picker.Item
                         key={type}
                         label={SECTION_TYPE_LABELS[type]}
                         value={type}
-                        style={styles.pickerItem}
+                        style={createStyles(colors).pickerItem}
                       />
                     ))}
                   </Picker>
@@ -269,10 +265,13 @@ export default function SectionScreen() {
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.exercisesScroll}
+              contentContainerStyle={createStyles(colors).exercisesScroll}
             >
               {localExercises.map((exercise, index) => (
-                <View key={exercise.id} style={styles.exerciseWrapper}>
+                <View
+                  key={exercise.id}
+                  style={createStyles(colors).exerciseWrapper}
+                >
                   <ExerciseCard
                     exercise={exercise}
                     exerciseId={exercise.id}
@@ -291,14 +290,14 @@ export default function SectionScreen() {
                 </View>
               ))}
 
-              <View style={styles.newExerciseButtonContainer}>
+              <View style={createStyles(colors).newExerciseButtonContainer}>
                 <ThemedButton
                   text="New Exercise"
                   icon={
                     <MaterialIcons
                       name="add"
                       size={IconSizes.SMALL}
-                      color={Colors.PRIMARY_ICON_COLOR}
+                      color={colors.PRIMARY_ICON_COLOR}
                     />
                   }
                   onPress={handleAddExercise}
@@ -312,62 +311,64 @@ export default function SectionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    padding: Sizes.PADDING_LARGE,
-    gap: Spacing.DOUBLE_EXTRA_LARGE,
-    backgroundColor: Colors.BACKGROUND_SECONDARY,
-    flexGrow: 1,
-  },
-  card: {
-    padding: Sizes.PADDING_LARGE,
-    backgroundColor: Colors.BACKGROUND,
-    borderRadius: Sizes.BORDER_RADIUS_LARGE,
-    borderWidth: Sizes.BORDER_WIDTH,
-    gap: Spacing.LARGE,
-  },
-  input: {
-    borderWidth: Sizes.BORDER_WIDTH,
-    borderColor: Colors.BORDER,
-    padding: Sizes.PADDING,
-    color: Colors.TEXT_PRIMARY,
-    borderRadius: Sizes.BORDER_RADIUS,
-    backgroundColor: Colors.LIGHT_BACKGROUND,
-    fontSize: Typography.FONT_SIZE_DEFAULT,
-  },
-  inputDisabled: {
-    backgroundColor: Colors.DISABLED_BACKGROUND,
-    borderColor: Colors.BORDER,
-    color: Colors.DISABLED_TEXT,
-  },
-  pickerContainer: {
-    borderWidth: Sizes.BORDER_WIDTH,
-    borderColor: Colors.BORDER,
-    borderRadius: Sizes.BORDER_RADIUS,
-    backgroundColor: Colors.LIGHT_BACKGROUND,
-    color: Colors.TEXT_PRIMARY,
-    overflow: "hidden",
-  },
-  pickerItem: {
-    color: Colors.TEXT_PRIMARY,
-    backgroundColor: Colors.PICKER_BACKGROUND,
-  },
-  exercisesScroll: {
-    paddingVertical: Spacing.MEDIUM,
-  },
-  exerciseWrapper: {
-    marginRight: Spacing.LARGE,
-    width: 320,
-  },
-  exerciseAddButton: {
-    justifyContent: "center",
-    alignItems: "center",
-    alignSelf: "center",
-  },
-  newExerciseButtonContainer: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: Spacing.LARGE,
-  },
-});
+const createStyles = (colors: ReturnType<typeof useTheme>) =>
+  StyleSheet.create({
+    container: {
+      padding: Sizes.PADDING_LARGE,
+      gap: Spacing.DOUBLE_EXTRA_LARGE,
+      backgroundColor: colors.BACKGROUND_SECONDARY,
+      flexGrow: 1,
+    },
+    card: {
+      padding: Sizes.PADDING_LARGE,
+      backgroundColor: colors.BACKGROUND,
+      borderRadius: Sizes.BORDER_RADIUS_LARGE,
+      borderWidth: Sizes.BORDER_WIDTH,
+      borderColor: colors.BORDER,
+      gap: Spacing.LARGE,
+    },
+    input: {
+      borderWidth: Sizes.BORDER_WIDTH,
+      borderColor: colors.BORDER,
+      padding: Sizes.PADDING,
+      color: colors.TEXT_PRIMARY,
+      borderRadius: Sizes.BORDER_RADIUS,
+      backgroundColor: colors.LIGHT_BACKGROUND,
+      fontSize: Typography.FONT_SIZE_DEFAULT,
+    },
+    inputDisabled: {
+      backgroundColor: colors.DISABLED_BACKGROUND,
+      borderColor: colors.BORDER,
+      color: colors.DISABLED_TEXT,
+    },
+    pickerContainer: {
+      borderWidth: Sizes.BORDER_WIDTH,
+      borderColor: colors.BORDER,
+      borderRadius: Sizes.BORDER_RADIUS,
+      backgroundColor: colors.LIGHT_BACKGROUND,
+      color: colors.TEXT_PRIMARY,
+      overflow: "hidden",
+    },
+    pickerItem: {
+      color: colors.TEXT_PRIMARY,
+      backgroundColor: colors.PICKER_BACKGROUND,
+    },
+    exercisesScroll: {
+      paddingVertical: Spacing.MEDIUM,
+    },
+    exerciseWrapper: {
+      marginRight: Spacing.LARGE,
+      width: 320,
+    },
+    exerciseAddButton: {
+      justifyContent: "center",
+      alignItems: "center",
+      alignSelf: "center",
+    },
+    newExerciseButtonContainer: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: Spacing.LARGE,
+    },
+  });

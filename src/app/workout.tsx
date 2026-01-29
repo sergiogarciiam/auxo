@@ -16,7 +16,8 @@ import { Card } from "../components/card";
 import { Field } from "../components/field";
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
-import { Colors, IconSizes, Sizes, Spacing } from "../constants/theme";
+import { IconSizes, Sizes, Spacing } from "../constants/theme";
+import { useTheme } from "../hooks/useTheme";
 
 import { Header } from "../components/header";
 import { LOCAL_STATUS_NEW } from "../constants/constants";
@@ -33,6 +34,7 @@ import { validateWorkout } from "../utils/validation";
 
 export default function WorkoutScreen() {
   const router = useRouter();
+  const colors = useTheme();
   const params = useLocalSearchParams();
 
   const { deleteWorkout, getWorkoutById } = useWorkouts();
@@ -51,6 +53,7 @@ export default function WorkoutScreen() {
   } = useWorkoutStore();
 
   const initialWorkoutRef = useRef<any | null>(null);
+  const contentStyle = createStyles(colors);
   const sections = useOrderedSections(workout);
 
   useEffect(() => {
@@ -232,11 +235,11 @@ export default function WorkoutScreen() {
         keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView contentContainerStyle={styles.container}>
-            <View style={styles.card}>
+          <ScrollView contentContainerStyle={contentStyle.container}>
+            <View style={contentStyle.card}>
               <Field label="Workout name">
                 <TextInput
-                  style={styles.input}
+                  style={contentStyle.input}
                   value={workout.name}
                   onChangeText={setName}
                   accessibilityLabel="Workout name input"
@@ -271,7 +274,7 @@ export default function WorkoutScreen() {
                 <MaterialIcons
                   name="add"
                   size={IconSizes.SMALL}
-                  color={Colors.PRIMARY_ICON_COLOR}
+                  color={colors.PRIMARY_ICON_COLOR}
                 />
               }
               onPress={handleAddSection}
@@ -283,34 +286,36 @@ export default function WorkoutScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    padding: Sizes.PADDING_LARGE,
-    gap: Spacing.DOUBLE_EXTRA_LARGE,
-    backgroundColor: Colors.BACKGROUND_SECONDARY,
-    flexGrow: 1,
-  },
-  card: {
-    padding: Sizes.PADDING_LARGE,
-    backgroundColor: Colors.BACKGROUND,
-    borderRadius: Sizes.BORDER_RADIUS_LARGE,
-    borderWidth: Sizes.BORDER_WIDTH,
-    gap: Spacing.LARGE,
-  },
-  text: {
-    color: Colors.TEXT_PRIMARY,
-  },
-  input: {
-    borderWidth: Sizes.BORDER_WIDTH,
-    borderColor: Colors.BORDER,
-    padding: Sizes.PADDING,
-    borderRadius: Sizes.BORDER_RADIUS,
-    backgroundColor: Colors.LIGHT_BACKGROUND,
-    color: Colors.TEXT_PRIMARY,
-  },
-  headerButtonRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: Spacing.LARGE,
-  },
-});
+const createStyles = (colors: ReturnType<typeof useTheme>) =>
+  StyleSheet.create({
+    container: {
+      padding: Sizes.PADDING_LARGE,
+      gap: Spacing.DOUBLE_EXTRA_LARGE,
+      backgroundColor: colors.BACKGROUND_SECONDARY,
+      flexGrow: 1,
+    },
+    card: {
+      padding: Sizes.PADDING_LARGE,
+      backgroundColor: colors.BACKGROUND,
+      borderRadius: Sizes.BORDER_RADIUS_LARGE,
+      borderWidth: Sizes.BORDER_WIDTH,
+      borderColor: colors.BORDER,
+      gap: Spacing.LARGE,
+    },
+    text: {
+      color: colors.TEXT_PRIMARY,
+    },
+    input: {
+      borderWidth: Sizes.BORDER_WIDTH,
+      borderColor: colors.BORDER,
+      padding: Sizes.PADDING,
+      borderRadius: Sizes.BORDER_RADIUS,
+      backgroundColor: colors.LIGHT_BACKGROUND,
+      color: colors.TEXT_PRIMARY,
+    },
+    headerButtonRow: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      gap: Spacing.LARGE,
+    },
+  });

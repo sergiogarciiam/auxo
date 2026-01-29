@@ -1,5 +1,6 @@
 import { StyleSheet, Text, TextInput, View } from "react-native";
-import { Colors, Sizes, Spacing, Typography } from "../constants/theme";
+import { Sizes, Spacing, Typography } from "../constants/theme";
+import { useTheme } from "../hooks/useTheme";
 
 type Props = {
   value: number;
@@ -8,6 +9,8 @@ type Props = {
 };
 
 export function TimeInput({ value, onChange, disabled }: Props) {
+  const colors = useTheme();
+  const styles = createStyles(colors);
   const minutes = Math.floor(value / 60);
   const seconds = value % 60;
 
@@ -45,25 +48,26 @@ export function TimeInput({ value, onChange, disabled }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    gap: Spacing.MEDIUM,
-    alignItems: "center",
-  },
-  input: {
-    flex: 1,
-    borderWidth: Sizes.BORDER_WIDTH,
-    borderColor: Colors.BORDER,
-    padding: Sizes.PADDING,
-    borderRadius: Sizes.BORDER_RADIUS,
-    backgroundColor: Colors.LIGHT_BACKGROUND,
-    fontSize: Typography.FONT_SIZE_DEFAULT,
-    textAlign: "center",
-    color: Colors.TEXT_PRIMARY,
-  },
-  disabled: {
-    backgroundColor: Colors.DISABLED_BACKGROUND,
-    color: Colors.DISABLED_TEXT,
-  },
-});
+const createStyles = (colors: ReturnType<typeof useTheme>) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: "row",
+      gap: Spacing.MEDIUM,
+      alignItems: "center",
+    },
+    input: {
+      flex: 1,
+      borderWidth: Sizes.BORDER_WIDTH,
+      borderColor: colors.BORDER,
+      padding: Sizes.PADDING,
+      borderRadius: Sizes.BORDER_RADIUS,
+      backgroundColor: colors.LIGHT_BACKGROUND,
+      fontSize: Typography.FONT_SIZE_DEFAULT,
+      textAlign: "center",
+      color: colors.TEXT_PRIMARY,
+    },
+    disabled: {
+      backgroundColor: colors.DISABLED_BACKGROUND,
+      color: colors.DISABLED_TEXT,
+    },
+  });

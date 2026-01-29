@@ -1,6 +1,7 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { StyleSheet, View } from "react-native";
-import { Colors, IconSizes, Spacing } from "../constants/theme";
+import { IconSizes, Spacing } from "../constants/theme";
+import { useTheme } from "../hooks/useTheme";
 import { ThemedButton } from "./themed-button";
 
 interface HeaderProps {
@@ -16,6 +17,7 @@ export function Header({
   handleDone,
   isCreating,
 }: HeaderProps) {
+  const colors = useTheme();
   return (
     <View style={styles.headerButtonRow}>
       <ThemedButton
@@ -23,7 +25,7 @@ export function Header({
           <MaterialIcons
             name="arrow-back"
             size={IconSizes.MEDIUM}
-            color={Colors.PRIMARY_ICON_COLOR}
+            color={colors.PRIMARY_ICON_COLOR}
           />
         }
         onPress={handleDiscard}
@@ -35,7 +37,7 @@ export function Header({
             <MaterialIcons
               name="delete"
               size={IconSizes.MEDIUM}
-              color={Colors.PRIMARY_ICON_COLOR}
+              color={colors.PRIMARY_ICON_COLOR}
             />
           }
           onPress={handleDelete}
@@ -47,7 +49,7 @@ export function Header({
           <MaterialIcons
             name="check"
             size={IconSizes.MEDIUM}
-            color={Colors.PRIMARY_ICON_COLOR}
+            color={colors.PRIMARY_ICON_COLOR}
           />
         }
         onPress={handleDone}

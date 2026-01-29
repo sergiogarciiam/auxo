@@ -1,10 +1,11 @@
 import { Stack } from "expo-router";
 import { SQLiteProvider } from "expo-sqlite";
 import { Snackbar } from "../components/snackbar";
-import { Colors } from "../constants/theme";
+import { useTheme } from "../hooks/useTheme";
 import { dbRepository } from "../repositories/dbRepository";
 
 export default function RootLayout() {
+  const colors = useTheme();
   return (
     <SQLiteProvider
       databaseName="workout_timer.db"
@@ -16,12 +17,12 @@ export default function RootLayout() {
           headerShadowVisible: false,
           headerBackVisible: false,
           headerStyle: {
-            backgroundColor: Colors.BACKGROUND,
+            backgroundColor: colors.BACKGROUND,
           },
           headerTitleStyle: {
             fontWeight: "600",
             fontSize: 18,
-            color: Colors.TEXT_PRIMARY,
+            color: colors.TEXT_PRIMARY,
           },
         }}
       />
