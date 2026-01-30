@@ -1,8 +1,7 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -19,6 +18,7 @@ import { ThemedText } from "../components/themed-text";
 import { IconSizes, Sizes, Spacing } from "../constants/theme";
 import { useTheme } from "../hooks/useTheme";
 
+import { ConfirmDialog } from "../components/confirm-dialog";
 import { Header } from "../components/header";
 import { LOCAL_STATUS_NEW } from "../constants/constants";
 import { useExercises } from "../hooks/base/useExercises";
@@ -87,42 +87,41 @@ export default function WorkoutScreen() {
 
   const handleDiscard = useCallback(() => {
     Keyboard.dismiss();
+    // show confirm dialog (replaces Alert)
+    setDiscardConfirmVisible(true);
+  }, [workout, reset, router, getWorkoutById, loadWorkout]);
 
-    Alert.alert(
-      "Discard changes?",
-      "Are you sure you want to discard changes to this workout?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Discard",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              if (!workout) return router.replace("/");
+  const [discardConfirmVisible, setDiscardConfirmVisible] = useState(false);
+  const [deleteWorkoutConfirmVisible, setDeleteWorkoutConfirmVisible] =
+    useState(false);
+  const [deleteExerciseConfirmVisible, setDeleteExerciseConfirmVisible] =
+    useState(false);
+  const [sectionToDeleteId, setSectionToDeleteId] = useState<string | null>(
+    null,
+  );
 
-              // if this is a temporary workout, just reset
-              if (
-                workout.id?.toString().startsWith("temp-") ||
-                workout.localStatus === LOCAL_STATUS_NEW
-              ) {
-                reset();
-                return router.replace("/");
-              }
+  const doDiscard = useCallback(async () => {
+    setDiscardConfirmVisible(false);
+    try {
+      if (!workout) return router.replace("/");
 
-              // otherwise try to re-fetch the saved workout and load it into the store
-              const id = Number(workout.id);
-              const original = await getWorkoutById(id);
-              if (original) {
-                loadWorkout(original as any);
-              }
-              router.replace("/");
-            } catch (error) {
-              handleAndShowError(error);
-            }
-          },
-        },
-      ],
-    );
+      if (
+        workout.id?.toString().startsWith("temp-") ||
+        workout.localStatus === LOCAL_STATUS_NEW
+      ) {
+        reset();
+        return router.replace("/");
+      }
+
+      const id = Number(workout.id);
+      const original = await getWorkoutById(id);
+      if (original) {
+        loadWorkout(original as any);
+      }
+      router.replace("/");
+    } catch (error) {
+      handleAndShowError(error);
+    }
   }, [workout, reset, router, getWorkoutById, loadWorkout]);
 
   const handleEditSection = useCallback(
@@ -134,73 +133,56 @@ export default function WorkoutScreen() {
 
   const handleDeleteWorkout = useCallback(async () => {
     Keyboard.dismiss();
+    setDeleteWorkoutConfirmVisible(true);
+  }, []);
 
-    Alert.alert(
-      "Remove section?",
-      "Are you sure you want to remove this workout?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await Promise.all(
-                workout?.sections
-                  ?.map((s) => s.id)!
-                  .map(async (sectionId) => {
-                    await deleteSection(Number(sectionId));
-                  }) || [],
-              );
+  const doDeleteWorkout = useCallback(async () => {
+    setDeleteWorkoutConfirmVisible(false);
+    try {
+      await Promise.all(
+        workout?.sections
+          ?.map((s) => s.id)!
+          .map(async (sectionId) => {
+            await deleteSection(Number(sectionId));
+          }) || [],
+      );
 
-              await Promise.all(
-                workout?.sections
-                  ?.flatMap((s) => (s.exercises || []).map((e) => e.id))
-                  .map(async (exerciseId) => {
-                    await deleteExercise(Number(exerciseId));
-                  }) || [],
-              );
+      await Promise.all(
+        workout?.sections
+          ?.flatMap((s) => (s.exercises || []).map((e) => e.id))
+          .map(async (exerciseId) => {
+            await deleteExercise(Number(exerciseId));
+          }) || [],
+      );
 
-              await deleteWorkout(Number(workout!.id));
-              showSuccessMessage("Workout deleted");
-              reset();
-              router.replace("/");
-            } catch (error) {
-              handleAndShowError(error);
-            }
-          },
-        },
-      ],
-    );
+      await deleteWorkout(Number(workout!.id));
+      showSuccessMessage("Workout deleted");
+      reset();
+      router.replace("/");
+    } catch (error) {
+      handleAndShowError(error);
+    }
   }, [workout, deleteWorkout, deleteSection, deleteExercise, reset, router]);
 
   const handleAddSection = useCallback(() => {
     router.push("/section");
   }, [router]);
 
-  const handleDeleteSection = useCallback(
-    (sectionId: string) => {
-      Alert.alert(
-        "Remove section?",
-        "Are you sure you want to remove this section?",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Delete",
-            style: "destructive",
-            onPress: async () => {
-              try {
-                removeSection(sectionId);
-              } catch (error) {
-                handleAndShowError(error);
-              }
-            },
-          },
-        ],
-      );
-    },
-    [removeSection],
-  );
+  const handleDeleteSection = useCallback((sectionId: string) => {
+    setSectionToDeleteId(sectionId);
+    setDeleteExerciseConfirmVisible(true);
+  }, []);
+
+  const doDeleteSection = useCallback(async () => {
+    setDeleteExerciseConfirmVisible(false);
+    try {
+      if (sectionToDeleteId) {
+        removeSection(sectionToDeleteId);
+      }
+    } catch (error) {
+      handleAndShowError(error);
+    }
+  }, [sectionToDeleteId, removeSection]);
 
   const moveSection = (from: number, to: number) => {
     const reordered = swapItems(sections, from, to);
@@ -235,51 +217,85 @@ export default function WorkoutScreen() {
         keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView contentContainerStyle={contentStyle.container}>
-            <View style={contentStyle.card}>
-              <Field label="Workout name">
-                <TextInput
-                  style={contentStyle.input}
-                  value={workout.name}
-                  onChangeText={setName}
-                  accessibilityLabel="Workout name input"
-                />
-              </Field>
-            </View>
-
-            <ThemedText type="subtitle">Sections</ThemedText>
-
-            {sections.length > 0 ? (
-              sections.map((section, index) => (
-                <View key={section.id} style={{ marginBottom: 12 }}>
-                  <Card
-                    text={section.name}
-                    onEdit={() => handleEditSection(section.id.toString())}
-                    onDelete={() => handleDeleteSection(section.id.toString())}
-                    index={index}
-                    handleMovePrev={() => moveSection(index, index - 1)}
-                    handleMoveNext={() => moveSection(index, index + 1)}
-                    isDisabledPrev={index === 0}
-                    isDisabledNext={index === sections.length - 1}
+          <View style={{ flex: 1 }}>
+            <ScrollView contentContainerStyle={contentStyle.container}>
+              <View style={contentStyle.card}>
+                <Field label="Workout name">
+                  <TextInput
+                    style={contentStyle.input}
+                    value={workout.name}
+                    onChangeText={setName}
+                    accessibilityLabel="Workout name input"
                   />
-                </View>
-              ))
-            ) : (
-              <ThemedText>No sections yet</ThemedText>
-            )}
+                </Field>
+              </View>
 
-            <ThemedButton
-              text="New Section"
-              icon={
-                <MaterialIcons
-                  name="add"
-                  size={IconSizes.SMALL}
-                  color={colors.PRIMARY_ICON_COLOR}
-                />
-              }
-              onPress={handleAddSection}
+              <ThemedText type="subtitle">Sections</ThemedText>
+
+              {sections.length > 0 ? (
+                sections.map((section, index) => (
+                  <View key={section.id} style={{ marginBottom: 12 }}>
+                    <Card
+                      text={section.name}
+                      onEdit={() => handleEditSection(section.id.toString())}
+                      onDelete={() =>
+                        handleDeleteSection(section.id.toString())
+                      }
+                      index={index}
+                      handleMovePrev={() => moveSection(index, index - 1)}
+                      handleMoveNext={() => moveSection(index, index + 1)}
+                      isDisabledPrev={index === 0}
+                      isDisabledNext={index === sections.length - 1}
+                    />
+                  </View>
+                ))
+              ) : (
+                <ThemedText>No sections yet</ThemedText>
+              )}
+
+              <ThemedButton
+                text="New Section"
+                icon={
+                  <MaterialIcons
+                    name="add"
+                    size={IconSizes.SMALL}
+                    color={colors.PRIMARY_ICON_COLOR}
+                  />
+                }
+                onPress={handleAddSection}
+              />
+            </ScrollView>
+            <ConfirmDialog
+              visible={discardConfirmVisible}
+              title="Discard changes?"
+              message="Are you sure you want to discard changes to this workout?"
+              onCancel={() => setDiscardConfirmVisible(false)}
+              onConfirm={doDiscard}
+              cancelText="Cancel"
+              confirmText="Discard"
+              destructive
             />
-          </ScrollView>
+            <ConfirmDialog
+              visible={deleteWorkoutConfirmVisible}
+              title="Remove workout?"
+              message="Are you sure you want to remove this workout?"
+              onCancel={() => setDeleteWorkoutConfirmVisible(false)}
+              onConfirm={doDeleteWorkout}
+              cancelText="Cancel"
+              confirmText="Delete"
+              destructive
+            />
+            <ConfirmDialog
+              visible={deleteExerciseConfirmVisible}
+              title="Remove section?"
+              message="Are you sure you want to remove this section?"
+              onCancel={() => setDeleteExerciseConfirmVisible(false)}
+              onConfirm={doDeleteSection}
+              cancelText="Cancel"
+              confirmText="Delete"
+              destructive
+            />
+          </View>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </>

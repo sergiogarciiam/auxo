@@ -1,8 +1,9 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Stack, useNavigation, useRouter } from "expo-router";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
-import { Alert, Keyboard, ScrollView, StyleSheet } from "react-native";
+import { Keyboard, ScrollView, StyleSheet } from "react-native";
 import { Card } from "../components/card";
+import { ConfirmDialog } from "../components/confirm-dialog";
 import { ReorderHeader } from "../components/reorder-header";
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
@@ -34,6 +35,7 @@ export default function Homepage() {
   const { deleteExercise } = useExercises();
 
   const [isReordering, setIsReordering] = useState(false);
+  const [discardConfirmVisible, setDiscardConfirmVisible] = useState(false);
 
   useEffect(() => {
     if (isReordering) return;
@@ -79,22 +81,13 @@ export default function Homepage() {
 
   const handleDiscard = useCallback(() => {
     Keyboard.dismiss();
+    setDiscardConfirmVisible(true);
+  }, []);
 
-    Alert.alert(
-      "Discard changes?",
-      "Are you sure you want to discard reordering?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Discard",
-          style: "destructive",
-          onPress: () => {
-            loadWorkouts(transformWorkoutsToUI(workouts));
-            setIsReordering(false);
-          },
-        },
-      ],
-    );
+  const doDiscardReorder = useCallback(() => {
+    setDiscardConfirmVisible(false);
+    loadWorkouts(transformWorkoutsToUI(workouts));
+    setIsReordering(false);
   }, [loadWorkouts, workouts]);
 
   const handleEditWorkout = useCallback(
@@ -125,59 +118,52 @@ export default function Homepage() {
     [loadWorkoutWithData, startWorkout, router],
   );
 
-  const handleDeleteWorkout = useCallback(
-    (id: number) => {
-      Alert.alert(
-        "Remove workout?",
-        "Are you sure you want to remove this workout?",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Delete",
-            style: "destructive",
-            onPress: async () => {
-              try {
-                const sectionsToDelete = await getAllSectionsByWorkoutId(id);
+  const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
+  const [workoutToDelete, setWorkoutToDelete] = useState<number | null>(null);
 
-                const exercisesToDelete = (
-                  await Promise.all(
-                    (sectionsToDelete || []).map(async (s: any) => {
-                      return await getAllExercisesBySectionId(Number(s.id));
-                    }),
-                  )
-                ).flat();
+  const handleDeleteWorkout = useCallback((id: number) => {
+    setWorkoutToDelete(id);
+    setDeleteConfirmVisible(true);
+  }, []);
 
-                await Promise.all(
-                  (sectionsToDelete || []).map((s: any) =>
-                    deleteSection(Number(s.id)),
-                  ),
-                );
+  const doDeleteWorkout = useCallback(async () => {
+    setDeleteConfirmVisible(false);
+    if (workoutToDelete === null) return;
+    try {
+      const sectionsToDelete = await getAllSectionsByWorkoutId(workoutToDelete);
 
-                await Promise.all(
-                  (exercisesToDelete || [])
-                    .map((e: any) => e.id)
-                    .map(async (exerciseId: number) =>
-                      deleteExercise(Number(exerciseId)),
-                    ),
-                );
+      const exercisesToDelete = (
+        await Promise.all(
+          (sectionsToDelete || []).map(async (s: any) => {
+            return await getAllExercisesBySectionId(Number(s.id));
+          }),
+        )
+      ).flat();
 
-                await deleteWorkout(Number(id));
-              } catch (error) {
-                handleAndShowError(error);
-              }
-            },
-          },
-        ],
+      await Promise.all(
+        (sectionsToDelete || []).map((s: any) => deleteSection(Number(s.id))),
       );
-    },
-    [
-      getAllSectionsByWorkoutId,
-      getAllExercisesBySectionId,
-      deleteSection,
-      deleteExercise,
-      deleteWorkout,
-    ],
-  );
+
+      await Promise.all(
+        (exercisesToDelete || [])
+          .map((e: any) => e.id)
+          .map(async (exerciseId: number) =>
+            deleteExercise(Number(exerciseId)),
+          ),
+      );
+
+      await deleteWorkout(Number(workoutToDelete));
+    } catch (error) {
+      handleAndShowError(error);
+    }
+  }, [
+    workoutToDelete,
+    getAllSectionsByWorkoutId,
+    getAllExercisesBySectionId,
+    deleteSection,
+    deleteExercise,
+    deleteWorkout,
+  ]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -225,6 +211,7 @@ export default function Homepage() {
 
         <ThemedButton
           text="New Workout"
+          disabled={isReordering}
           icon={
             <MaterialIcons
               name="add"
@@ -235,6 +222,26 @@ export default function Homepage() {
           onPress={handleCreateWorkout}
         />
       </ScrollView>
+      <ConfirmDialog
+        visible={discardConfirmVisible}
+        title="Discard changes?"
+        message="Are you sure you want to discard reordering?"
+        onCancel={() => setDiscardConfirmVisible(false)}
+        onConfirm={doDiscardReorder}
+        cancelText="Cancel"
+        confirmText="Discard"
+        destructive
+      />
+      <ConfirmDialog
+        visible={deleteConfirmVisible}
+        title="Remove workout?"
+        message="Are you sure you want to remove this workout?"
+        onCancel={() => setDeleteConfirmVisible(false)}
+        onConfirm={doDeleteWorkout}
+        cancelText="Cancel"
+        confirmText="Delete"
+        destructive
+      />
     </>
   );
 }
@@ -245,6 +252,6 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
       padding: Sizes.PADDING_LARGE,
       gap: Spacing.LARGE,
       backgroundColor: colors.BACKGROUND_SECONDARY,
-      height: "100%",
+      flexGrow: 1,
     },
   });

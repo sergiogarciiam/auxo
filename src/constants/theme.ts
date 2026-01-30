@@ -18,6 +18,7 @@ export const Colors = {
   WARNING: "#DC6803",
   PRIMARY_ICON_COLOR: "#fff",
   DISABLE_ICON_COLOR: "#777",
+  SHADOW_COLOR: "#000",
 } as const;
 
 export const DarkColors = {
@@ -38,6 +39,7 @@ export const DarkColors = {
   WARNING: "#DC6803",
   PRIMARY_ICON_COLOR: "#fff",
   DISABLE_ICON_COLOR: "#555",
+  SHADOW_COLOR: "#777",
 } as const;
 
 export const Sizes = {

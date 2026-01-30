@@ -1,8 +1,10 @@
 import { nanoid } from "nanoid/non-secure";
 import {
+  CIRCUIT_TYPE,
   EXERCISE_STEP_TYPE,
   LOCAL_STATUS_DELETED,
   REST_STEP_TYPE,
+  SUPERSET_TYPE,
 } from "../constants/constants";
 import { ExecutionStep, UIWorkout } from "../types/ui";
 
@@ -25,13 +27,13 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
         id: nanoid(),
         type: REST_STEP_TYPE,
         sectionId: section.id,
-        name: `Prepare`,
+        name: `Prepare for ${section.name}`,
         duration_seconds: section.prepare_time,
       });
     }
 
     // SUPERSET PLANNING
-    if (section.type === "superset") {
+    if (section.type === SUPERSET_TYPE) {
       const queue = exercises.map((ex) => ({
         ...ex,
         remainingSets: ex.sets || 0,
@@ -89,7 +91,7 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
       }
 
       // CIRCUIT PLANNING
-    } else if (section.type === "circuit") {
+    } else if (section.type === CIRCUIT_TYPE) {
       const maxSets = Math.max(...exercises.map((e) => e.sets || 0));
       for (let round = 0; round < maxSets; round++) {
         exercises.forEach((ex, idx) => {
@@ -112,7 +114,7 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
                 id: nanoid(),
                 type: REST_STEP_TYPE,
                 sectionId: section.id,
-                name: REST_STEP_TYPE,
+                name: "Rest",
                 duration_seconds: section.rest_exercise,
               });
             }
@@ -152,7 +154,7 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
               id: nanoid(),
               type: REST_STEP_TYPE,
               sectionId: section.id,
-              name: REST_STEP_TYPE,
+              name: "Rest",
               duration_seconds: section.rest_exercise,
             });
           }
@@ -164,7 +166,7 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
             id: nanoid(),
             type: REST_STEP_TYPE,
             sectionId: section.id,
-            name: REST_STEP_TYPE,
+            name: "Rest",
             duration_seconds: section.rest_exercise,
           });
         }

@@ -39,15 +39,14 @@ export const workout = {
   update: async ({
     id,
     name,
-    total_time,
     position,
   }: UpdateWorkoutPayload): Promise<any> => {
     const sql = `
       UPDATE workouts 
-      SET name = ?, total_time = ?, position = ?
+      SET name = ?,  position = ?
       WHERE id = ?;
     `;
-    const result = await runQuery(sql, [name, total_time, position, id]);
+    const result = await runQuery(sql, [name, position, id]);
     return result;
   },
 

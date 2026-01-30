@@ -215,14 +215,12 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
       marginLeft: Spacing.SMALL,
     },
     upButton: {
-      borderTopEndRadius: Sizes.BORDER_RADIUS,
       borderBottomEndRadius: 0,
       padding: Sizes.PADDING,
       marginBottom: Spacing.SMALL,
     },
     downButton: {
       borderTopEndRadius: 0,
-      borderBottomEndRadius: Sizes.BORDER_RADIUS,
       padding: Sizes.PADDING,
     },
     menuButton: {

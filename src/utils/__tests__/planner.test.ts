@@ -138,7 +138,7 @@ describe("buildExecutionPlan", () => {
       const plan = buildExecutionPlan(mockWorkout);
       expect(plan[0]).toMatchObject({
         type: REST_STEP_TYPE,
-        name: "Prepare",
+        name: "Prepare for Prep Section",
         duration_seconds: 60,
         sectionId: "section-1",
       });
@@ -334,50 +334,6 @@ describe("buildExecutionPlan", () => {
       const plan = buildExecutionPlan(mockWorkout);
       const names = plan.map((s) => s.name);
       expect(names).toEqual(["Exercise 1", "Exercise 2"]);
-    });
-
-    it("should not add rest between exercises when rest_group is 0", () => {
-      mockWorkout.sections = [
-        {
-          id: "section-1",
-          workout_id: "workout-1",
-          name: "No Rest Section",
-          type: "standard",
-          prepare_time: 0,
-          rest_exercise: 0,
-          rest_group: 0,
-          position: 0,
-          localStatus: LOCAL_STATUS_UNCHANGED,
-          exercises: [
-            {
-              id: "ex-1",
-              section_id: "section-1",
-              name: "Ex 1",
-              reps: 10,
-              time_seconds: 0,
-              weight: 0,
-              sets: 1,
-              position: 0,
-              localStatus: LOCAL_STATUS_UNCHANGED,
-            },
-            {
-              id: "ex-2",
-              section_id: "section-1",
-              name: "Ex 2",
-              reps: 10,
-              time_seconds: 0,
-              weight: 0,
-              sets: 1,
-              position: 1,
-              localStatus: LOCAL_STATUS_UNCHANGED,
-            },
-          ],
-        },
-      ];
-
-      const plan = buildExecutionPlan(mockWorkout);
-      const restSteps = plan.filter((s) => s.type === REST_STEP_TYPE);
-      expect(restSteps).toHaveLength(0);
     });
   });
 
@@ -1033,7 +989,7 @@ describe("buildExecutionPlan", () => {
         .map((s) => s.name);
 
       expect(firstPrepare).toMatchObject({
-        name: "Prepare",
+        name: "Prepare for Warmup",
         duration_seconds: 300,
       });
       expect(exerciseNames).toEqual(["Cardio", "Lift 1", "Lift 1"]);

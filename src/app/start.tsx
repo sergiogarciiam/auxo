@@ -2,8 +2,9 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useAudioPlayer } from "expo-audio";
 import { Stack, useRouter } from "expo-router";
 import { useRef, useState } from "react";
-import { Alert, StyleSheet, View } from "react-native";
+import { StyleSheet, View, useWindowDimensions } from "react-native";
 
+import { ConfirmDialog } from "../components/confirm-dialog";
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
 import { IconSizes, Spacing } from "../constants/theme";
@@ -82,23 +83,17 @@ export default function StartWorkout() {
     if (index > 0) setIndex((i) => i - 1);
   };
 
+  const [exitConfirmVisible, setExitConfirmVisible] = useState(false);
+
   const handleExit = () => {
-    Alert.alert(
-      "Exit workout?",
-      "Are you sure you want to exit this workout?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Exit",
-          style: "destructive",
-          onPress: () => {
-            clearTimer();
-            stopWorkout();
-            router.replace("/");
-          },
-        },
-      ],
-    );
+    setExitConfirmVisible(true);
+  };
+
+  const doExit = () => {
+    setExitConfirmVisible(false);
+    clearTimer();
+    stopWorkout();
+    router.replace("/");
   };
 
   // Start timer when step changes
@@ -114,9 +109,16 @@ export default function StartWorkout() {
   // Pause / Resume timer
   const contentStyle = createStyles(colors);
 
+  const { width, height } = useWindowDimensions();
+  const isLandscape = width > height;
+
   usePauseTimer(isPaused, clearTimer, startTimer, remaining);
 
   const step = executionPlan?.[index];
+
+  const currentSectionName = workout?.sections?.find(
+    (s) => String(s.id) === String(step?.sectionId),
+  )?.name;
 
   if (!workout || !executionPlan || !step || executionPlan.length === 0) {
     return (
@@ -144,7 +146,9 @@ export default function StartWorkout() {
     <>
       <Stack.Screen
         options={{
-          title: workout.name,
+          title: isFinished
+            ? `${workout.name}`
+            : `${workout.name} > ${currentSectionName ?? ""}`,
           headerRight: () => (
             <ThemedButton
               text="Exit"
@@ -182,10 +186,16 @@ export default function StartWorkout() {
               ></ThemedButton>
             </>
           ) : (
-            <>
+            <View style={contentStyle.exerciseDataContainer}>
               <ThemedText type="subtitle">{step.name}</ThemedText>
 
-              <ThemedText type="title" style={contentStyle.bigValue}>
+              <ThemedText
+                type="title"
+                style={[
+                  contentStyle.bigValue,
+                  isLandscape && contentStyle.bigValueLandscape,
+                ]}
+              >
                 {remaining !== null
                   ? formatTime(remaining)
                   : step.time_seconds
@@ -202,7 +212,7 @@ export default function StartWorkout() {
               {showWeight && (
                 <ThemedText type="subtitle">Weight: {step.weight}</ThemedText>
               )}
-            </>
+            </View>
           )}
         </View>
       </View>
@@ -257,6 +267,16 @@ export default function StartWorkout() {
           />
         </View>
       )}
+      <ConfirmDialog
+        visible={exitConfirmVisible}
+        title="Exit workout?"
+        message="Are you sure you want to exit this workout?"
+        onCancel={() => setExitConfirmVisible(false)}
+        onConfirm={doExit}
+        cancelText="Cancel"
+        confirmText="Exit"
+        destructive
+      />
     </>
   );
 }
@@ -269,6 +289,9 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
       gap: Spacing.LARGE,
       backgroundColor: colors.BACKGROUND_SECONDARY,
     },
+    exerciseDataContainer: {
+      alignItems: "center",
+    },
     stepContainer: {
       flex: 1,
       alignItems: "center",
@@ -276,11 +299,14 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
       gap: Spacing.EXTRA_LARGE,
     },
     bigValue: {
-      fontSize: 100,
+      fontSize: 130,
       fontWeight: "bold",
-      lineHeight: 86,
       textAlign: "center",
       color: colors.TEXT_PRIMARY,
+    },
+    bigValueLandscape: {
+      fontSize: 100,
+      lineHeight: 100,
     },
     progressBarWrapper: {
       width: "100%",

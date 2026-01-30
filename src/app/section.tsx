@@ -1,9 +1,8 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
-  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -13,6 +12,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { ConfirmDialog } from "../components/confirm-dialog";
 import { ExerciseCard } from "../components/exercise-card";
 import { Field } from "../components/field";
 import { Header } from "../components/header";
@@ -41,6 +41,14 @@ export default function SectionScreen() {
   const params = useLocalSearchParams();
   const colors = useTheme();
   const initialSectionRef = useRef<UISection | null>(null);
+  const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
+  const [discardConfirmVisible, setDiscardConfirmVisible] = useState(false);
+  const [deleteExerciseConfirmVisible, setDeleteExerciseConfirmVisible] =
+    useState(false);
+  const [exerciseToDeleteId, setExerciseToDeleteId] = useState<
+    string | number | null
+  >(null);
+  const [exerciseToDeleteName, setExerciseToDeleteName] = useState<string>("");
 
   const {
     updateSection,
@@ -93,27 +101,18 @@ export default function SectionScreen() {
 
   const handleDeleteSection = useCallback(() => {
     Keyboard.dismiss();
+    setDeleteConfirmVisible(true);
+  }, []);
 
-    Alert.alert(
-      "Remove section?",
-      "Are you sure you want to remove this section?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              removeSection(sectionId as string);
-              router.replace("/workout");
-              showSuccessMessage("Section deleted");
-            } catch (error) {
-              handleAndShowError(error);
-            }
-          },
-        },
-      ],
-    );
+  const doDeleteSection = useCallback(async () => {
+    setDeleteConfirmVisible(false);
+    try {
+      removeSection(sectionId as string);
+      router.replace("/workout");
+      showSuccessMessage("Section deleted");
+    } catch (error) {
+      handleAndShowError(error);
+    }
   }, [sectionId, removeSection, router]);
 
   const isCreating = section?.id?.toString().startsWith("temp-") || false;
@@ -136,32 +135,30 @@ export default function SectionScreen() {
 
   const handleDiscard = useCallback(() => {
     Keyboard.dismiss();
+    setDiscardConfirmVisible(true);
+  }, []);
 
-    Alert.alert(
-      "Discard changes?",
-      "Are you sure you want to discard changes to this section?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Discard",
-          style: "destructive",
-          onPress: () => {
-            try {
-              if (section?.localStatus === LOCAL_STATUS_NEW) {
-                removeSection(sectionId as string);
-              } else if (initialSectionRef.current) {
-                if (!sectionId) return;
-                updateSection(sectionId.toString(), initialSectionRef.current);
-              }
-              router.replace("/workout");
-            } catch (error) {
-              handleAndShowError(error);
-            }
-          },
-        },
-      ],
-    );
+  const doDiscard = useCallback(() => {
+    setDiscardConfirmVisible(false);
+    try {
+      if (section?.localStatus === LOCAL_STATUS_NEW) {
+        removeSection(sectionId as string);
+      } else if (initialSectionRef.current) {
+        if (!sectionId) return;
+        updateSection(sectionId.toString(), initialSectionRef.current);
+      }
+      router.replace("/workout");
+    } catch (error) {
+      handleAndShowError(error);
+    }
   }, [section, sectionId, removeSection, updateSection, router]);
+
+  const doDeleteExercise = useCallback(() => {
+    setDeleteExerciseConfirmVisible(false);
+    if (exerciseToDeleteId !== null && sectionId) {
+      removeExercise(sectionId, String(exerciseToDeleteId));
+    }
+  }, [exerciseToDeleteId, sectionId, removeExercise]);
 
   if (!section) return null;
 
@@ -188,7 +185,10 @@ export default function SectionScreen() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <TouchableWithoutFeedback
+          onPress={Keyboard.dismiss}
+          style={{ flex: 1 }}
+        >
           <ScrollView contentContainerStyle={createStyles(colors).container}>
             <View style={createStyles(colors).card}>
               <Field label="Section name">
@@ -283,9 +283,11 @@ export default function SectionScreen() {
                     setExercise={(exerciseId, ex) => {
                       updateExercise(sectionId as string, exerciseId, ex);
                     }}
-                    onRemoveExercise={() =>
-                      removeExercise(sectionId as string, exercise.id)
-                    }
+                    onRemoveExercise={() => {
+                      setExerciseToDeleteId(exercise.id);
+                      setExerciseToDeleteName(exercise.name);
+                      setDeleteExerciseConfirmVisible(true);
+                    }}
                   />
                 </View>
               ))}
@@ -306,6 +308,36 @@ export default function SectionScreen() {
             </ScrollView>
           </ScrollView>
         </TouchableWithoutFeedback>
+        <ConfirmDialog
+          visible={deleteConfirmVisible}
+          title="Remove section?"
+          message="Are you sure you want to remove this section?"
+          onCancel={() => setDeleteConfirmVisible(false)}
+          onConfirm={doDeleteSection}
+          cancelText="Cancel"
+          confirmText="Delete"
+          destructive
+        />
+        <ConfirmDialog
+          visible={discardConfirmVisible}
+          title="Discard changes?"
+          message="Are you sure you want to discard changes to this section?"
+          onCancel={() => setDiscardConfirmVisible(false)}
+          onConfirm={doDiscard}
+          cancelText="Cancel"
+          confirmText="Discard"
+          destructive
+        />
+        <ConfirmDialog
+          visible={deleteExerciseConfirmVisible}
+          title="Remove exercise?"
+          message={`Are you sure you want to remove ${exerciseToDeleteName !== "" ? `"${exerciseToDeleteName}"` : "this exercise"}?`}
+          onCancel={() => setDeleteExerciseConfirmVisible(false)}
+          onConfirm={doDeleteExercise}
+          cancelText="Cancel"
+          confirmText="Delete"
+          destructive
+        />
       </KeyboardAvoidingView>
     </>
   );

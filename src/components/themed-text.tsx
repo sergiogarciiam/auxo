@@ -10,6 +10,7 @@ export function ThemedText({ type = "default", ...rest }: ThemedTextProps) {
   const styles = createStyles(colors);
   return (
     <Text
+      includeFontPadding={false}
       style={[
         { color: colors.TEXT_PRIMARY },
         type === "default" ? styles.default : undefined,

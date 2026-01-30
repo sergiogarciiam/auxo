@@ -103,6 +103,7 @@ export function ExerciseCard({
 
       <View style={styles.arrowsRow}>
         <ThemedButton
+          style={styles.arrowButton}
           icon={
             <MaterialIcons
               name="chevron-left"
@@ -123,6 +124,7 @@ export function ExerciseCard({
         />
 
         <ThemedButton
+          style={styles.arrowButton}
           icon={
             <MaterialIcons
               name="chevron-right"
@@ -168,7 +170,11 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
     },
     arrowsRow: {
       flexDirection: "row",
-      justifyContent: "center",
+      justifyContent: "space-between",
       gap: Spacing.MEDIUM,
+    },
+    arrowButton: {
+      flex: 1,
+      borderRadius: Sizes.BORDER_RADIUS,
     },
   });
