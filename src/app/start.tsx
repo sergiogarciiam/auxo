@@ -1,8 +1,16 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { useAudioPlayer } from "expo-audio";
+import * as Haptics from "expo-haptics";
+import * as Notifications from "expo-notifications";
 import { Stack, useRouter } from "expo-router";
-import { useRef, useState } from "react";
-import { StyleSheet, View, useWindowDimensions } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  AppState,
+  AppStateStatus,
+  StyleSheet,
+  View,
+  useWindowDimensions,
+} from "react-native";
 
 import { ConfirmDialog } from "../components/confirm-dialog";
 import { ThemedButton } from "../components/themed-button";
@@ -17,6 +25,17 @@ import { formatTime } from "../utils/formatTime";
 const beep = require("../../assets/beep.wav");
 const doubleBeep = require("../../assets/double-beep.wav");
 
+// Configure notifications with minimal settings
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
+
 export default function StartWorkout() {
   const router = useRouter();
   const colors = useTheme();
@@ -29,16 +48,27 @@ export default function StartWorkout() {
   const [remaining, setRemaining] = useState<number | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
+  const [isTimerStopped, setIsTimerStopped] = useState(false);
 
   const timerRef = useRef<number | null>(null);
+  const backgroundTimeRef = useRef<number | null>(null);
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+  const isTimerStoppedRef = useRef(false);
+  const isAppInBackgroundRef = useRef(false);
+  const isPausedRef = useRef(isPaused);
 
   const startTimer = (seconds: number) => {
+    // Don't start if timer is stopped
+    if (isTimerStoppedRef.current) {
+      return;
+    }
+
     clearTimer();
     setRemaining(seconds);
 
     timerRef.current = setInterval(() => {
       setRemaining((prev) => {
-        if (prev === null) return null;
+        if (prev === null || isTimerStoppedRef.current) return prev;
 
         if (prev <= 4 && prev > 1) {
           beepPlayer.seekTo(0);
@@ -50,9 +80,12 @@ export default function StartWorkout() {
           doubleBeepPlayer.play();
           clearTimer();
 
-          setTimeout(() => {
-            if (!isLast) setIndex((i) => i + 1);
-          }, 200);
+          // Auto-advance only if app is in foreground
+          if (!isAppInBackgroundRef.current) {
+            setTimeout(() => {
+              if (!isLast) setIndex((i) => i + 1);
+            }, 200);
+          }
 
           return 0;
         }
@@ -73,14 +106,26 @@ export default function StartWorkout() {
     clearTimer();
     setRemaining(null);
     setIsPaused(false);
-    if (!isLast) setIndex((i) => i + 1);
+    setIsTimerStopped(false);
+    isTimerStoppedRef.current = false;
+    if (!isLast) {
+      doubleBeepPlayer.seekTo(0);
+      doubleBeepPlayer.play();
+      setIndex((i) => i + 1);
+    }
   };
 
   const handlePrev = () => {
     clearTimer();
     setRemaining(null);
     setIsPaused(false);
-    if (index > 0) setIndex((i) => i - 1);
+    setIsTimerStopped(false);
+    isTimerStoppedRef.current = false;
+    if (index > 0) {
+      doubleBeepPlayer.seekTo(0);
+      doubleBeepPlayer.play();
+      setIndex((i) => i - 1);
+    }
   };
 
   const [exitConfirmVisible, setExitConfirmVisible] = useState(false);
@@ -89,12 +134,26 @@ export default function StartWorkout() {
     setExitConfirmVisible(true);
   };
 
-  const doExit = () => {
+  const doExit = async () => {
     setExitConfirmVisible(false);
     clearTimer();
     stopWorkout();
+
+    // cancel any pending notification when leaving workout altogether
+    try {
+      await Notifications.cancelAllScheduledNotificationsAsync();
+    } catch {
+      /* ignore */
+    }
+
     router.replace("/");
   };
+
+  // Get current step and section early for use in effects
+  const step = executionPlan?.[index];
+  const currentSectionName = workout?.sections?.find(
+    (s) => String(s.id) === String(step?.sectionId),
+  )?.name;
 
   // Start timer when step changes
   useStartTimer(
@@ -106,19 +165,113 @@ export default function StartWorkout() {
     index,
   );
 
+  // keep paused ref in sync immediately and clear notifications
+  // when the user explicitly pauses; this avoids a race where the
+  // app could be backgrounded before the larger app-state effect runs.
+  useEffect(() => {
+    isPausedRef.current = isPaused;
+
+    if (isPaused) {
+      // cancel any notification scheduled earlier - pause behaves like stop
+      Notifications.cancelAllScheduledNotificationsAsync().catch(() => {});
+      backgroundTimeRef.current = null;
+    }
+  }, [isPaused]);
+
+  // Handle app state changes (background/foreground)
+  useEffect(() => {
+    const handleAppStateChange = async (nextAppState: AppStateStatus) => {
+      if (
+        appStateRef.current.match(/inactive|background/) &&
+        nextAppState === "active"
+      ) {
+        // App has come to foreground
+        isAppInBackgroundRef.current = false;
+
+        // cancel any notification we may have scheduled while backgrounded
+        try {
+          await Notifications.cancelAllScheduledNotificationsAsync();
+        } catch {
+          /* ignore */
+        }
+
+        if (
+          backgroundTimeRef.current &&
+          remaining !== null &&
+          remaining > 0 &&
+          !isTimerStoppedRef.current &&
+          !isPausedRef.current
+        ) {
+          const elapsedSeconds = Math.floor(
+            (Date.now() - backgroundTimeRef.current) / 1000,
+          );
+          const newRemaining = Math.max(0, remaining - elapsedSeconds);
+          setRemaining(newRemaining);
+        }
+      } else if (
+        nextAppState.match(/inactive|background/) &&
+        remaining !== null &&
+        remaining > 0 &&
+        !isTimerStoppedRef.current &&
+        !isPausedRef.current
+      ) {
+        // App is going to background - save timestamp only if timer is running
+        isAppInBackgroundRef.current = true;
+        backgroundTimeRef.current = Date.now();
+
+        // Trigger warning haptic
+        await Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Warning,
+        );
+
+        // Send system notification ONLY when going to background
+        // If we background during an active timer we schedule a notification
+        // to fire when the countdown would reach zero. This way the user gets
+        // alerted even if the JS timer stops while the app is suspended.
+        if (remaining > 0 && step) {
+          try {
+            // clear any previous scheduled notifications so we don't stack
+            await Notifications.cancelAllScheduledNotificationsAsync();
+
+            await Notifications.scheduleNotificationAsync({
+              content: {
+                title: "Workout Timer",
+                body: `${step.name} finished!`,
+                sound: true,
+              },
+              // trigger after `remaining` seconds from now
+              trigger: {
+                type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+                seconds: remaining,
+                repeats: false,
+              },
+            });
+          } catch (error) {
+            console.warn("Failed to schedule notification:", error);
+          }
+        }
+      }
+
+      appStateRef.current = nextAppState;
+    };
+
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange,
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [remaining, step]);
+
   // Pause / Resume timer
-  const contentStyle = createStyles(colors);
+  const contentStyle = useMemo(() => createStyles(colors), [colors]);
 
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
 
   usePauseTimer(isPaused, clearTimer, startTimer, remaining);
-
-  const step = executionPlan?.[index];
-
-  const currentSectionName = workout?.sections?.find(
-    (s) => String(s.id) === String(step?.sectionId),
-  )?.name;
 
   if (!workout || !executionPlan || !step || executionPlan.length === 0) {
     return (
@@ -159,14 +312,16 @@ export default function StartWorkout() {
         }}
       />
 
-      {isPaused && <View style={contentStyle.pausedOverlay}></View>}
+      {(isPaused || isTimerStopped) && (
+        <View style={contentStyle.pausedOverlay}></View>
+      )}
 
       <View style={contentStyle.container}>
         <View style={contentStyle.progressBarWrapper}>
           <View
             style={[contentStyle.progressBarFill, { width: `${percent}%` }]}
           >
-            {percent > 10 && (
+            {percent > 5 && (
               <ThemedText style={contentStyle.progressTextInside}>
                 {percent}%
               </ThemedText>
@@ -242,7 +397,7 @@ export default function StartWorkout() {
               />
             }
             onPress={() => setIsPaused((p) => !p)}
-            disabled={remaining === null}
+            disabled={remaining === null || isTimerStopped}
           />
 
           <ThemedButton
@@ -323,7 +478,7 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
       paddingRight: Spacing.MEDIUM,
     },
     progressTextInside: {
-      color: "#fff",
+      color: "#e6e6e6",
       fontWeight: "600",
     },
     controls: {

@@ -1,0 +1,25 @@
+{
+  "cli": {
+    "version": ">= 18.0.3",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk" // Build an APK that can be installed on any Android device. Not recommended for production builds.
+      }
+    },
+    "preview": {
+      "distribution": "internal"
+
+    },
+    "production": {
+      "autoIncrement": true
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
