@@ -1,4 +1,6 @@
-# Workout Timer
+# Auxo: Strength Training
+
+Create structured workouts with sections, exercises, sets, reps, and rest intervals, then run them seamlessly during your training sessions.
 
 ## Features
 
@@ -7,7 +9,6 @@
 - Create, update and delete exercises inside sections.
 - Start a workout with automatic generation of the workout, notifications and a progress bar.
 - Offline-first local database (SQLite) with schema migrations and development seed data.
-
 
 ## Try the Code
 
