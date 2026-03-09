@@ -2,7 +2,6 @@ export type LocalStatus = "new" | "updated" | "deleted" | "unchanged";
 
 export interface UIExercise {
   id: number | string;
-  section_id: number | string;
   name: string;
   reps: number;
   time_seconds: number;
@@ -14,7 +13,6 @@ export interface UIExercise {
 
 export interface UISection {
   id: number | string;
-  workout_id: number | string;
   name: string;
   type: string;
   prepare_time: number;

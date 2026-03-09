@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { exerciseRepository } from "../../repositories/exerciseRepository";
 import { sectionRepository } from "../../repositories/sectionRepository";
 import {
   CreateSectionPayload,
@@ -81,6 +82,53 @@ export const useSections = () => {
     }
   }, []);
 
+  const addExerciseToSection = useCallback(
+    async (sectionId: number, exerciseId: number, position: number) => {
+      try {
+        await exerciseRepository.addToSection({
+          section_id: sectionId,
+          exercise_id: exerciseId,
+          position,
+        });
+      } catch (error) {
+        console.error("Failed to add exercise to section:", error);
+        throw error;
+      }
+    },
+    [],
+  );
+
+  const removeExerciseFromSection = useCallback(
+    async (sectionId: number, exerciseId: number) => {
+      try {
+        await exerciseRepository.removeFromSection({
+          section_id: sectionId,
+          exercise_id: exerciseId,
+        });
+      } catch (error) {
+        console.error("Failed to remove exercise from section:", error);
+        throw error;
+      }
+    },
+    [],
+  );
+
+  const updateExercisePositionInSection = useCallback(
+    async (sectionId: number, exerciseId: number, position: number) => {
+      try {
+        await exerciseRepository.updatePositionInSection({
+          section_id: sectionId,
+          exercise_id: exerciseId,
+          position,
+        });
+      } catch (error) {
+        console.error("Failed to update exercise position:", error);
+        throw error;
+      }
+    },
+    [],
+  );
+
   useEffect(() => {
     fetchSections();
   }, [fetchSections]);
@@ -93,5 +141,8 @@ export const useSections = () => {
     updateSection,
     deleteSection,
     getAllExercisesBySectionId,
+    addExerciseToSection,
+    removeExerciseFromSection,
+    updateExercisePositionInSection,
   };
 };

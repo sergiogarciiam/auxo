@@ -12,11 +12,9 @@ export const createTempWorkout = (position: number): UIWorkout => ({
 
 export const createTempSection = (
   newSectionId: string,
-  workoutId: string | number,
   position: number,
 ): UISection => ({
   id: newSectionId,
-  workout_id: workoutId,
   type: "",
   rest_exercise: 0,
   prepare_time: 0,
@@ -29,11 +27,9 @@ export const createTempSection = (
 
 export const createTempExercise = (
   tmpId: string,
-  sectionId: string | number,
   position: number,
 ): UIExercise => ({
   id: tmpId,
-  section_id: sectionId,
   name: "",
   reps: 0,
   time_seconds: 0,

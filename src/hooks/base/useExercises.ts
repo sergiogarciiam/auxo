@@ -9,7 +9,8 @@ export const useExercises = () => {
   const createExercise = useCallback(
     async (exerciseData: CreateExercisePayload) => {
       try {
-        await exerciseRepository.create(exerciseData);
+        const result = await exerciseRepository.create(exerciseData);
+        return result.lastInsertRowId;
       } catch (error) {
         console.error("Failed to create exercise:", error);
         throw error;

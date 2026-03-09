@@ -26,13 +26,13 @@ If you’d like to run or modify the app locally:
 - Lint and format as configured in the repo (see `eslint.config.js`, `tsconfig.json`).
 
 ### Notes
+
 - The app uses an internal SQLite database. In development the DB is reset and seeded on each launch to provide example workouts.
 - Migrations are implemented in `src/database/sqlite/migrateDbIfNeeded.ts` and per-version files live under `src/database/sqlite/migrations/`.
 
 ## Changelog
 
 See [CHANGELOG.md](./CHANGELOG.md) for release history.
-
 
 ## Acknowledgements
 

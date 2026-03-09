@@ -7,4 +7,7 @@ export const sectionRepository = {
   update: section.update,
   delete: section.delete,
   getAllExercisesBySectionId: section.getAllExercisesBySectionId,
+  addToWorkout: section.addToWorkout,
+  removeFromWorkout: section.removeFromWorkout,
+  updatePositionInWorkout: section.updatePositionInWorkout,
 };
