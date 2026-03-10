@@ -18,8 +18,8 @@ interface CardProps {
   onEdit?: () => void;
   onDelete?: () => void;
   index: number;
-  handleMovePrev: (index: number) => void;
-  handleMoveNext: (index: number) => void;
+  handleMovePrev?: (index: number) => void;
+  handleMoveNext?: (index: number) => void;
   isDisabledPrev?: boolean;
   isDisabledNext?: boolean;
   isDisabled?: boolean;
@@ -143,43 +143,45 @@ export function Card({
         </Modal>
 
         {/* ARROWS */}
-        <View style={styles.arrowsContainer}>
-          <ThemedButton
-            icon={
-              <MaterialIcons
-                name="keyboard-arrow-up"
-                size={IconSizes.LARGE}
-                color={
-                  isDisabledPrev
-                    ? colors.DISABLE_ICON_COLOR
-                    : colors.PRIMARY_ICON_COLOR
-                }
-              />
-            }
-            variant="icon"
-            disabled={isDisabledPrev}
-            onPress={() => handleMovePrev(index)}
-            style={styles.upButton}
-          />
+        {handleMovePrev && handleMoveNext && (
+          <View style={styles.arrowsContainer}>
+            <ThemedButton
+              icon={
+                <MaterialIcons
+                  name="keyboard-arrow-up"
+                  size={IconSizes.LARGE}
+                  color={
+                    isDisabledPrev
+                      ? colors.DISABLE_ICON_COLOR
+                      : colors.PRIMARY_ICON_COLOR
+                  }
+                />
+              }
+              variant="icon"
+              disabled={isDisabledPrev}
+              onPress={() => handleMovePrev(index)}
+              style={styles.upButton}
+            />
 
-          <ThemedButton
-            icon={
-              <MaterialIcons
-                name="keyboard-arrow-down"
-                size={IconSizes.LARGE}
-                color={
-                  isDisabledNext
-                    ? colors.DISABLE_ICON_COLOR
-                    : colors.PRIMARY_ICON_COLOR
-                }
-              />
-            }
-            variant="icon"
-            disabled={isDisabledNext}
-            onPress={() => handleMoveNext(index)}
-            style={styles.downButton}
-          />
-        </View>
+            <ThemedButton
+              icon={
+                <MaterialIcons
+                  name="keyboard-arrow-down"
+                  size={IconSizes.LARGE}
+                  color={
+                    isDisabledNext
+                      ? colors.DISABLE_ICON_COLOR
+                      : colors.PRIMARY_ICON_COLOR
+                  }
+                />
+              }
+              variant="icon"
+              disabled={isDisabledNext}
+              onPress={() => handleMoveNext(index)}
+              style={styles.downButton}
+            />
+          </View>
+        )}
       </View>
     </View>
   );

@@ -36,7 +36,7 @@ import { swapItems } from "../utils/reorder";
 import { handleAndShowError, showSuccessMessage } from "../utils/ui";
 import { validateSection } from "../utils/validation";
 
-export default function SectionScreen() {
+export default function SectionForm() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const colors = useTheme();
@@ -108,7 +108,7 @@ export default function SectionScreen() {
     setDeleteConfirmVisible(false);
     try {
       removeSection(sectionId as string);
-      router.replace("/workout");
+      router.replace("/workout-form");
       showSuccessMessage("Section deleted");
     } catch (error) {
       handleAndShowError(error);
@@ -126,7 +126,7 @@ export default function SectionScreen() {
       if (validationError) {
         throw new Error(validationError);
       }
-      router.replace("/workout");
+      router.replace("/workout-form");
       showSuccessMessage("Section saved");
     } catch (error) {
       handleAndShowError(error);
@@ -147,7 +147,7 @@ export default function SectionScreen() {
         if (!sectionId) return;
         updateSection(sectionId.toString(), initialSectionRef.current);
       }
-      router.replace("/workout");
+      router.replace("/workout-form");
     } catch (error) {
       handleAndShowError(error);
     }

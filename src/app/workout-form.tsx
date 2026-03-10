@@ -32,7 +32,7 @@ import { swapItems } from "../utils/reorder";
 import { handleAndShowError, showSuccessMessage } from "../utils/ui";
 import { validateWorkout } from "../utils/validation";
 
-export default function WorkoutScreen() {
+export default function WorkoutForm() {
   const router = useRouter();
   const colors = useTheme();
   const params = useLocalSearchParams();
@@ -126,7 +126,7 @@ export default function WorkoutScreen() {
 
   const handleEditSection = useCallback(
     (sectionId: string) => {
-      router.push(`/section?sectionId=${sectionId}`);
+      router.push(`/section-form?sectionId=${sectionId}`);
     },
     [router],
   );
@@ -165,7 +165,7 @@ export default function WorkoutScreen() {
   }, [workout, deleteWorkout, deleteSection, deleteExercise, reset, router]);
 
   const handleAddSection = useCallback(() => {
-    router.push("/section");
+    router.push("/section-form");
   }, [router]);
 
   const handleDeleteSection = useCallback((sectionId: string) => {

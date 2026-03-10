@@ -2,23 +2,21 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { Stack, useNavigation, useRouter } from "expo-router";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { Keyboard, ScrollView, StyleSheet } from "react-native";
-import { Card } from "../components/card";
-import { ConfirmDialog } from "../components/confirm-dialog";
-import { ReorderHeader } from "../components/reorder-header";
-import { ThemedButton } from "../components/themed-button";
-import { ThemedText } from "../components/themed-text";
-import { IconSizes, Sizes, Spacing } from "../constants/theme";
-import { useExercises } from "../hooks/base/useExercises";
-import { useSections } from "../hooks/base/useSections";
-import { useWorkouts } from "../hooks/base/useWorkouts";
-import { useLoadWorkout } from "../hooks/other/useLoadWorkout";
-import { useTheme } from "../hooks/useTheme";
-import { useStartWorkoutStore } from "../stores/useStartWorkoutStore";
-import { useWorkoutStore } from "../stores/useWorkoutStore";
-import { buildExecutionPlan } from "../utils/planner";
-import { swapItems } from "../utils/reorder";
-import { transformWorkoutsToUI } from "../utils/transformers";
-import { handleAndShowError, showSuccessMessage } from "../utils/ui";
+import { Card } from "../../components/card";
+import { ConfirmDialog } from "../../components/confirm-dialog";
+import { ReorderHeader } from "../../components/reorder-header";
+import { ThemedButton } from "../../components/themed-button";
+import { ThemedText } from "../../components/themed-text";
+import { IconSizes, Sizes, Spacing } from "../../constants/theme";
+import { useWorkouts } from "../../hooks/base/useWorkouts";
+import { useLoadWorkout } from "../../hooks/other/useLoad";
+import { useTheme } from "../../hooks/useTheme";
+import { useStartWorkoutStore } from "../../stores/useStartWorkoutStore";
+import { useWorkoutStore } from "../../stores/useWorkoutStore";
+import { buildExecutionPlan } from "../../utils/planner";
+import { swapItems } from "../../utils/reorder";
+import { transformWorkoutsToUI } from "../../utils/transformers";
+import { handleAndShowError, showSuccessMessage } from "../../utils/ui";
 
 export default function Homepage() {
   const router = useRouter();
@@ -29,10 +27,7 @@ export default function Homepage() {
   const { startWorkout } = useStartWorkoutStore();
 
   const loadWorkoutWithData = useLoadWorkout();
-  const { workouts, getAllSectionsByWorkoutId, updateWorkout, deleteWorkout } =
-    useWorkouts();
-  const { getAllExercisesBySectionId, deleteSection } = useSections();
-  const { deleteExercise } = useExercises();
+  const { workouts, updateWorkout, deleteWorkout } = useWorkouts();
 
   const [isReordering, setIsReordering] = useState(false);
   const [discardConfirmVisible, setDiscardConfirmVisible] = useState(false);
@@ -60,7 +55,7 @@ export default function Homepage() {
 
   const handleCreateWorkout = useCallback(() => {
     reset();
-    router.push("/workout");
+    router.push("/workout-form");
   }, [reset, router]);
 
   const handleDone = useCallback(async () => {
@@ -96,7 +91,7 @@ export default function Homepage() {
         reset();
         const workout = await loadWorkoutWithData(id);
         loadWorkout(workout);
-        router.push("/workout");
+        router.push("/workout-form");
       } catch (error) {
         handleAndShowError(error);
       }
@@ -130,6 +125,7 @@ export default function Homepage() {
     setDeleteConfirmVisible(false);
     if (workoutToDelete === null) return;
     try {
+      /*
       const sectionsToDelete = await getAllSectionsByWorkoutId(workoutToDelete);
 
       const exercisesToDelete = (
@@ -151,19 +147,13 @@ export default function Homepage() {
             deleteExercise(Number(exerciseId)),
           ),
       );
+      */
 
       await deleteWorkout(Number(workoutToDelete));
     } catch (error) {
       handleAndShowError(error);
     }
-  }, [
-    workoutToDelete,
-    getAllSectionsByWorkoutId,
-    getAllExercisesBySectionId,
-    deleteSection,
-    deleteExercise,
-    deleteWorkout,
-  ]);
+  }, [workoutToDelete, deleteWorkout]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -183,7 +173,7 @@ export default function Homepage() {
     <>
       <Stack.Screen
         options={{
-          title: "Your Workouts",
+          title: "Workouts",
         }}
       />
       <ScrollView contentContainerStyle={createStyles(colors).container}>
