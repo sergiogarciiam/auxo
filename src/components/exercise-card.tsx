@@ -38,7 +38,12 @@ export function ExerciseCard({
   };
 
   const handleNumericChange = (field: keyof UIExercise, value: string) => {
-    const numValue = value === "" ? 0 : parseInt(value, 10);
+    const numValue =
+      value === ""
+        ? 0
+        : value === "0" && field === "sets"
+          ? "1"
+          : parseInt(value, 10);
     handleInputChange(field, numValue);
   };
 

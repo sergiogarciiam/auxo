@@ -53,14 +53,10 @@ export function validateSection(section: UISection): string | null {
     }
 
     if (
-      !isNumberDefined(exercise.reps) &&
+      (!isNumberDefined(exercise.reps) || exercise.reps === 0) &&
       !isNumberDefined(exercise.time_seconds)
     ) {
-      return "Exercise reps or time is required";
-    }
-
-    if (!isNumberDefined(exercise.sets)) {
-      return "Exercise sets is required";
+      return "Either reps or time is required";
     }
   }
 

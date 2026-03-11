@@ -73,16 +73,23 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
           set: queue[activeExercise].completedSets + 1,
         });
 
-        plan.push({
-          id: nanoid(),
-          type: REST_STEP_TYPE,
-          sectionId: section.id,
-          name: activeExercise % 2 === 0 ? "Rest" : "Group Rest",
-          duration_seconds:
-            activeExercise % 2 === 0
-              ? section.rest_exercise
-              : section.rest_group,
-        });
+        if (activeExercise % 2 === 0 && section.rest_exercise > 0) {
+          plan.push({
+            id: nanoid(),
+            type: REST_STEP_TYPE,
+            sectionId: section.id,
+            name: "Rest",
+            duration_seconds: section.rest_exercise,
+          });
+        } else if (activeExercise % 2 !== 0 && section.rest_group > 0) {
+          plan.push({
+            id: nanoid(),
+            type: REST_STEP_TYPE,
+            sectionId: section.id,
+            name: "Superset Rest",
+            duration_seconds: section.rest_group,
+          });
+        }
 
         queue[activeExercise].remainingSets -= 1;
         queue[activeExercise].completedSets += 1;
@@ -126,7 +133,7 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
             id: nanoid(),
             type: REST_STEP_TYPE,
             sectionId: section.id,
-            name: "Round Rest",
+            name: "Circuit Rest",
             duration_seconds: section.rest_group,
           });
         }

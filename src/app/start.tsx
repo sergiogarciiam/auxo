@@ -1,6 +1,5 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { useAudioPlayer } from "expo-audio";
-import * as Haptics from "expo-haptics";
 import * as Notifications from "expo-notifications";
 import { Stack, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -12,6 +11,8 @@ import {
   useWindowDimensions,
 } from "react-native";
 
+import * as Haptics from "expo-haptics";
+import ConfettiCannon from "react-native-confetti-cannon";
 import { ConfirmDialog } from "../components/confirm-dialog";
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
@@ -80,10 +81,16 @@ export default function StartWorkout() {
           doubleBeepPlayer.play();
           clearTimer();
 
-          // Auto-advance only if app is in foreground
-          if (!isAppInBackgroundRef.current) {
+          if (isLast) {
             setTimeout(() => {
-              if (!isLast) setIndex((i) => i + 1);
+              setIsFinished(true);
+              Haptics.notificationAsync(
+                Haptics.NotificationFeedbackType.Success,
+              );
+            }, 200);
+          } else {
+            setTimeout(() => {
+              setIndex((i) => i + 1);
             }, 200);
           }
 
@@ -126,6 +133,14 @@ export default function StartWorkout() {
       doubleBeepPlayer.play();
       setIndex((i) => i - 1);
     }
+  };
+
+  const handleFinish = () => {
+    clearTimer();
+    setRemaining(null);
+    setIsPaused(false);
+    setIsFinished(true);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   };
 
   const [exitConfirmVisible, setExitConfirmVisible] = useState(false);
@@ -206,7 +221,13 @@ export default function StartWorkout() {
             (Date.now() - backgroundTimeRef.current) / 1000,
           );
           const newRemaining = Math.max(0, remaining - elapsedSeconds);
-          setRemaining(newRemaining);
+
+          if (newRemaining <= 0) {
+            clearTimer();
+            setRemaining(0);
+          } else {
+            setRemaining(newRemaining);
+          }
         }
       } else if (
         nextAppState.match(/inactive|background/) &&
@@ -218,11 +239,6 @@ export default function StartWorkout() {
         // App is going to background - save timestamp only if timer is running
         isAppInBackgroundRef.current = true;
         backgroundTimeRef.current = Date.now();
-
-        // Trigger warning haptic
-        await Haptics.notificationAsync(
-          Haptics.NotificationFeedbackType.Warning,
-        );
 
         // Send system notification ONLY when going to background
         // If we background during an active timer we schedule a notification
@@ -295,6 +311,8 @@ export default function StartWorkout() {
 
   const showWeight = step.weight !== undefined && step.weight > 0;
 
+  const showSet = step.set !== undefined && step.set > 0;
+
   return (
     <>
       <Stack.Screen
@@ -332,18 +350,26 @@ export default function StartWorkout() {
         <View style={contentStyle.stepContainer}>
           {isFinished ? (
             <>
-              <ThemedText type="title">Workout completed!</ThemedText>
+              <ConfettiCannon count={80} origin={{ x: -10, y: 0 }} fadeOut />
+              <ConfettiCannon
+                count={80}
+                origin={{ x: width + 10, y: 0 }}
+                fadeOut
+              />
+              <ThemedText type="title">🎉 Workout completed!</ThemedText>
               <ThemedText type="subtitle">{workout.name}</ThemedText>
+
               <ThemedButton
                 variant="primary"
                 onPress={() => router.replace("/")}
                 text="Return homepage"
-              ></ThemedButton>
+              />
             </>
           ) : (
             <View style={contentStyle.exerciseDataContainer}>
-              <ThemedText type="subtitle">{step.name}</ThemedText>
-
+              <ThemedText type="subtitle" style={contentStyle.exerciseName}>
+                {step.name}
+              </ThemedText>
               <ThemedText
                 type="title"
                 style={[
@@ -356,17 +382,15 @@ export default function StartWorkout() {
                   : step.time_seconds
                     ? formatTime(step.time_seconds)
                     : step.reps
-                      ? `x${step.reps}`
+                      ? `${step.reps} reps`
                       : "-"}
               </ThemedText>
 
-              {showReps && (
-                <ThemedText type="subtitle">Reps: {step.reps}</ThemedText>
-              )}
-
-              {showWeight && (
-                <ThemedText type="subtitle">Weight: {step.weight}</ThemedText>
-              )}
+              <ThemedText style={contentStyle.meta}>
+                {showSet && `Set ${step.set}`}
+                {showReps && ` · ${step.reps} reps`}
+                {showWeight && ` · ${step.weight}kg`}
+              </ThemedText>
             </View>
           )}
         </View>
@@ -409,16 +433,7 @@ export default function StartWorkout() {
                 color={colors.PRIMARY_ICON_COLOR}
               />
             }
-            onPress={
-              isLast
-                ? () => {
-                    clearTimer();
-                    setRemaining(null);
-                    setIsPaused(false);
-                    setIsFinished(true);
-                  }
-                : handleNext
-            }
+            onPress={isLast ? handleFinish : handleNext}
           />
         </View>
       )}
@@ -446,6 +461,7 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
     },
     exerciseDataContainer: {
       alignItems: "center",
+      gap: Spacing.LARGE,
     },
     stepContainer: {
       flex: 1,
@@ -454,9 +470,20 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
       gap: Spacing.EXTRA_LARGE,
     },
     bigValue: {
-      fontSize: 130,
+      fontSize: 96,
       fontWeight: "bold",
       textAlign: "center",
+      color: colors.TEXT_PRIMARY,
+    },
+    exerciseName: {
+      fontSize: 26,
+      fontWeight: "700",
+      textAlign: "center",
+      color: colors.TEXT_PRIMARY,
+    },
+    meta: {
+      fontSize: 16,
+      fontWeight: "bold",
       color: colors.TEXT_PRIMARY,
     },
     bigValueLandscape: {
@@ -465,7 +492,7 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
     },
     progressBarWrapper: {
       width: "100%",
-      height: 28,
+      height: 24,
       backgroundColor: "#e6e6e6",
       borderRadius: 14,
       overflow: "hidden",
