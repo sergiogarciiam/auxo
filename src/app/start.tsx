@@ -164,10 +164,10 @@ export default function StartWorkout() {
     router.replace("/");
   };
 
-  // Get current step and section early for use in effects
+  // Get current step and block early for use in effects
   const step = executionPlan?.[index];
-  const currentSectionName = workout?.sections?.find(
-    (s) => String(s.id) === String(step?.sectionId),
+  const currentBlockName = workout?.blocks?.find(
+    (s) => String(s.id) === String(step?.blockId),
   )?.name;
 
   // Start timer when step changes
@@ -319,7 +319,7 @@ export default function StartWorkout() {
         options={{
           title: isFinished
             ? `${workout.name}`
-            : `${workout.name} > ${currentSectionName ?? ""}`,
+            : `${workout.name} > ${currentBlockName ?? ""}`,
           headerRight: () => (
             <ThemedButton
               text="Exit"

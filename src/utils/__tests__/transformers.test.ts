@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { LOCAL_STATUS_UNCHANGED } from "../../constants/constants";
+import { Block } from "../../types/block";
 import { Exercise } from "../../types/exercise";
-import { Section } from "../../types/section";
 import { Workout } from "../../types/workout";
 import {
+  transformBlockToUI,
   transformExerciseToUI,
-  transformSectionToUI,
   transformWorkoutsToUI,
 } from "../transformers";
 
@@ -15,7 +15,7 @@ describe("transformers", () => {
     it("should transform exercise with all fields", () => {
       const exercise: Exercise = {
         id: 1,
-        section_id: 1,
+        block_id: 1,
         name: "Bench Press",
         reps: 8,
         time_seconds: 45,
@@ -28,7 +28,7 @@ describe("transformers", () => {
 
       expect(result).toEqual({
         id: 1,
-        section_id: 1,
+        block_id: 1,
         name: "Bench Press",
         reps: 8,
         time_seconds: 45,
@@ -42,7 +42,7 @@ describe("transformers", () => {
     it("should default null reps to 0", () => {
       const exercise: Exercise = {
         id: 1,
-        section_id: 1,
+        block_id: 1,
         name: "Exercise",
         reps: undefined,
         time_seconds: 30,
@@ -58,7 +58,7 @@ describe("transformers", () => {
     it("should default null time_seconds to 0", () => {
       const exercise: Exercise = {
         id: 1,
-        section_id: 1,
+        block_id: 1,
         name: "Exercise",
         reps: 10,
         time_seconds: undefined,
@@ -74,7 +74,7 @@ describe("transformers", () => {
     it("should default null weight to 0", () => {
       const exercise: Exercise = {
         id: 1,
-        section_id: 1,
+        block_id: 1,
         name: "Exercise",
         reps: 10,
         time_seconds: 0,
@@ -90,7 +90,7 @@ describe("transformers", () => {
     it("should default null sets to 0", () => {
       const exercise: Exercise = {
         id: 1,
-        section_id: 1,
+        block_id: 1,
         name: "Exercise",
         reps: 10,
         time_seconds: 0,
@@ -106,7 +106,7 @@ describe("transformers", () => {
     it("should default all null fields to 0", () => {
       const exercise: Exercise = {
         id: 1,
-        section_id: 1,
+        block_id: 1,
         name: "Minimal Exercise",
         reps: undefined,
         time_seconds: undefined,
@@ -119,7 +119,7 @@ describe("transformers", () => {
 
       expect(result).toEqual({
         id: 1,
-        section_id: 1,
+        block_id: 1,
         name: "Minimal Exercise",
         reps: 0,
         time_seconds: 0,
@@ -133,7 +133,7 @@ describe("transformers", () => {
     it("should preserve 0 values (not treat as null)", () => {
       const exercise: Exercise = {
         id: 1,
-        section_id: 1,
+        block_id: 1,
         name: "Exercise",
         reps: 0,
         time_seconds: 0,
@@ -153,7 +153,7 @@ describe("transformers", () => {
     it("should set localStatus to UNCHANGED", () => {
       const exercise: Exercise = {
         id: 1,
-        section_id: 1,
+        block_id: 1,
         name: "Exercise",
         reps: 10,
         time_seconds: 0,
@@ -167,10 +167,10 @@ describe("transformers", () => {
     });
   });
 
-  // ============= transformSectionToUI TESTS =============
-  describe("transformSectionToUI", () => {
-    it("should transform section with exercises", () => {
-      const section: Section = {
+  // ============= transformBlockToUI TESTS =============
+  describe("transformBlockToUI", () => {
+    it("should transform block with exercises", () => {
+      const block: Block = {
         id: 1,
         workout_id: 1,
         name: "Chest Day",
@@ -184,7 +184,7 @@ describe("transformers", () => {
       const exercises: Exercise[] = [
         {
           id: 1,
-          section_id: 1,
+          block_id: 1,
           name: "Bench Press",
           reps: 8,
           time_seconds: 0,
@@ -194,7 +194,7 @@ describe("transformers", () => {
         },
         {
           id: 2,
-          section_id: 1,
+          block_id: 1,
           name: "Incline Press",
           reps: 10,
           time_seconds: 0,
@@ -204,7 +204,7 @@ describe("transformers", () => {
         },
       ];
 
-      const result = transformSectionToUI(section, exercises);
+      const result = transformBlockToUI(block, exercises);
 
       expect(result.id).toBe(1);
       expect(result.workout_id).toBe(1);
@@ -221,10 +221,10 @@ describe("transformers", () => {
     });
 
     it("should handle empty exercises array", () => {
-      const section: Section = {
+      const block: Block = {
         id: 1,
         workout_id: 1,
-        name: "Empty Section",
+        name: "Empty Block",
         type: "circuit",
         prepare_time: 0,
         rest_exercise: 30,
@@ -232,16 +232,16 @@ describe("transformers", () => {
         position: 0,
       };
 
-      const result = transformSectionToUI(section, []);
+      const result = transformBlockToUI(block, []);
 
       expect(result.exercises).toEqual([]);
     });
 
     it("should default null prepare_time to 0", () => {
-      const section: Section = {
+      const block: Block = {
         id: 1,
         workout_id: 1,
-        name: "Section",
+        name: "Block",
         type: "standard",
         prepare_time: null as any,
         rest_exercise: 30,
@@ -249,15 +249,15 @@ describe("transformers", () => {
         position: 0,
       };
 
-      const result = transformSectionToUI(section, []);
+      const result = transformBlockToUI(block, []);
       expect(result.prepare_time).toBe(0);
     });
 
     it("should default null rest_group to 0", () => {
-      const section: Section = {
+      const block: Block = {
         id: 1,
         workout_id: 1,
-        name: "Section",
+        name: "Block",
         type: "standard",
         prepare_time: 0,
         rest_exercise: 30,
@@ -265,15 +265,15 @@ describe("transformers", () => {
         position: 0,
       };
 
-      const result = transformSectionToUI(section, []);
+      const result = transformBlockToUI(block, []);
       expect(result.rest_group).toBe(0);
     });
 
-    it("should transform exercises within section", () => {
-      const section: Section = {
+    it("should transform exercises within block", () => {
+      const block: Block = {
         id: 1,
         workout_id: 1,
-        name: "Section",
+        name: "Block",
         type: "standard",
         prepare_time: 0,
         rest_exercise: 30,
@@ -284,7 +284,7 @@ describe("transformers", () => {
       const exercises: Exercise[] = [
         {
           id: 1,
-          section_id: 1,
+          block_id: 1,
           name: "Exercise",
           reps: undefined,
           time_seconds: 45,
@@ -294,11 +294,11 @@ describe("transformers", () => {
         },
       ];
 
-      const result = transformSectionToUI(section, exercises);
+      const result = transformBlockToUI(block, exercises);
 
       expect(result.exercises[0]).toEqual({
         id: 1,
-        section_id: 1,
+        block_id: 1,
         name: "Exercise",
         reps: 0,
         time_seconds: 45,
@@ -309,11 +309,11 @@ describe("transformers", () => {
       });
     });
 
-    it("should preserve section position", () => {
-      const section: Section = {
+    it("should preserve block position", () => {
+      const block: Block = {
         id: 1,
         workout_id: 1,
-        name: "Section",
+        name: "Block",
         type: "standard",
         prepare_time: 0,
         rest_exercise: 30,
@@ -321,35 +321,35 @@ describe("transformers", () => {
         position: 5,
       };
 
-      const result = transformSectionToUI(section, []);
+      const result = transformBlockToUI(block, []);
       expect(result.position).toBe(5);
     });
 
-    it("should handle different section types", () => {
-      const baseSection: Omit<Section, "type"> = {
+    it("should handle different block types", () => {
+      const baseBlock: Omit<Block, "type"> = {
         id: 1,
         workout_id: 1,
-        name: "Section",
+        name: "Block",
         prepare_time: 0,
         rest_exercise: 30,
         rest_group: 0,
         position: 0,
       };
 
-      const types: Section["type"][] = ["standard", "circuit", "superset"];
+      const types: Block["type"][] = ["standard", "circuit", "superset"];
 
       types.forEach((type) => {
-        const section: Section = { ...baseSection, type };
-        const result = transformSectionToUI(section, []);
+        const block: Block = { ...baseBlock, type };
+        const result = transformBlockToUI(block, []);
         expect(result.type).toBe(type);
       });
     });
 
     it("should set localStatus to UNCHANGED", () => {
-      const section: Section = {
+      const block: Block = {
         id: 1,
         workout_id: 1,
-        name: "Section",
+        name: "Block",
         type: "standard",
         prepare_time: 0,
         rest_exercise: 30,
@@ -357,7 +357,7 @@ describe("transformers", () => {
         position: 0,
       };
 
-      const result = transformSectionToUI(section, []);
+      const result = transformBlockToUI(block, []);
       expect(result.localStatus).toBe(LOCAL_STATUS_UNCHANGED);
     });
   });
@@ -380,7 +380,7 @@ describe("transformers", () => {
         id: 1,
         name: "Full Body",
         position: 0,
-        sections: [],
+        blocks: [],
         localStatus: LOCAL_STATUS_UNCHANGED,
       });
     });
@@ -417,7 +417,7 @@ describe("transformers", () => {
       expect(result).toEqual([]);
     });
 
-    it("should initialize sections as empty array", () => {
+    it("should initialize blocks as empty array", () => {
       const workouts: Workout[] = [
         {
           id: 1,
@@ -427,7 +427,7 @@ describe("transformers", () => {
       ];
 
       const result = transformWorkoutsToUI(workouts);
-      expect(result[0].sections).toEqual([]);
+      expect(result[0].blocks).toEqual([]);
     });
 
     it("should preserve workout position", () => {
@@ -489,7 +489,7 @@ describe("transformers", () => {
       const exercises: Exercise[] = [
         {
           id: 1,
-          section_id: 1,
+          block_id: 1,
           name: "Bench Press",
           reps: 8,
           time_seconds: undefined,
@@ -499,7 +499,7 @@ describe("transformers", () => {
         },
       ];
 
-      const section: Section = {
+      const block: Block = {
         id: 1,
         workout_id: 1,
         name: "Chest",
@@ -510,13 +510,13 @@ describe("transformers", () => {
         position: 0,
       };
 
-      const uiSection = transformSectionToUI(section, exercises);
+      const uiBlock = transformBlockToUI(block, exercises);
 
-      expect(uiSection.name).toBe("Chest");
-      expect(uiSection.exercises).toHaveLength(1);
-      expect(uiSection.exercises[0].reps).toBe(8);
-      expect(uiSection.exercises[0].time_seconds).toBe(0); // defaulted
-      expect(uiSection.exercises[0].weight).toBe(80);
+      expect(uiBlock.name).toBe("Chest");
+      expect(uiBlock.exercises).toHaveLength(1);
+      expect(uiBlock.exercises[0].reps).toBe(8);
+      expect(uiBlock.exercises[0].time_seconds).toBe(0); // defaulted
+      expect(uiBlock.exercises[0].weight).toBe(80);
     });
 
     it("should transform workouts with proper structure", () => {
@@ -528,7 +528,7 @@ describe("transformers", () => {
       const uiWorkouts = transformWorkoutsToUI(workouts);
 
       expect(uiWorkouts).toHaveLength(2);
-      expect(uiWorkouts.every((w) => w.sections instanceof Array)).toBe(true);
+      expect(uiWorkouts.every((w) => w.blocks instanceof Array)).toBe(true);
       expect(
         uiWorkouts.every((w) => w.localStatus === LOCAL_STATUS_UNCHANGED),
       ).toBe(true);

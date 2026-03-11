@@ -20,24 +20,24 @@ describe("buildExecutionPlan", () => {
       id: "workout-1",
       name: "Test Workout",
       position: 0,
-      sections: [],
+      blocks: [],
       localStatus: LOCAL_STATUS_UNCHANGED,
     };
   });
 
   // ============= BASIC TESTS =============
   describe("empty workout", () => {
-    it("should return empty plan for workout with no sections", () => {
+    it("should return empty plan for workout with no blocks", () => {
       const plan = buildExecutionPlan(mockWorkout);
       expect(plan).toEqual([]);
     });
 
-    it("should ignore sections with LOCAL_STATUS_DELETED", () => {
-      mockWorkout.sections = [
+    it("should ignore blocks with LOCAL_STATUS_DELETED", () => {
+      mockWorkout.blocks = [
         {
-          id: "section-1",
+          id: "block-1",
           workout_id: "workout-1",
-          name: "Deleted Section",
+          name: "Deleted Block",
           type: "standard",
           prepare_time: 0,
           rest_exercise: 30,
@@ -53,11 +53,11 @@ describe("buildExecutionPlan", () => {
     });
 
     it("should ignore exercises with LOCAL_STATUS_DELETED", () => {
-      mockWorkout.sections = [
+      mockWorkout.blocks = [
         {
-          id: "section-1",
+          id: "block-1",
           workout_id: "workout-1",
-          name: "Section 1",
+          name: "Block 1",
           type: "standard",
           prepare_time: 0,
           rest_exercise: 30,
@@ -67,7 +67,7 @@ describe("buildExecutionPlan", () => {
           exercises: [
             {
               id: "ex-1",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Deleted Exercise",
               reps: 10,
               time_seconds: 0,
@@ -84,12 +84,12 @@ describe("buildExecutionPlan", () => {
       expect(plan).toEqual([]);
     });
 
-    it("should skip sections with empty exercises", () => {
-      mockWorkout.sections = [
+    it("should skip blocks with empty exercises", () => {
+      mockWorkout.blocks = [
         {
-          id: "section-1",
+          id: "block-1",
           workout_id: "workout-1",
-          name: "Empty Section",
+          name: "Empty Block",
           type: "standard",
           prepare_time: 0,
           rest_exercise: 30,
@@ -107,12 +107,12 @@ describe("buildExecutionPlan", () => {
 
   // ============= PREPARE TIME TESTS =============
   describe("prepare time", () => {
-    it("should add prepare step at beginning of section", () => {
-      mockWorkout.sections = [
+    it("should add prepare step at beginning of block", () => {
+      mockWorkout.blocks = [
         {
-          id: "section-1",
+          id: "block-1",
           workout_id: "workout-1",
-          name: "Prep Section",
+          name: "Prep Block",
           type: "standard",
           prepare_time: 60,
           rest_exercise: 0,
@@ -122,7 +122,7 @@ describe("buildExecutionPlan", () => {
           exercises: [
             {
               id: "ex-1",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Exercise 1",
               reps: 10,
               time_seconds: 0,
@@ -138,18 +138,18 @@ describe("buildExecutionPlan", () => {
       const plan = buildExecutionPlan(mockWorkout);
       expect(plan[0]).toMatchObject({
         type: REST_STEP_TYPE,
-        name: "Prepare for Prep Section",
+        name: "Prepare for Prep Block",
         duration_seconds: 60,
-        sectionId: "section-1",
+        blockId: "block-1",
       });
     });
 
     it("should not add prepare step when prepare_time is 0", () => {
-      mockWorkout.sections = [
+      mockWorkout.blocks = [
         {
-          id: "section-1",
+          id: "block-1",
           workout_id: "workout-1",
-          name: "No Prep Section",
+          name: "No Prep Block",
           type: "standard",
           prepare_time: 0,
           rest_exercise: 0,
@@ -159,7 +159,7 @@ describe("buildExecutionPlan", () => {
           exercises: [
             {
               id: "ex-1",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Exercise 1",
               reps: 10,
               time_seconds: 0,
@@ -180,14 +180,14 @@ describe("buildExecutionPlan", () => {
     });
   });
 
-  // ============= STANDARD SECTION TESTS =============
-  describe("standard section type", () => {
+  // ============= STANDARD BLOCK TESTS =============
+  describe("standard block type", () => {
     it("should create plan for single exercise with multiple sets", () => {
-      mockWorkout.sections = [
+      mockWorkout.blocks = [
         {
-          id: "section-1",
+          id: "block-1",
           workout_id: "workout-1",
-          name: "Standard Section",
+          name: "Standard Block",
           type: "standard",
           prepare_time: 0,
           rest_exercise: 30,
@@ -197,7 +197,7 @@ describe("buildExecutionPlan", () => {
           exercises: [
             {
               id: "ex-1",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Bench Press",
               reps: 8,
               time_seconds: 0,
@@ -227,9 +227,9 @@ describe("buildExecutionPlan", () => {
     });
 
     it("should add rest between exercises", () => {
-      mockWorkout.sections = [
+      mockWorkout.blocks = [
         {
-          id: "section-1",
+          id: "block-1",
           workout_id: "workout-1",
           name: "Multi Exercise",
           type: "standard",
@@ -241,7 +241,7 @@ describe("buildExecutionPlan", () => {
           exercises: [
             {
               id: "ex-1",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Exercise 1",
               reps: 10,
               time_seconds: 0,
@@ -252,7 +252,7 @@ describe("buildExecutionPlan", () => {
             },
             {
               id: "ex-2",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Exercise 2",
               reps: 10,
               time_seconds: 0,
@@ -279,12 +279,12 @@ describe("buildExecutionPlan", () => {
       ]);
     });
 
-    it("should respect section position ordering", () => {
-      mockWorkout.sections = [
+    it("should respect block position ordering", () => {
+      mockWorkout.blocks = [
         {
-          id: "section-2",
+          id: "block-2",
           workout_id: "workout-1",
-          name: "Second Section",
+          name: "Second Block",
           type: "standard",
           prepare_time: 0,
           rest_exercise: 0,
@@ -294,7 +294,7 @@ describe("buildExecutionPlan", () => {
           exercises: [
             {
               id: "ex-2",
-              section_id: "section-2",
+              block_id: "block-2",
               name: "Exercise 2",
               reps: 10,
               time_seconds: 0,
@@ -306,9 +306,9 @@ describe("buildExecutionPlan", () => {
           ],
         },
         {
-          id: "section-1",
+          id: "block-1",
           workout_id: "workout-1",
-          name: "First Section",
+          name: "First Block",
           type: "standard",
           prepare_time: 0,
           rest_exercise: 0,
@@ -318,7 +318,7 @@ describe("buildExecutionPlan", () => {
           exercises: [
             {
               id: "ex-1",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Exercise 1",
               reps: 10,
               time_seconds: 0,
@@ -337,12 +337,12 @@ describe("buildExecutionPlan", () => {
     });
   });
 
-  // ============= CIRCUIT SECTION TESTS =============
-  describe("circuit section type", () => {
+  // ============= CIRCUIT BLOCK TESTS =============
+  describe("circuit block type", () => {
     it("should create full rounds for all exercises", () => {
-      mockWorkout.sections = [
+      mockWorkout.blocks = [
         {
-          id: "section-1",
+          id: "block-1",
           workout_id: "workout-1",
           name: "Circuit",
           type: "circuit",
@@ -354,7 +354,7 @@ describe("buildExecutionPlan", () => {
           exercises: [
             {
               id: "ex-1",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Push-ups",
               reps: 10,
               time_seconds: 0,
@@ -365,7 +365,7 @@ describe("buildExecutionPlan", () => {
             },
             {
               id: "ex-2",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Squats",
               reps: 10,
               time_seconds: 0,
@@ -391,9 +391,9 @@ describe("buildExecutionPlan", () => {
     });
 
     it("should respect exercise position in circuit", () => {
-      mockWorkout.sections = [
+      mockWorkout.blocks = [
         {
-          id: "section-1",
+          id: "block-1",
           workout_id: "workout-1",
           name: "Circuit",
           type: "circuit",
@@ -405,7 +405,7 @@ describe("buildExecutionPlan", () => {
           exercises: [
             {
               id: "ex-3",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Third",
               reps: 10,
               time_seconds: 0,
@@ -416,7 +416,7 @@ describe("buildExecutionPlan", () => {
             },
             {
               id: "ex-1",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "First",
               reps: 10,
               time_seconds: 0,
@@ -427,7 +427,7 @@ describe("buildExecutionPlan", () => {
             },
             {
               id: "ex-2",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Second",
               reps: 10,
               time_seconds: 0,
@@ -448,9 +448,9 @@ describe("buildExecutionPlan", () => {
     });
 
     it("should add rest between exercises in circuit", () => {
-      mockWorkout.sections = [
+      mockWorkout.blocks = [
         {
-          id: "section-1",
+          id: "block-1",
           workout_id: "workout-1",
           name: "Circuit",
           type: "circuit",
@@ -462,7 +462,7 @@ describe("buildExecutionPlan", () => {
           exercises: [
             {
               id: "ex-1",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Ex 1",
               reps: 10,
               time_seconds: 0,
@@ -473,7 +473,7 @@ describe("buildExecutionPlan", () => {
             },
             {
               id: "ex-2",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Ex 2",
               reps: 10,
               time_seconds: 0,
@@ -495,9 +495,9 @@ describe("buildExecutionPlan", () => {
     });
 
     it("should add round rest between circuit rounds", () => {
-      mockWorkout.sections = [
+      mockWorkout.blocks = [
         {
-          id: "section-1",
+          id: "block-1",
           workout_id: "workout-1",
           name: "Circuit",
           type: "circuit",
@@ -509,7 +509,7 @@ describe("buildExecutionPlan", () => {
           exercises: [
             {
               id: "ex-1",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Ex 1",
               reps: 10,
               time_seconds: 0,
@@ -532,9 +532,9 @@ describe("buildExecutionPlan", () => {
     });
 
     it("should handle exercises with different set counts", () => {
-      mockWorkout.sections = [
+      mockWorkout.blocks = [
         {
-          id: "section-1",
+          id: "block-1",
           workout_id: "workout-1",
           name: "Circuit",
           type: "circuit",
@@ -546,7 +546,7 @@ describe("buildExecutionPlan", () => {
           exercises: [
             {
               id: "ex-1",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Ex 1",
               reps: 10,
               time_seconds: 0,
@@ -557,7 +557,7 @@ describe("buildExecutionPlan", () => {
             },
             {
               id: "ex-2",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Ex 2",
               reps: 10,
               time_seconds: 0,
@@ -584,12 +584,12 @@ describe("buildExecutionPlan", () => {
     });
   });
 
-  // ============= SUPERSET SECTION TESTS =============
-  describe("superset section type", () => {
+  // ============= SUPERSET BLOCK TESTS =============
+  describe("superset block type", () => {
     it("should alternate between exercises in superset", () => {
-      mockWorkout.sections = [
+      mockWorkout.blocks = [
         {
-          id: "section-1",
+          id: "block-1",
           workout_id: "workout-1",
           name: "Superset",
           type: "superset",
@@ -601,7 +601,7 @@ describe("buildExecutionPlan", () => {
           exercises: [
             {
               id: "ex-1",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Bicep Curls",
               reps: 10,
               time_seconds: 0,
@@ -612,7 +612,7 @@ describe("buildExecutionPlan", () => {
             },
             {
               id: "ex-2",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Tricep Dips",
               reps: 10,
               time_seconds: 0,
@@ -635,9 +635,9 @@ describe("buildExecutionPlan", () => {
     });
 
     it("should track sets correctly in superset", () => {
-      mockWorkout.sections = [
+      mockWorkout.blocks = [
         {
-          id: "section-1",
+          id: "block-1",
           workout_id: "workout-1",
           name: "Superset",
           type: "superset",
@@ -649,7 +649,7 @@ describe("buildExecutionPlan", () => {
           exercises: [
             {
               id: "ex-1",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Ex 1",
               reps: 10,
               time_seconds: 0,
@@ -660,7 +660,7 @@ describe("buildExecutionPlan", () => {
             },
             {
               id: "ex-2",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Ex 2",
               reps: 10,
               time_seconds: 0,
@@ -683,9 +683,9 @@ describe("buildExecutionPlan", () => {
     });
 
     it("should distinguish rest types in superset", () => {
-      mockWorkout.sections = [
+      mockWorkout.blocks = [
         {
-          id: "section-1",
+          id: "block-1",
           workout_id: "workout-1",
           name: "Superset",
           type: "superset",
@@ -697,7 +697,7 @@ describe("buildExecutionPlan", () => {
           exercises: [
             {
               id: "ex-1",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Ex 1",
               reps: 10,
               time_seconds: 0,
@@ -708,7 +708,7 @@ describe("buildExecutionPlan", () => {
             },
             {
               id: "ex-2",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Ex 2",
               reps: 10,
               time_seconds: 0,
@@ -730,9 +730,9 @@ describe("buildExecutionPlan", () => {
     });
 
     it("should handle superset with unequal sets", () => {
-      mockWorkout.sections = [
+      mockWorkout.blocks = [
         {
-          id: "section-1",
+          id: "block-1",
           workout_id: "workout-1",
           name: "Superset",
           type: "superset",
@@ -744,7 +744,7 @@ describe("buildExecutionPlan", () => {
           exercises: [
             {
               id: "ex-1",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Ex 1",
               reps: 10,
               time_seconds: 0,
@@ -755,7 +755,7 @@ describe("buildExecutionPlan", () => {
             },
             {
               id: "ex-2",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Ex 2",
               reps: 10,
               time_seconds: 0,
@@ -780,9 +780,9 @@ describe("buildExecutionPlan", () => {
     });
 
     it("should handle single exercise in superset", () => {
-      mockWorkout.sections = [
+      mockWorkout.blocks = [
         {
-          id: "section-1",
+          id: "block-1",
           workout_id: "workout-1",
           name: "Superset Single",
           type: "superset",
@@ -794,7 +794,7 @@ describe("buildExecutionPlan", () => {
           exercises: [
             {
               id: "ex-1",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Solo Exercise",
               reps: 10,
               time_seconds: 0,
@@ -819,11 +819,11 @@ describe("buildExecutionPlan", () => {
   // ============= PROPERTIES TESTS =============
   describe("step properties", () => {
     it("should have unique IDs for all steps", () => {
-      mockWorkout.sections = [
+      mockWorkout.blocks = [
         {
-          id: "section-1",
+          id: "block-1",
           workout_id: "workout-1",
-          name: "Section",
+          name: "Block",
           type: "standard",
           prepare_time: 0,
           rest_exercise: 30,
@@ -833,7 +833,7 @@ describe("buildExecutionPlan", () => {
           exercises: [
             {
               id: "ex-1",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Ex 1",
               reps: 10,
               time_seconds: 0,
@@ -853,12 +853,12 @@ describe("buildExecutionPlan", () => {
       expect(uniqueIds.size).toBe(ids.length);
     });
 
-    it("should preserve section and exercise IDs in steps", () => {
-      mockWorkout.sections = [
+    it("should preserve block and exercise IDs in steps", () => {
+      mockWorkout.blocks = [
         {
-          id: "my-section-id",
+          id: "my-block-id",
           workout_id: "workout-1",
-          name: "Section",
+          name: "Block",
           type: "standard",
           prepare_time: 0,
           rest_exercise: 0,
@@ -868,7 +868,7 @@ describe("buildExecutionPlan", () => {
           exercises: [
             {
               id: "my-exercise-id",
-              section_id: "my-section-id",
+              block_id: "my-block-id",
               name: "Exercise",
               reps: 10,
               time_seconds: 0,
@@ -884,16 +884,16 @@ describe("buildExecutionPlan", () => {
       const plan = buildExecutionPlan(mockWorkout);
       const exerciseStep = plan.find((s) => s.type === EXERCISE_STEP_TYPE);
 
-      expect(exerciseStep?.sectionId).toBe("my-section-id");
+      expect(exerciseStep?.blockId).toBe("my-block-id");
       expect(exerciseStep?.exerciseId).toBe("my-exercise-id");
     });
 
     it("should preserve exercise attributes in steps", () => {
-      mockWorkout.sections = [
+      mockWorkout.blocks = [
         {
-          id: "section-1",
+          id: "block-1",
           workout_id: "workout-1",
-          name: "Section",
+          name: "Block",
           type: "standard",
           prepare_time: 0,
           rest_exercise: 0,
@@ -903,7 +903,7 @@ describe("buildExecutionPlan", () => {
           exercises: [
             {
               id: "ex-1",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Squat",
               reps: 8,
               time_seconds: 45,
@@ -930,10 +930,10 @@ describe("buildExecutionPlan", () => {
 
   // ============= COMPLEX SCENARIOS =============
   describe("complex scenarios", () => {
-    it("should handle multiple sections in order", () => {
-      mockWorkout.sections = [
+    it("should handle multiple blocks in order", () => {
+      mockWorkout.blocks = [
         {
-          id: "section-1",
+          id: "block-1",
           workout_id: "workout-1",
           name: "Warmup",
           type: "standard",
@@ -945,7 +945,7 @@ describe("buildExecutionPlan", () => {
           exercises: [
             {
               id: "ex-1",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Cardio",
               reps: 0,
               time_seconds: 0,
@@ -957,7 +957,7 @@ describe("buildExecutionPlan", () => {
           ],
         },
         {
-          id: "section-2",
+          id: "block-2",
           workout_id: "workout-1",
           name: "Main",
           type: "circuit",
@@ -969,7 +969,7 @@ describe("buildExecutionPlan", () => {
           exercises: [
             {
               id: "ex-2",
-              section_id: "section-2",
+              block_id: "block-2",
               name: "Lift 1",
               reps: 10,
               time_seconds: 0,
@@ -996,9 +996,9 @@ describe("buildExecutionPlan", () => {
     });
 
     it("should handle workout with mixed deleted items", () => {
-      mockWorkout.sections = [
+      mockWorkout.blocks = [
         {
-          id: "section-1",
+          id: "block-1",
           workout_id: "workout-1",
           name: "Mixed",
           type: "standard",
@@ -1010,7 +1010,7 @@ describe("buildExecutionPlan", () => {
           exercises: [
             {
               id: "ex-1",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Keep 1",
               reps: 10,
               time_seconds: 0,
@@ -1021,7 +1021,7 @@ describe("buildExecutionPlan", () => {
             },
             {
               id: "ex-2",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Delete Me",
               reps: 10,
               time_seconds: 0,
@@ -1032,7 +1032,7 @@ describe("buildExecutionPlan", () => {
             },
             {
               id: "ex-3",
-              section_id: "section-1",
+              block_id: "block-1",
               name: "Keep 2",
               reps: 10,
               time_seconds: 0,

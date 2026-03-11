@@ -6,10 +6,10 @@ import {
   LOCAL_STATUS_UNCHANGED,
   LOCAL_STATUS_UPDATED,
 } from "../constants/constants";
-import { LocalStatus, UIExercise, UISection, UIWorkout } from "../types/ui";
+import { LocalStatus, UIBlock, UIExercise, UIWorkout } from "../types/ui";
 import {
+  createTempBlock,
   createTempExercise,
-  createTempSection,
   createTempWorkout,
 } from "../utils/workout-store-utils";
 
@@ -17,7 +17,7 @@ interface WorkoutStore {
   localWorkouts: UIWorkout[];
 
   workout: UIWorkout | null;
-  section: UISection | null;
+  block: UIBlock | null;
 
   loadWorkouts: (workouts: UIWorkout[]) => void;
 
@@ -25,19 +25,19 @@ interface WorkoutStore {
   startNewWorkout: () => void;
   setName: (name: string) => void;
 
-  startNewSection: (newSectionId: string) => UISection | undefined;
-  loadSection: (sectionId: string) => void;
-  updateSection: (tempId: string | number, data: Partial<UISection>) => void;
-  removeSection: (tempId: string | number) => void;
+  startNewBlock: (newBlockId: string) => UIBlock | undefined;
+  loadBlock: (blockId: string) => void;
+  updateBlock: (tempId: string | number, data: Partial<UIBlock>) => void;
+  removeBlock: (tempId: string | number) => void;
 
-  addExercise: (sectionId: string | number) => void;
+  addExercise: (blockId: string | number) => void;
   updateExercise: (
-    sectionId: string | number,
+    blockId: string | number,
     exerciseId: string | number,
     data: Partial<UIExercise>,
   ) => void;
   removeExercise: (
-    sectionId: string | number,
+    blockId: string | number,
     exerciseId: string | number,
   ) => void;
 
@@ -48,7 +48,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   localWorkouts: [],
 
   workout: null,
-  section: null,
+  block: null,
 
   loadWorkouts: (workouts) => set({ localWorkouts: workouts }),
 
@@ -64,10 +64,10 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     set({
       workout: {
         ...workoutFromDb,
-        sections: (workoutFromDb.sections || []).map((section) => ({
-          ...section,
+        blocks: (workoutFromDb.blocks || []).map((block) => ({
+          ...block,
           localStatus: LOCAL_STATUS_UNCHANGED,
-          exercises: (section.exercises || []).map((exercise) => ({
+          exercises: (block.exercises || []).map((exercise) => ({
             ...exercise,
             localStatus: LOCAL_STATUS_UNCHANGED,
           })),
@@ -89,48 +89,48 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         : null,
     })),
 
-  startNewSection: (newSectionId) => {
+  startNewBlock: (newBlockId) => {
     const state = get();
 
-    // Ensure a workout exists before creating a section
+    // Ensure a workout exists before creating a block
     if (!state.workout) return;
 
     const workout = get().workout!;
-    const newSection = createTempSection(
-      newSectionId,
+    const newBlock = createTempBlock(
+      newBlockId,
       workout.id,
-      workout.sections.length,
+      workout.blocks.length,
     );
 
     set((state) => ({
-      section: newSection,
+      block: newBlock,
       workout: state.workout
         ? {
             ...state.workout,
-            sections: [...state.workout.sections, newSection],
+            blocks: [...state.workout.blocks, newBlock],
           }
         : null,
     }));
 
-    return newSection;
+    return newBlock;
   },
 
-  loadSection: (sectionId) => {
-    set({ section: null });
+  loadBlock: (blockId) => {
+    set({ block: null });
     set((state) => {
-      const idToFind = sectionId?.toString();
-      const section = state.workout?.sections.find(
+      const idToFind = blockId?.toString();
+      const block = state.workout?.blocks.find(
         (s) => s.id?.toString() === idToFind,
       );
 
-      return { section: section || null };
+      return { block: block || null };
     });
   },
 
-  updateSection: (id, data) =>
+  updateBlock: (id, data) =>
     set((state) => {
       const idToFind = id?.toString();
-      const updatedSections: UISection[] = state.workout!.sections.map((s) =>
+      const updatedBlocks: UIBlock[] = state.workout!.blocks.map((s) =>
         s.id?.toString() === idToFind
           ? {
               ...s,
@@ -142,80 +142,80 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
             }
           : s,
       );
-      const updatedSection =
-        updatedSections.find((s) => s.id?.toString() === idToFind) || null;
+      const updatedBlock =
+        updatedBlocks.find((s) => s.id?.toString() === idToFind) || null;
 
       return {
-        workout: { ...state.workout!, sections: updatedSections },
-        section: updatedSection,
+        workout: { ...state.workout!, blocks: updatedBlocks },
+        block: updatedBlock,
       };
     }),
 
-  removeSection: (id) =>
+  removeBlock: (id) =>
     set((state) => {
       const idToFind = id?.toString();
 
-      const section = state.workout!.sections.find(
+      const block = state.workout!.blocks.find(
         (s) => s.id?.toString() === idToFind,
       );
 
       if (
-        section?.localStatus === LOCAL_STATUS_NEW ||
-        section?.id?.toString().startsWith("temp-")
+        block?.localStatus === LOCAL_STATUS_NEW ||
+        block?.id?.toString().startsWith("temp-")
       ) {
-        const sections = state.workout!.sections.filter(
+        const blocks = state.workout!.blocks.filter(
           (s) => s.id?.toString() !== idToFind,
         );
-        return { workout: { ...state.workout!, sections } };
+        return { workout: { ...state.workout!, blocks } };
       }
 
-      const sections = state.workout!.sections.map((section) =>
-        section.id?.toString() === idToFind
-          ? { ...section, localStatus: LOCAL_STATUS_DELETED as LocalStatus }
-          : section,
+      const blocks = state.workout!.blocks.map((block) =>
+        block.id?.toString() === idToFind
+          ? { ...block, localStatus: LOCAL_STATUS_DELETED as LocalStatus }
+          : block,
       );
 
-      return { workout: { ...state.workout!, sections } };
+      return { workout: { ...state.workout!, blocks } };
     }),
 
-  addExercise: (sectionId) =>
+  addExercise: (blockId) =>
     set((state) => {
       const tmpId = `tmp-ex-${nanoid()}`;
-      const sectionIdStr = sectionId?.toString();
+      const blockIdStr = blockId?.toString();
 
-      const sections = state.workout!.sections.map((section) => {
-        if (section.id?.toString() !== sectionIdStr) return section;
+      const blocks = state.workout!.blocks.map((block) => {
+        if (block.id?.toString() !== blockIdStr) return block;
 
         const newExercise = createTempExercise(
           tmpId,
-          sectionId,
-          section.exercises.length,
+          blockId,
+          block.exercises.length,
         );
 
         return {
-          ...section,
-          exercises: [...section.exercises, newExercise],
+          ...block,
+          exercises: [...block.exercises, newExercise],
         };
       });
 
-      const updatedSection =
-        sections.find((s) => s.id?.toString() === sectionIdStr) || null;
+      const updatedBlock =
+        blocks.find((s) => s.id?.toString() === blockIdStr) || null;
 
       return {
-        workout: { ...state.workout!, sections },
-        section: updatedSection,
+        workout: { ...state.workout!, blocks },
+        block: updatedBlock,
       };
     }),
 
-  updateExercise: (sectionId, exerciseId, data) =>
+  updateExercise: (blockId, exerciseId, data) =>
     set((state) => {
-      const sectionIdStr = sectionId?.toString();
+      const blockIdStr = blockId?.toString();
       const exerciseIdStr = exerciseId?.toString();
 
-      const sections: UISection[] = state.workout!.sections.map((section) => {
-        if (section.id?.toString() !== sectionIdStr) return section;
+      const blocks: UIBlock[] = state.workout!.blocks.map((block) => {
+        if (block.id?.toString() !== blockIdStr) return block;
 
-        const updatedExercises: UIExercise[] = section.exercises.map(
+        const updatedExercises: UIExercise[] = block.exercises.map(
           (exercise) =>
             exercise.id?.toString() === exerciseIdStr
               ? {
@@ -229,43 +229,43 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
               : exercise,
         );
 
-        return { ...section, exercises: updatedExercises };
+        return { ...block, exercises: updatedExercises };
       });
 
-      const updatedSection =
-        sections.find((s) => s.id?.toString() === sectionIdStr) || null;
+      const updatedBlock =
+        blocks.find((s) => s.id?.toString() === blockIdStr) || null;
 
       return {
-        workout: { ...state.workout!, sections },
-        section: updatedSection,
+        workout: { ...state.workout!, blocks },
+        block: updatedBlock,
       };
     }),
 
-  removeExercise: (sectionId, exerciseId) =>
+  removeExercise: (blockId, exerciseId) =>
     set((state) => {
-      const sectionIdStr = sectionId?.toString();
+      const blockIdStr = blockId?.toString();
       const exerciseIdStr = exerciseId?.toString();
 
-      const sections: UISection[] = state.workout!.sections.map((section) => {
-        if (section.id?.toString() !== sectionIdStr) return section;
+      const blocks: UIBlock[] = state.workout!.blocks.map((block) => {
+        if (block.id?.toString() !== blockIdStr) return block;
 
-        const exercises: UIExercise[] = section.exercises.map((exercise) =>
+        const exercises: UIExercise[] = block.exercises.map((exercise) =>
           exercise.id?.toString() === exerciseIdStr
             ? { ...exercise, localStatus: LOCAL_STATUS_DELETED }
             : exercise,
         );
 
-        return { ...section, exercises };
+        return { ...block, exercises };
       });
 
-      const updatedSection =
-        sections.find((s) => s.id?.toString() === sectionIdStr) || null;
+      const updatedBlock =
+        blocks.find((s) => s.id?.toString() === blockIdStr) || null;
 
       return {
-        workout: { ...state.workout!, sections },
-        section: updatedSection,
+        workout: { ...state.workout!, blocks },
+        block: updatedBlock,
       };
     }),
 
-  reset: () => set({ workout: null, section: null }),
+  reset: () => set({ workout: null, block: null }),
 }));

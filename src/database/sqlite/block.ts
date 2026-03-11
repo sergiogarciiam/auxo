@@ -1,31 +1,31 @@
 import {
-  CreateSectionPayload,
-  Section,
-  UpdateSectionPayload,
-} from "@/src/types/section";
+  Block,
+  CreateBlockPayload,
+  UpdateBlockPayload,
+} from "@/src/types/block";
 import { getAllRows, runQuery } from "./db";
 
-export const section = {
+export const block = {
   /**
-   * Fetches all sections ordered by creation date (newest first)
+   * Fetches all blocks ordered by creation date (newest first)
    */
-  getAll: async (): Promise<Section[]> => {
-    const sql = `SELECT * FROM sections ORDER BY id DESC;`;
-    const result = (await getAllRows(sql)) as Section[];
+  getAll: async (): Promise<Block[]> => {
+    const sql = `SELECT * FROM blocks ORDER BY id DESC;`;
+    const result = (await getAllRows(sql)) as Block[];
     return result;
   },
 
   /**
-   * Fetches a section by ID
+   * Fetches a block by ID
    */
-  getById: async ({ id }: { id: number }): Promise<Section> => {
-    const sql = `SELECT * FROM sections WHERE id = ?;`;
+  getById: async ({ id }: { id: number }): Promise<Block> => {
+    const sql = `SELECT * FROM blocks WHERE id = ?;`;
     const result = await runQuery(sql, [id]);
     return result;
   },
 
   /**
-   * Creates a new section
+   * Creates a new block
    */
   create: async ({
     workout_id,
@@ -35,8 +35,8 @@ export const section = {
     rest_exercise,
     rest_group,
     position,
-  }: CreateSectionPayload): Promise<any> => {
-    const sql = `INSERT INTO sections (workout_id, name, type, prepare_time, rest_exercise, rest_group, position) VALUES (?, ?, ?, ?, ?, ?, ?);`;
+  }: CreateBlockPayload): Promise<any> => {
+    const sql = `INSERT INTO blocks (workout_id, name, type, prepare_time, rest_exercise, rest_group, position) VALUES (?, ?, ?, ?, ?, ?, ?);`;
     const result = await runQuery(sql, [
       workout_id,
       name,
@@ -50,7 +50,7 @@ export const section = {
   },
 
   /**
-   * Updates an existing section
+   * Updates an existing block
    */
   update: async ({
     id,
@@ -61,9 +61,9 @@ export const section = {
     rest_exercise,
     rest_group,
     position,
-  }: UpdateSectionPayload): Promise<any> => {
+  }: UpdateBlockPayload): Promise<any> => {
     const sql = `
-      UPDATE sections 
+      UPDATE blocks 
       SET workout_id = ?, name = ?, type = ?, prepare_time = ?, rest_exercise = ?, rest_group = ?, position = ? 
       WHERE id = ?;
     `;
@@ -81,24 +81,24 @@ export const section = {
   },
 
   /**
-   * Deletes a section
+   * Deletes a block
    */
   delete: async ({ id }: { id: number }): Promise<any> => {
-    const sql = `DELETE FROM sections WHERE id = ?;`;
+    const sql = `DELETE FROM blocks WHERE id = ?;`;
     const result = await runQuery(sql, [id]);
     return result;
   },
 
   /**
-   * Fetches all exercises for a section ordered by position
+   * Fetches all exercises for a block ordered by position
    */
-  getAllExercisesBySectionId: async ({
-    section_id,
+  getAllExercisesByBlockId: async ({
+    block_id,
   }: {
-    section_id: number;
+    block_id: number;
   }): Promise<any[]> => {
-    const sql = `SELECT * FROM exercises WHERE section_id = ? ORDER BY position ASC;`;
-    const result = await getAllRows(sql, [section_id]);
+    const sql = `SELECT * FROM exercises WHERE block_id = ? ORDER BY position ASC;`;
+    const result = await getAllRows(sql, [block_id]);
     return result;
   },
 } as const;

@@ -1,4 +1,4 @@
-export interface Section {
+export interface Block {
   id: number;
   workout_id: number;
   name: string;
@@ -9,7 +9,7 @@ export interface Section {
   position: number;
 }
 
-export interface CreateSectionPayload {
+export interface CreateBlockPayload {
   workout_id: number;
   name: string;
   type: string;
@@ -19,7 +19,7 @@ export interface CreateSectionPayload {
   position: number;
 }
 
-export interface UpdateSectionPayload {
+export interface UpdateBlockPayload {
   id: number;
   workout_id?: number;
   name?: string;

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { workoutRepository } from "../../repositories/workoutRepository";
-import { Section } from "../../types/section";
+import { Block } from "../../types/block";
 import {
   CreateWorkoutPayload,
   UpdateWorkoutPayload,
@@ -70,15 +70,15 @@ export const useWorkouts = () => {
     [fetchWorkouts],
   );
 
-  const getAllSectionsByWorkoutId = useCallback(
-    async (id: number): Promise<Section[]> => {
+  const getAllBlocksByWorkoutId = useCallback(
+    async (id: number): Promise<Block[]> => {
       try {
-        const sections = (await workoutRepository.getAllSectionsByWorkoutId({
+        const blocks = (await workoutRepository.getAllBlocksByWorkoutId({
           id,
-        })) as Section[];
-        return sections;
+        })) as Block[];
+        return blocks;
       } catch (error) {
-        console.error("Failed to fetch sections:", error);
+        console.error("Failed to fetch blocks:", error);
         throw error;
       }
     },
@@ -96,6 +96,6 @@ export const useWorkouts = () => {
     createWorkout,
     updateWorkout,
     deleteWorkout,
-    getAllSectionsByWorkoutId,
+    getAllBlocksByWorkoutId,
   };
 };

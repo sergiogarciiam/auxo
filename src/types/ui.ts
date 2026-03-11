@@ -2,7 +2,7 @@ export type LocalStatus = "new" | "updated" | "deleted" | "unchanged";
 
 export interface UIExercise {
   id: number | string;
-  section_id: number | string;
+  block_id: number | string;
   name: string;
   reps: number;
   time_seconds: number;
@@ -12,7 +12,7 @@ export interface UIExercise {
   localStatus: LocalStatus;
 }
 
-export interface UISection {
+export interface UIBlock {
   id: number | string;
   workout_id: number | string;
   name: string;
@@ -29,7 +29,7 @@ export interface UIWorkout {
   id: number | string;
   name: string;
   position: number;
-  sections: UISection[];
+  blocks: UIBlock[];
   localStatus: LocalStatus;
 }
 
@@ -38,7 +38,7 @@ export type ExecutionStepType = "exercise" | "rest";
 export interface ExecutionStep {
   id: string;
   type: ExecutionStepType;
-  sectionId: number | string;
+  blockId: number | string;
   exerciseId?: number | string;
   name?: string;
   reps?: number;

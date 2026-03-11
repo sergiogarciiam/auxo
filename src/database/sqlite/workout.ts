@@ -60,10 +60,10 @@ export const workout = {
   },
 
   /**
-   * Fetches all sections for a workout
+   * Fetches all blocks for a workout
    */
-  getAllSectionsByWorkoutId: async ({ id }: { id: number }): Promise<any[]> => {
-    const sql = `SELECT * FROM sections WHERE workout_id = ? ORDER BY position ASC;`;
+  getAllBlocksByWorkoutId: async ({ id }: { id: number }): Promise<any[]> => {
+    const sql = `SELECT * FROM blocks WHERE workout_id = ? ORDER BY position ASC;`;
     const result = await getAllRows(sql, [id]);
     return result;
   },

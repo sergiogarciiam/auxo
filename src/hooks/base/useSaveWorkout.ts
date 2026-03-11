@@ -5,17 +5,17 @@ import {
   LOCAL_STATUS_UPDATED,
 } from "../../constants/constants";
 import { UIWorkout } from "../../types/ui";
+import { useBlocks } from "./useBlocks";
 import { useExercises } from "./useExercises";
-import { useSections } from "./useSections";
 import { useWorkouts } from "./useWorkouts";
 
 export const useSaveWorkout = () => {
   const { createWorkout, updateWorkout } = useWorkouts();
-  const { createSection, updateSection, deleteSection } = useSections();
+  const { createBlock, updateBlock, deleteBlock } = useBlocks();
   const { createExercise, updateExercise, deleteExercise } = useExercises();
 
   /**
-   * Saves a complete workout and all its sections/exercises to database
+   * Saves a complete workout and all its blocks/exercises to database
    * Validates data before writing to prevent partial saves
    */
   const saveWorkout = useCallback(
@@ -37,13 +37,13 @@ export const useSaveWorkout = () => {
           });
         }
 
-        // 2. SECTIONS
-        for (const sec of uiWorkout.sections) {
-          let sectionId = sec.id;
+        // 2. BLOCKS
+        for (const sec of uiWorkout.blocks) {
+          let blockId = sec.id;
 
           switch (sec.localStatus) {
             case LOCAL_STATUS_NEW: {
-              sectionId = await createSection({
+              blockId = await createBlock({
                 workout_id: workoutId as number,
                 name: sec.name,
                 type: sec.type,
@@ -55,8 +55,8 @@ export const useSaveWorkout = () => {
             }
 
             case LOCAL_STATUS_UPDATED: {
-              await updateSection({
-                id: sectionId as number,
+              await updateBlock({
+                id: blockId as number,
                 workout_id: workoutId as number,
                 name: sec.name,
                 type: sec.type,
@@ -69,8 +69,8 @@ export const useSaveWorkout = () => {
             }
 
             case LOCAL_STATUS_DELETED: {
-              if (typeof sectionId === "number") {
-                await deleteSection(sectionId);
+              if (typeof blockId === "number") {
+                await deleteBlock(blockId);
               }
               continue;
             }
@@ -81,7 +81,7 @@ export const useSaveWorkout = () => {
             switch (ex.localStatus) {
               case LOCAL_STATUS_NEW:
                 await createExercise({
-                  section_id: sectionId as number,
+                  block_id: blockId as number,
                   name: ex.name,
                   reps: ex.reps,
                   time_seconds: ex.time_seconds,
@@ -94,7 +94,7 @@ export const useSaveWorkout = () => {
               case LOCAL_STATUS_UPDATED:
                 await updateExercise({
                   id: ex.id as number,
-                  section_id: sectionId as number,
+                  block_id: blockId as number,
                   name: ex.name,
                   reps: ex.reps,
                   time_seconds: ex.time_seconds,
@@ -122,9 +122,9 @@ export const useSaveWorkout = () => {
     [
       createWorkout,
       updateWorkout,
-      createSection,
-      updateSection,
-      deleteSection,
+      createBlock,
+      updateBlock,
+      deleteBlock,
       createExercise,
       updateExercise,
       deleteExercise,

@@ -11,13 +11,13 @@ export const exercise = {
   create: async (exerciseData: CreateExercisePayload): Promise<any> => {
     const sql = `
       INSERT INTO exercises 
-      (section_id, name, reps, time_seconds, weight, sets, position) 
+      (block_id, name, reps, time_seconds, weight, sets, position) 
       VALUES (?, ?, ?, ?, ?, ?, ?);
     `;
-    const { section_id, name, reps, time_seconds, weight, sets, position } =
+    const { block_id, name, reps, time_seconds, weight, sets, position } =
       exerciseData;
     const result = await runQuery(sql, [
-      section_id,
+      block_id,
       name,
       reps,
       time_seconds,
@@ -34,13 +34,13 @@ export const exercise = {
   update: async (exerciseData: UpdateExercisePayload): Promise<any> => {
     const sql = `
       UPDATE exercises 
-      SET section_id = ?, name = ?, reps = ?, time_seconds = ?, weight = ?, sets = ?, position = ?
+      SET block_id = ?, name = ?, reps = ?, time_seconds = ?, weight = ?, sets = ?, position = ?
       WHERE id = ?;
     `;
-    const { id, section_id, name, reps, time_seconds, weight, sets, position } =
+    const { id, block_id, name, reps, time_seconds, weight, sets, position } =
       exerciseData;
     const result = await runQuery(sql, [
-      section_id,
+      block_id,
       name,
       reps,
       time_seconds,

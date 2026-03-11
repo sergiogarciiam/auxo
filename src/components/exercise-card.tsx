@@ -75,7 +75,7 @@ export function ExerciseCard({
         />
       </Field>
 
-      <Field label="Weight">
+      <Field label="Weight (kg)">
         <TextInput
           style={styles.input}
           keyboardType="numeric"

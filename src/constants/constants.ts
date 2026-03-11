@@ -4,7 +4,7 @@ export const TRADITIONAL_TYPE = "traditional";
 export const CIRCUIT_TYPE = "circuit";
 export const SUPERSET_TYPE = "superset";
 
-export const SECTION_TYPES = [
+export const BLOCK_TYPES = [
   WARMUP_TYPE,
   COOLDOWN_TYPE,
   TRADITIONAL_TYPE,
@@ -12,7 +12,7 @@ export const SECTION_TYPES = [
   SUPERSET_TYPE,
 ] as const;
 
-export const SECTION_TYPE_LABELS: Record<string, string> = {
+export const BLOCK_TYPE_LABELS: Record<string, string> = {
   warmup: "Warm up",
   cooldown: "Cooldown",
   traditional: "Traditional",

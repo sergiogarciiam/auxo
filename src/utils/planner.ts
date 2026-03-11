@@ -11,29 +11,29 @@ import { ExecutionStep, UIWorkout } from "../types/ui";
 export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
   const plan: ExecutionStep[] = [];
 
-  const sections = [...workout.sections]
+  const blocks = [...workout.blocks]
     .filter((s) => s.localStatus !== LOCAL_STATUS_DELETED)
     .sort((a, b) => a.position - b.position);
 
-  sections.forEach((section) => {
-    const exercises = (section.exercises || [])
+  blocks.forEach((block) => {
+    const exercises = (block.exercises || [])
       .filter((e) => e.localStatus !== LOCAL_STATUS_DELETED)
       .sort((a, b) => a.position - b.position);
 
     if (exercises.length === 0) return;
 
-    if (section.prepare_time > 0) {
+    if (block.prepare_time > 0) {
       plan.push({
         id: nanoid(),
         type: REST_STEP_TYPE,
-        sectionId: section.id,
-        name: `Prepare for ${section.name}`,
-        duration_seconds: section.prepare_time,
+        blockId: block.id,
+        name: `Prepare for ${block.name}`,
+        duration_seconds: block.prepare_time,
       });
     }
 
     // SUPERSET PLANNING
-    if (section.type === SUPERSET_TYPE) {
+    if (block.type === SUPERSET_TYPE) {
       const queue = exercises.map((ex) => ({
         ...ex,
         remainingSets: ex.sets || 0,
@@ -64,7 +64,7 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
         plan.push({
           id: nanoid(),
           type: EXERCISE_STEP_TYPE,
-          sectionId: section.id,
+          blockId: block.id,
           exerciseId: exercise.id,
           name: exercise.name,
           reps: exercise.reps,
@@ -73,21 +73,21 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
           set: queue[activeExercise].completedSets + 1,
         });
 
-        if (activeExercise % 2 === 0 && section.rest_exercise > 0) {
+        if (activeExercise % 2 === 0 && block.rest_exercise > 0) {
           plan.push({
             id: nanoid(),
             type: REST_STEP_TYPE,
-            sectionId: section.id,
+            blockId: block.id,
             name: "Rest",
-            duration_seconds: section.rest_exercise,
+            duration_seconds: block.rest_exercise,
           });
-        } else if (activeExercise % 2 !== 0 && section.rest_group > 0) {
+        } else if (activeExercise % 2 !== 0 && block.rest_group > 0) {
           plan.push({
             id: nanoid(),
             type: REST_STEP_TYPE,
-            sectionId: section.id,
+            blockId: block.id,
             name: "Superset Rest",
-            duration_seconds: section.rest_group,
+            duration_seconds: block.rest_group,
           });
         }
 
@@ -98,7 +98,7 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
       }
 
       // CIRCUIT PLANNING
-    } else if (section.type === CIRCUIT_TYPE) {
+    } else if (block.type === CIRCUIT_TYPE) {
       const maxSets = Math.max(...exercises.map((e) => e.sets || 0));
       for (let round = 0; round < maxSets; round++) {
         exercises.forEach((ex, idx) => {
@@ -106,7 +106,7 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
             plan.push({
               id: nanoid(),
               type: EXERCISE_STEP_TYPE,
-              sectionId: section.id,
+              blockId: block.id,
               exerciseId: ex.id,
               name: ex.name,
               reps: ex.reps,
@@ -116,25 +116,25 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
             });
 
             // rest between exercises in circuit
-            if (section.rest_exercise > 0 && idx < exercises.length - 1) {
+            if (block.rest_exercise > 0 && idx < exercises.length - 1) {
               plan.push({
                 id: nanoid(),
                 type: REST_STEP_TYPE,
-                sectionId: section.id,
+                blockId: block.id,
                 name: "Rest",
-                duration_seconds: section.rest_exercise,
+                duration_seconds: block.rest_exercise,
               });
             }
           }
         });
 
-        if (round < maxSets - 1 && section.rest_group > 0) {
+        if (round < maxSets - 1 && block.rest_group > 0) {
           plan.push({
             id: nanoid(),
             type: REST_STEP_TYPE,
-            sectionId: section.id,
+            blockId: block.id,
             name: "Circuit Rest",
-            duration_seconds: section.rest_group,
+            duration_seconds: block.rest_group,
           });
         }
       }
@@ -146,7 +146,7 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
           plan.push({
             id: nanoid(),
             type: EXERCISE_STEP_TYPE,
-            sectionId: section.id,
+            blockId: block.id,
             exerciseId: ex.id,
             name: ex.name,
             reps: ex.reps,
@@ -156,25 +156,25 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
           });
 
           // rest between sets
-          if (s < (ex.sets || 0) - 1 && section.rest_exercise > 0) {
+          if (s < (ex.sets || 0) - 1 && block.rest_exercise > 0) {
             plan.push({
               id: nanoid(),
               type: REST_STEP_TYPE,
-              sectionId: section.id,
+              blockId: block.id,
               name: "Rest",
-              duration_seconds: section.rest_exercise,
+              duration_seconds: block.rest_exercise,
             });
           }
         }
 
         // rest between exercises
-        if (exIdx < exercises.length - 1 && section.rest_exercise > 0) {
+        if (exIdx < exercises.length - 1 && block.rest_exercise > 0) {
           plan.push({
             id: nanoid(),
             type: REST_STEP_TYPE,
-            sectionId: section.id,
+            blockId: block.id,
             name: "Rest",
-            duration_seconds: section.rest_exercise,
+            duration_seconds: block.rest_exercise,
           });
         }
       });

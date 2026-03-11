@@ -1,6 +1,6 @@
 export interface Exercise {
   id: number;
-  section_id: number;
+  block_id: number;
   name: string;
   reps?: number;
   time_seconds?: number;
@@ -10,7 +10,7 @@ export interface Exercise {
 }
 
 export interface CreateExercisePayload {
-  section_id: number;
+  block_id: number;
   name: string;
   reps: number;
   time_seconds: number;
@@ -21,7 +21,7 @@ export interface CreateExercisePayload {
 
 export interface UpdateExercisePayload {
   id: number;
-  section_id?: number;
+  block_id?: number;
   name?: string;
   reps?: number;
   time_seconds?: number;

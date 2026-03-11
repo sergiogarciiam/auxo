@@ -1,5 +1,5 @@
 import { LOCAL_STATUS_DELETED } from "../constants/constants";
-import { UISection, UIWorkout } from "../types/ui";
+import { UIBlock, UIWorkout } from "../types/ui";
 
 export const ValidationErrors = {
   EMPTY_STRING: "This field is required",
@@ -20,32 +20,32 @@ export function isPositiveNumber(value: unknown): boolean {
   return Number.isFinite(num) && num >= 0;
 }
 
-export function validateSection(section: UISection): string | null {
-  if (!isNonEmptyString(section.name)) {
-    return "Section name is required";
+export function validateBlock(block: UIBlock): string | null {
+  if (!isNonEmptyString(block.name)) {
+    return "Block name is required";
   }
 
-  if (!isNonEmptyString(section.type)) {
-    return "Section type is required";
+  if (!isNonEmptyString(block.type)) {
+    return "Block type is required";
   }
 
-  if (!isNumberDefined(section.prepare_time)) {
+  if (!isNumberDefined(block.prepare_time)) {
     return "Prepare time is required";
   }
 
-  if (!isNumberDefined(section.rest_exercise)) {
+  if (!isNumberDefined(block.rest_exercise)) {
     return "Rest between exercises is requiered";
   }
 
   if (
-    section.exercises.filter(
+    block.exercises.filter(
       (exercise) => exercise.localStatus !== LOCAL_STATUS_DELETED,
     ).length === 0
   ) {
-    return "Section requiere at least one exercise";
+    return "Block requiere at least one exercise";
   }
 
-  for (const exercise of section.exercises) {
+  for (const exercise of block.exercises) {
     if (exercise.localStatus === LOCAL_STATUS_DELETED) continue;
 
     if (!isNonEmptyString(exercise.name)) {
@@ -69,11 +69,10 @@ export function validateWorkout(workout: UIWorkout): string | null {
   }
 
   if (
-    workout.sections.filter(
-      (section) => section.localStatus !== LOCAL_STATUS_DELETED,
-    ).length === 0
+    workout.blocks.filter((block) => block.localStatus !== LOCAL_STATUS_DELETED)
+      .length === 0
   ) {
-    return "Workout requiere at least one section";
+    return "Workout requiere at least one block";
   }
 
   return null;

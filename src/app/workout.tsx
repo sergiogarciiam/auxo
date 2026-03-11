@@ -21,11 +21,11 @@ import { useTheme } from "../hooks/useTheme";
 import { ConfirmDialog } from "../components/confirm-dialog";
 import { Header } from "../components/header";
 import { LOCAL_STATUS_NEW } from "../constants/constants";
+import { useBlocks } from "../hooks/base/useBlocks";
 import { useExercises } from "../hooks/base/useExercises";
 import { useSaveWorkout } from "../hooks/base/useSaveWorkout";
-import { useSections } from "../hooks/base/useSections";
 import { useWorkouts } from "../hooks/base/useWorkouts";
-import { useOrderedSections } from "../hooks/other/useOrderedSections";
+import { useOrderedBlocks } from "../hooks/other/useOrderedBlocks";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
 import { UIWorkout } from "../types/ui";
 import { swapItems } from "../utils/reorder";
@@ -38,23 +38,23 @@ export default function WorkoutScreen() {
   const params = useLocalSearchParams();
 
   const { deleteWorkout, getWorkoutById } = useWorkouts();
-  const { deleteSection } = useSections();
+  const { deleteBlock } = useBlocks();
   const { deleteExercise } = useExercises();
   const { saveWorkout } = useSaveWorkout();
   const {
     workout,
-    section,
+    block,
     startNewWorkout,
     setName,
-    updateSection,
-    removeSection,
+    updateBlock,
+    removeBlock,
     reset,
     loadWorkout,
   } = useWorkoutStore();
 
   const initialWorkoutRef = useRef<any | null>(null);
   const contentStyle = createStyles(colors);
-  const sections = useOrderedSections(workout);
+  const blocks = useOrderedBlocks(workout);
 
   useEffect(() => {
     if (!workout) {
@@ -64,9 +64,9 @@ export default function WorkoutScreen() {
 
   // capture initial snapshot to detect dirty state
   useEffect(() => {
-    if (workout && !section?.id.toString().startsWith("temp-"))
+    if (workout && !block?.id.toString().startsWith("temp-"))
       initialWorkoutRef.current = JSON.parse(JSON.stringify(workout));
-  }, [workout, section?.id]);
+  }, [workout, block?.id]);
 
   const handleDone = useCallback(async () => {
     Keyboard.dismiss();
@@ -96,9 +96,7 @@ export default function WorkoutScreen() {
     useState(false);
   const [deleteExerciseConfirmVisible, setDeleteExerciseConfirmVisible] =
     useState(false);
-  const [sectionToDeleteId, setSectionToDeleteId] = useState<string | null>(
-    null,
-  );
+  const [blockToDeleteId, setBlockToDeleteId] = useState<string | null>(null);
 
   const doDiscard = useCallback(async () => {
     setDiscardConfirmVisible(false);
@@ -124,9 +122,9 @@ export default function WorkoutScreen() {
     }
   }, [workout, reset, router, getWorkoutById, loadWorkout]);
 
-  const handleEditSection = useCallback(
-    (sectionId: string) => {
-      router.push(`/section?sectionId=${sectionId}`);
+  const handleEditBlock = useCallback(
+    (blockId: string) => {
+      router.push(`/block?blockId=${blockId}`);
     },
     [router],
   );
@@ -140,15 +138,15 @@ export default function WorkoutScreen() {
     setDeleteWorkoutConfirmVisible(false);
     try {
       await Promise.all(
-        workout?.sections
+        workout?.blocks
           ?.map((s) => s.id)!
-          .map(async (sectionId) => {
-            await deleteSection(Number(sectionId));
+          .map(async (blockId) => {
+            await deleteBlock(Number(blockId));
           }) || [],
       );
 
       await Promise.all(
-        workout?.sections
+        workout?.blocks
           ?.flatMap((s) => (s.exercises || []).map((e) => e.id))
           .map(async (exerciseId) => {
             await deleteExercise(Number(exerciseId));
@@ -162,33 +160,33 @@ export default function WorkoutScreen() {
     } catch (error) {
       handleAndShowError(error);
     }
-  }, [workout, deleteWorkout, deleteSection, deleteExercise, reset, router]);
+  }, [workout, deleteWorkout, deleteBlock, deleteExercise, reset, router]);
 
-  const handleAddSection = useCallback(() => {
-    router.push("/section");
+  const handleAddBlock = useCallback(() => {
+    router.push("/block");
   }, [router]);
 
-  const handleDeleteSection = useCallback((sectionId: string) => {
-    setSectionToDeleteId(sectionId);
+  const handleDeleteBlock = useCallback((blockId: string) => {
+    setBlockToDeleteId(blockId);
     setDeleteExerciseConfirmVisible(true);
   }, []);
 
-  const doDeleteSection = useCallback(async () => {
+  const doDeleteBlock = useCallback(async () => {
     setDeleteExerciseConfirmVisible(false);
     try {
-      if (sectionToDeleteId) {
-        removeSection(sectionToDeleteId);
+      if (blockToDeleteId) {
+        removeBlock(blockToDeleteId);
       }
     } catch (error) {
       handleAndShowError(error);
     }
-  }, [sectionToDeleteId, removeSection]);
+  }, [blockToDeleteId, removeBlock]);
 
-  const moveSection = (from: number, to: number) => {
-    const reordered = swapItems(sections, from, to);
+  const moveBlock = (from: number, to: number) => {
+    const reordered = swapItems(blocks, from, to);
 
-    reordered.forEach((section, index) => {
-      updateSection(section.id.toString(), { position: index });
+    reordered.forEach((block, index) => {
+      updateBlock(block.id.toString(), { position: index });
     });
   };
 
@@ -230,31 +228,29 @@ export default function WorkoutScreen() {
                 </Field>
               </View>
 
-              <ThemedText type="subtitle">Sections</ThemedText>
+              <ThemedText type="subtitle">Blocks</ThemedText>
 
-              {sections.length > 0 ? (
-                sections.map((section, index) => (
-                  <View key={section.id} style={{ marginBottom: 12 }}>
+              {blocks.length > 0 ? (
+                blocks.map((block, index) => (
+                  <View key={block.id} style={{ marginBottom: 12 }}>
                     <Card
-                      text={section.name}
-                      onEdit={() => handleEditSection(section.id.toString())}
-                      onDelete={() =>
-                        handleDeleteSection(section.id.toString())
-                      }
+                      text={block.name}
+                      onEdit={() => handleEditBlock(block.id.toString())}
+                      onDelete={() => handleDeleteBlock(block.id.toString())}
                       index={index}
-                      handleMovePrev={() => moveSection(index, index - 1)}
-                      handleMoveNext={() => moveSection(index, index + 1)}
+                      handleMovePrev={() => moveBlock(index, index - 1)}
+                      handleMoveNext={() => moveBlock(index, index + 1)}
                       isDisabledPrev={index === 0}
-                      isDisabledNext={index === sections.length - 1}
+                      isDisabledNext={index === blocks.length - 1}
                     />
                   </View>
                 ))
               ) : (
-                <ThemedText>No sections yet</ThemedText>
+                <ThemedText>No blocks yet</ThemedText>
               )}
 
               <ThemedButton
-                text="New Section"
+                text="New Block"
                 icon={
                   <MaterialIcons
                     name="add"
@@ -262,7 +258,7 @@ export default function WorkoutScreen() {
                     color={colors.PRIMARY_ICON_COLOR}
                   />
                 }
-                onPress={handleAddSection}
+                onPress={handleAddBlock}
               />
             </ScrollView>
             <ConfirmDialog
@@ -287,10 +283,10 @@ export default function WorkoutScreen() {
             />
             <ConfirmDialog
               visible={deleteExerciseConfirmVisible}
-              title="Remove section?"
-              message="Are you sure you want to remove this section?"
+              title="Remove block?"
+              message="Are you sure you want to remove this block?"
               onCancel={() => setDeleteExerciseConfirmVisible(false)}
-              onConfirm={doDeleteSection}
+              onConfirm={doDeleteBlock}
               cancelText="Cancel"
               confirmText="Delete"
               destructive

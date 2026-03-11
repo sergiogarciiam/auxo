@@ -1,13 +1,13 @@
 import { useMemo } from "react";
 import { LOCAL_STATUS_DELETED } from "../../constants/constants";
-import { UISection } from "../../types/ui";
+import { UIBlock } from "../../types/ui";
 
-export const useOrderedExercises = (section?: UISection | null) => {
+export const useOrderedExercises = (block?: UIBlock | null) => {
   return useMemo(() => {
-    if (!section) return [];
+    if (!block) return [];
 
-    return section.exercises
+    return block.exercises
       .filter((e) => e.localStatus !== LOCAL_STATUS_DELETED)
       .sort((a, b) => a.position - b.position);
-  }, [section]);
+  }, [block]);
 };

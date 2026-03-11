@@ -3,11 +3,11 @@ import {
   LOCAL_STATUS_DELETED,
   LOCAL_STATUS_UNCHANGED,
 } from "../../constants/constants";
-import { UISection, UIWorkout } from "../../types/ui";
+import { UIBlock, UIWorkout } from "../../types/ui";
 import {
   isNonEmptyString,
   isPositiveNumber,
-  validateSection,
+  validateBlock,
   validateWorkout,
 } from "../validation";
 
@@ -67,15 +67,15 @@ describe("validation utilities", () => {
     });
   });
 
-  // ============= validateSection TESTS =============
-  describe("validateSection", () => {
-    let mockSection: UISection;
+  // ============= validateBlock TESTS =============
+  describe("validateBlock", () => {
+    let mockBlock: UIBlock;
 
     beforeEach(() => {
-      mockSection = {
-        id: "section-1",
+      mockBlock = {
+        id: "block-1",
         workout_id: "workout-1",
-        name: "Test Section",
+        name: "Test Block",
         type: "standard",
         prepare_time: 0,
         rest_exercise: 30,
@@ -85,7 +85,7 @@ describe("validation utilities", () => {
         exercises: [
           {
             id: "ex-1",
-            section_id: "section-1",
+            block_id: "block-1",
             name: "Exercise 1",
             reps: 10,
             time_seconds: 0,
@@ -98,99 +98,99 @@ describe("validation utilities", () => {
       };
     });
 
-    it("should return null for valid section", () => {
-      expect(validateSection(mockSection)).toBeNull();
+    it("should return null for valid block", () => {
+      expect(validateBlock(mockBlock)).toBeNull();
     });
 
     describe("name validation", () => {
-      it("should return error if section name is empty", () => {
-        mockSection.name = "";
-        expect(validateSection(mockSection)).toBe("Section name is required");
+      it("should return error if block name is empty", () => {
+        mockBlock.name = "";
+        expect(validateBlock(mockBlock)).toBe("Block name is required");
       });
 
-      it("should return error if section name is whitespace only", () => {
-        mockSection.name = "   ";
-        expect(validateSection(mockSection)).toBe("Section name is required");
+      it("should return error if block name is whitespace only", () => {
+        mockBlock.name = "   ";
+        expect(validateBlock(mockBlock)).toBe("Block name is required");
       });
 
-      it("should return error if section name is not a string", () => {
-        mockSection.name = null as any;
-        expect(validateSection(mockSection)).toBe("Section name is required");
+      it("should return error if block name is not a string", () => {
+        mockBlock.name = null as any;
+        expect(validateBlock(mockBlock)).toBe("Block name is required");
       });
     });
 
     describe("type validation", () => {
-      it("should return error if section type is empty", () => {
-        mockSection.type = "";
-        expect(validateSection(mockSection)).toBe("Section type is required");
+      it("should return error if block type is empty", () => {
+        mockBlock.type = "";
+        expect(validateBlock(mockBlock)).toBe("Block type is required");
       });
 
-      it("should return error if section type is whitespace", () => {
-        mockSection.type = "   ";
-        expect(validateSection(mockSection)).toBe("Section type is required");
+      it("should return error if block type is whitespace", () => {
+        mockBlock.type = "   ";
+        expect(validateBlock(mockBlock)).toBe("Block type is required");
       });
 
-      it("should accept valid section types", () => {
-        mockSection.type = "circuit";
-        expect(validateSection(mockSection)).toBeNull();
+      it("should accept valid block types", () => {
+        mockBlock.type = "circuit";
+        expect(validateBlock(mockBlock)).toBeNull();
 
-        mockSection.type = "superset";
-        expect(validateSection(mockSection)).toBeNull();
+        mockBlock.type = "superset";
+        expect(validateBlock(mockBlock)).toBeNull();
 
-        mockSection.type = "standard";
-        expect(validateSection(mockSection)).toBeNull();
+        mockBlock.type = "standard";
+        expect(validateBlock(mockBlock)).toBeNull();
       });
     });
 
     describe("prepare_time validation", () => {
       it("should return error if prepare_time is not a number", () => {
-        mockSection.prepare_time = null as any;
-        expect(validateSection(mockSection)).toBe("Prepare time is required");
+        mockBlock.prepare_time = null as any;
+        expect(validateBlock(mockBlock)).toBe("Prepare time is required");
       });
 
       it("should return error if prepare_time is NaN", () => {
-        mockSection.prepare_time = NaN;
-        expect(validateSection(mockSection)).toBe("Prepare time is required");
+        mockBlock.prepare_time = NaN;
+        expect(validateBlock(mockBlock)).toBe("Prepare time is required");
       });
 
       it("should accept 0 as valid prepare_time", () => {
-        mockSection.prepare_time = 0;
-        expect(validateSection(mockSection)).toBeNull();
+        mockBlock.prepare_time = 0;
+        expect(validateBlock(mockBlock)).toBeNull();
       });
 
       it("should accept positive prepare_time", () => {
-        mockSection.prepare_time = 300;
-        expect(validateSection(mockSection)).toBeNull();
+        mockBlock.prepare_time = 300;
+        expect(validateBlock(mockBlock)).toBeNull();
       });
     });
 
     describe("rest_exercise validation", () => {
       it("should return error if rest_exercise is not a number", () => {
-        mockSection.rest_exercise = null as any;
-        expect(validateSection(mockSection)).toBe(
+        mockBlock.rest_exercise = null as any;
+        expect(validateBlock(mockBlock)).toBe(
           "Rest between exercises is requiered",
         );
       });
 
       it("should return error if rest_exercise is NaN", () => {
-        mockSection.rest_exercise = NaN;
-        expect(validateSection(mockSection)).toBe(
+        mockBlock.rest_exercise = NaN;
+        expect(validateBlock(mockBlock)).toBe(
           "Rest between exercises is requiered",
         );
       });
 
       it("should accept 0 as valid rest_exercise", () => {
-        mockSection.rest_exercise = 0;
-        expect(validateSection(mockSection)).toBeNull();
+        mockBlock.rest_exercise = 0;
+        expect(validateBlock(mockBlock)).toBeNull();
       });
     });
 
     describe("exercises validation", () => {
       it("should return error if no exercises (all deleted)", () => {
-        mockSection.exercises = [
+        mockBlock.exercises = [
           {
             id: "ex-1",
-            section_id: "section-1",
+            block_id: "block-1",
             name: "Deleted Ex",
             reps: 10,
             time_seconds: 0,
@@ -200,23 +200,23 @@ describe("validation utilities", () => {
             localStatus: LOCAL_STATUS_DELETED,
           },
         ];
-        expect(validateSection(mockSection)).toBe(
-          "Section requiere at least one exercise",
+        expect(validateBlock(mockBlock)).toBe(
+          "Block requiere at least one exercise",
         );
       });
 
       it("should return error if no exercises (empty array)", () => {
-        mockSection.exercises = [];
-        expect(validateSection(mockSection)).toBe(
-          "Section requiere at least one exercise",
+        mockBlock.exercises = [];
+        expect(validateBlock(mockBlock)).toBe(
+          "Block requiere at least one exercise",
         );
       });
 
       it("should ignore deleted exercises", () => {
-        mockSection.exercises = [
+        mockBlock.exercises = [
           {
             id: "ex-1",
-            section_id: "section-1",
+            block_id: "block-1",
             name: "Valid Ex",
             reps: 10,
             time_seconds: 0,
@@ -227,7 +227,7 @@ describe("validation utilities", () => {
           },
           {
             id: "ex-2",
-            section_id: "section-1",
+            block_id: "block-1",
             name: "Deleted Ex",
             reps: 10,
             time_seconds: 0,
@@ -237,57 +237,57 @@ describe("validation utilities", () => {
             localStatus: LOCAL_STATUS_DELETED,
           },
         ];
-        expect(validateSection(mockSection)).toBeNull();
+        expect(validateBlock(mockBlock)).toBeNull();
       });
     });
 
     describe("exercise validation", () => {
       it("should return error if exercise name is empty", () => {
-        mockSection.exercises[0].name = "";
-        expect(validateSection(mockSection)).toBe("Exercise name is required");
+        mockBlock.exercises[0].name = "";
+        expect(validateBlock(mockBlock)).toBe("Exercise name is required");
       });
 
       it("should return error if exercise has neither reps nor time", () => {
-        mockSection.exercises[0].reps = null as any;
-        mockSection.exercises[0].time_seconds = null as any;
-        expect(validateSection(mockSection)).toBe(
+        mockBlock.exercises[0].reps = null as any;
+        mockBlock.exercises[0].time_seconds = null as any;
+        expect(validateBlock(mockBlock)).toBe(
           "Exercise reps or time is required",
         );
       });
 
       it("should accept exercise with reps", () => {
-        mockSection.exercises[0].reps = 10;
-        mockSection.exercises[0].time_seconds = 0;
-        expect(validateSection(mockSection)).toBeNull();
+        mockBlock.exercises[0].reps = 10;
+        mockBlock.exercises[0].time_seconds = 0;
+        expect(validateBlock(mockBlock)).toBeNull();
       });
 
       it("should accept exercise with time_seconds", () => {
-        mockSection.exercises[0].reps = 0;
-        mockSection.exercises[0].time_seconds = 30;
-        expect(validateSection(mockSection)).toBeNull();
+        mockBlock.exercises[0].reps = 0;
+        mockBlock.exercises[0].time_seconds = 30;
+        expect(validateBlock(mockBlock)).toBeNull();
       });
 
       it("should accept exercise with both reps and time", () => {
-        mockSection.exercises[0].reps = 10;
-        mockSection.exercises[0].time_seconds = 45;
-        expect(validateSection(mockSection)).toBeNull();
+        mockBlock.exercises[0].reps = 10;
+        mockBlock.exercises[0].time_seconds = 45;
+        expect(validateBlock(mockBlock)).toBeNull();
       });
 
       it("should return error if exercise sets is not defined", () => {
-        mockSection.exercises[0].sets = null as any;
-        expect(validateSection(mockSection)).toBe("Exercise sets is required");
+        mockBlock.exercises[0].sets = null as any;
+        expect(validateBlock(mockBlock)).toBe("Exercise sets is required");
       });
 
       it("should accept 0 sets (edge case)", () => {
-        mockSection.exercises[0].sets = 0;
-        expect(validateSection(mockSection)).toBeNull();
+        mockBlock.exercises[0].sets = 0;
+        expect(validateBlock(mockBlock)).toBeNull();
       });
 
       it("should skip validation for deleted exercises", () => {
-        mockSection.exercises = [
+        mockBlock.exercises = [
           {
             id: "ex-1",
-            section_id: "section-1",
+            block_id: "block-1",
             name: "", // invalid but deleted
             reps: 0,
             time_seconds: 0,
@@ -297,16 +297,16 @@ describe("validation utilities", () => {
             localStatus: LOCAL_STATUS_DELETED,
           },
         ];
-        expect(validateSection(mockSection)).toBe(
-          "Section requiere at least one exercise",
+        expect(validateBlock(mockBlock)).toBe(
+          "Block requiere at least one exercise",
         );
       });
 
       it("should validate multiple exercises", () => {
-        mockSection.exercises = [
+        mockBlock.exercises = [
           {
             id: "ex-1",
-            section_id: "section-1",
+            block_id: "block-1",
             name: "Exercise 1",
             reps: 10,
             time_seconds: 0,
@@ -317,7 +317,7 @@ describe("validation utilities", () => {
           },
           {
             id: "ex-2",
-            section_id: "section-1",
+            block_id: "block-1",
             name: "Exercise 2",
             reps: 15,
             time_seconds: 0,
@@ -327,7 +327,7 @@ describe("validation utilities", () => {
             localStatus: LOCAL_STATUS_UNCHANGED,
           },
         ];
-        expect(validateSection(mockSection)).toBeNull();
+        expect(validateBlock(mockBlock)).toBeNull();
       });
     });
   });
@@ -341,11 +341,11 @@ describe("validation utilities", () => {
         id: "workout-1",
         name: "Test Workout",
         position: 0,
-        sections: [
+        blocks: [
           {
-            id: "section-1",
+            id: "block-1",
             workout_id: "workout-1",
-            name: "Section 1",
+            name: "Block 1",
             type: "standard",
             prepare_time: 0,
             rest_exercise: 30,
@@ -355,7 +355,7 @@ describe("validation utilities", () => {
             exercises: [
               {
                 id: "ex-1",
-                section_id: "section-1",
+                block_id: "block-1",
                 name: "Exercise 1",
                 reps: 10,
                 time_seconds: 0,
@@ -392,13 +392,13 @@ describe("validation utilities", () => {
       });
     });
 
-    describe("sections validation", () => {
-      it("should return error if no sections (all deleted)", () => {
-        mockWorkout.sections = [
+    describe("blocks validation", () => {
+      it("should return error if no blocks (all deleted)", () => {
+        mockWorkout.blocks = [
           {
-            id: "section-1",
+            id: "block-1",
             workout_id: "workout-1",
-            name: "Section 1",
+            name: "Block 1",
             type: "standard",
             prepare_time: 0,
             rest_exercise: 30,
@@ -409,23 +409,23 @@ describe("validation utilities", () => {
           },
         ];
         expect(validateWorkout(mockWorkout)).toBe(
-          "Workout requiere at least one section",
+          "Workout requiere at least one block",
         );
       });
 
-      it("should return error if no sections (empty array)", () => {
-        mockWorkout.sections = [];
+      it("should return error if no blocks (empty array)", () => {
+        mockWorkout.blocks = [];
         expect(validateWorkout(mockWorkout)).toBe(
-          "Workout requiere at least one section",
+          "Workout requiere at least one block",
         );
       });
 
-      it("should ignore deleted sections", () => {
-        mockWorkout.sections = [
+      it("should ignore deleted blocks", () => {
+        mockWorkout.blocks = [
           {
-            id: "section-1",
+            id: "block-1",
             workout_id: "workout-1",
-            name: "Valid Section",
+            name: "Valid Block",
             type: "standard",
             prepare_time: 0,
             rest_exercise: 30,
@@ -435,7 +435,7 @@ describe("validation utilities", () => {
             exercises: [
               {
                 id: "ex-1",
-                section_id: "section-1",
+                block_id: "block-1",
                 name: "Exercise 1",
                 reps: 10,
                 time_seconds: 0,
@@ -447,9 +447,9 @@ describe("validation utilities", () => {
             ],
           },
           {
-            id: "section-2",
+            id: "block-2",
             workout_id: "workout-1",
-            name: "Deleted Section",
+            name: "Deleted Block",
             type: "standard",
             prepare_time: 0,
             rest_exercise: 30,
@@ -462,12 +462,12 @@ describe("validation utilities", () => {
         expect(validateWorkout(mockWorkout)).toBeNull();
       });
 
-      it("should accept multiple valid sections", () => {
-        mockWorkout.sections = [
+      it("should accept multiple valid blocks", () => {
+        mockWorkout.blocks = [
           {
-            id: "section-1",
+            id: "block-1",
             workout_id: "workout-1",
-            name: "Section 1",
+            name: "Block 1",
             type: "standard",
             prepare_time: 0,
             rest_exercise: 30,
@@ -477,7 +477,7 @@ describe("validation utilities", () => {
             exercises: [
               {
                 id: "ex-1",
-                section_id: "section-1",
+                block_id: "block-1",
                 name: "Exercise 1",
                 reps: 10,
                 time_seconds: 0,
@@ -489,9 +489,9 @@ describe("validation utilities", () => {
             ],
           },
           {
-            id: "section-2",
+            id: "block-2",
             workout_id: "workout-1",
-            name: "Section 2",
+            name: "Block 2",
             type: "circuit",
             prepare_time: 0,
             rest_exercise: 20,
@@ -501,7 +501,7 @@ describe("validation utilities", () => {
             exercises: [
               {
                 id: "ex-2",
-                section_id: "section-2",
+                block_id: "block-2",
                 name: "Exercise 2",
                 reps: 15,
                 time_seconds: 0,

@@ -8,8 +8,8 @@ import { ReorderHeader } from "../components/reorder-header";
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
 import { IconSizes, Sizes, Spacing } from "../constants/theme";
+import { useBlocks } from "../hooks/base/useBlocks";
 import { useExercises } from "../hooks/base/useExercises";
-import { useSections } from "../hooks/base/useSections";
 import { useWorkouts } from "../hooks/base/useWorkouts";
 import { useLoadWorkout } from "../hooks/other/useLoadWorkout";
 import { useTheme } from "../hooks/useTheme";
@@ -29,9 +29,9 @@ export default function Homepage() {
   const { startWorkout } = useStartWorkoutStore();
 
   const loadWorkoutWithData = useLoadWorkout();
-  const { workouts, getAllSectionsByWorkoutId, updateWorkout, deleteWorkout } =
+  const { workouts, getAllBlocksByWorkoutId, updateWorkout, deleteWorkout } =
     useWorkouts();
-  const { getAllExercisesBySectionId, deleteSection } = useSections();
+  const { getAllExercisesByBlockId, deleteBlock } = useBlocks();
   const { deleteExercise } = useExercises();
 
   const [isReordering, setIsReordering] = useState(false);
@@ -130,18 +130,18 @@ export default function Homepage() {
     setDeleteConfirmVisible(false);
     if (workoutToDelete === null) return;
     try {
-      const sectionsToDelete = await getAllSectionsByWorkoutId(workoutToDelete);
+      const blocksToDelete = await getAllBlocksByWorkoutId(workoutToDelete);
 
       const exercisesToDelete = (
         await Promise.all(
-          (sectionsToDelete || []).map(async (s: any) => {
-            return await getAllExercisesBySectionId(Number(s.id));
+          (blocksToDelete || []).map(async (s: any) => {
+            return await getAllExercisesByBlockId(Number(s.id));
           }),
         )
       ).flat();
 
       await Promise.all(
-        (sectionsToDelete || []).map((s: any) => deleteSection(Number(s.id))),
+        (blocksToDelete || []).map((s: any) => deleteBlock(Number(s.id))),
       );
 
       await Promise.all(
@@ -158,9 +158,9 @@ export default function Homepage() {
     }
   }, [
     workoutToDelete,
-    getAllSectionsByWorkoutId,
-    getAllExercisesBySectionId,
-    deleteSection,
+    getAllBlocksByWorkoutId,
+    getAllExercisesByBlockId,
+    deleteBlock,
     deleteExercise,
     deleteWorkout,
   ]);

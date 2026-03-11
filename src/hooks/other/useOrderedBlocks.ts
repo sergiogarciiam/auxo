@@ -1,4 +1,4 @@
-// hooks/useOrderedSections.ts
+// hooks/useOrderedBlocks.ts
 import { useMemo } from "react";
 import {
   LOCAL_STATUS_DELETED,
@@ -6,11 +6,11 @@ import {
 } from "../../constants/constants";
 import { UIWorkout } from "../../types/ui";
 
-export const useOrderedSections = (workout?: UIWorkout | null) => {
+export const useOrderedBlocks = (workout?: UIWorkout | null) => {
   return useMemo(() => {
     if (!workout) return [];
 
-    return workout.sections
+    return workout.blocks
       .filter(
         (s) =>
           s.localStatus !== LOCAL_STATUS_DELETED &&

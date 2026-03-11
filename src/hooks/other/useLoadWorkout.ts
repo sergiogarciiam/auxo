@@ -1,26 +1,26 @@
 import { LOCAL_STATUS_UPDATED } from "../../constants/constants";
-import { transformSectionToUI } from "../../utils/transformers";
-import { useSections } from "../base/useSections";
+import { transformBlockToUI } from "../../utils/transformers";
+import { useBlocks } from "../base/useBlocks";
 import { useWorkouts } from "../base/useWorkouts";
 
 export const useLoadWorkout = () => {
-  const { getWorkoutById, getAllSectionsByWorkoutId } = useWorkouts();
-  const { getAllExercisesBySectionId } = useSections();
+  const { getWorkoutById, getAllBlocksByWorkoutId } = useWorkouts();
+  const { getAllExercisesByBlockId } = useBlocks();
 
   return async (id: number) => {
     const workout = await getWorkoutById(id);
-    const sections = await getAllSectionsByWorkoutId(id);
+    const blocks = await getAllBlocksByWorkoutId(id);
 
-    const sectionsWithExercises = await Promise.all(
-      sections.map(async (section) => {
-        const exercises = await getAllExercisesBySectionId(section.id);
-        return transformSectionToUI(section, exercises);
+    const blocksWithExercises = await Promise.all(
+      blocks.map(async (block) => {
+        const exercises = await getAllExercisesByBlockId(block.id);
+        return transformBlockToUI(block, exercises);
       }),
     );
 
     return {
       ...workout,
-      sections: sectionsWithExercises,
+      blocks: blocksWithExercises,
       localStatus: LOCAL_STATUS_UPDATED as typeof LOCAL_STATUS_UPDATED,
     };
   };

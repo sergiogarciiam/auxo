@@ -1,21 +1,21 @@
 import { nanoid } from "nanoid/non-secure";
 import { LOCAL_STATUS_NEW } from "../constants/constants";
-import { UIExercise, UISection, UIWorkout } from "../types/ui";
+import { UIBlock, UIExercise, UIWorkout } from "../types/ui";
 
 export const createTempWorkout = (position: number): UIWorkout => ({
   id: `temp-${nanoid()}`,
   name: "",
-  sections: [],
+  blocks: [],
   position,
   localStatus: LOCAL_STATUS_NEW,
 });
 
-export const createTempSection = (
-  newSectionId: string,
+export const createTempBlock = (
+  newBlockId: string,
   workoutId: string | number,
   position: number,
-): UISection => ({
-  id: newSectionId,
+): UIBlock => ({
+  id: newBlockId,
   workout_id: workoutId,
   type: "",
   rest_exercise: 0,
@@ -29,11 +29,11 @@ export const createTempSection = (
 
 export const createTempExercise = (
   tmpId: string,
-  sectionId: string | number,
+  blockId: string | number,
   position: number,
 ): UIExercise => ({
   id: tmpId,
-  section_id: sectionId,
+  block_id: blockId,
   name: "",
   reps: 0,
   time_seconds: 0,

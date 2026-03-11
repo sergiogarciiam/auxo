@@ -1,5 +1,5 @@
 // Migration v1: Initial database schema
-// Creates workouts, sections, and exercises tables with indexes and timestamps
+// Creates workouts, blocks, and exercises tables with indexes and timestamps
 
 export const v1Migration = `
   PRAGMA foreign_keys = ON;
@@ -11,7 +11,7 @@ export const v1Migration = `
     created_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
   );
 
-  CREATE TABLE IF NOT EXISTS sections (
+  CREATE TABLE IF NOT EXISTS blocks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     workout_id INTEGER NOT NULL,
     name TEXT NOT NULL,
@@ -26,7 +26,7 @@ export const v1Migration = `
 
   CREATE TABLE IF NOT EXISTS exercises (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    section_id INTEGER NOT NULL,
+    block_id INTEGER NOT NULL,
     name TEXT NOT NULL,
     reps INTEGER,
     time_seconds INTEGER,
@@ -34,13 +34,13 @@ export const v1Migration = `
     sets INTEGER,
     position INTEGER NOT NULL,
     created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
-    FOREIGN KEY (section_id) REFERENCES sections(id) ON DELETE CASCADE
+    FOREIGN KEY (block_id) REFERENCES blocks(id) ON DELETE CASCADE
   );
 
   -- Indexes for performance
-  CREATE INDEX IF NOT EXISTS idx_sections_workout_id ON sections(workout_id);
-  CREATE INDEX IF NOT EXISTS idx_exercises_section_id ON exercises(section_id);
+  CREATE INDEX IF NOT EXISTS idx_blocks_workout_id ON blocks(workout_id);
+  CREATE INDEX IF NOT EXISTS idx_exercises_block_id ON exercises(block_id);
   CREATE INDEX IF NOT EXISTS idx_workouts_position ON workouts(position);
-  CREATE INDEX IF NOT EXISTS idx_sections_position ON sections(position);
+  CREATE INDEX IF NOT EXISTS idx_blocks_position ON blocks(position);
   CREATE INDEX IF NOT EXISTS idx_exercises_position ON exercises(position);
 `;

@@ -16,7 +16,7 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
     await db.execAsync(`
       PRAGMA foreign_keys = OFF;
       DROP TABLE IF EXISTS exercises;
-      DROP TABLE IF EXISTS sections;
+      DROP TABLE IF EXISTS blocks;
       DROP TABLE IF EXISTS workouts;
       PRAGMA foreign_keys = ON;
       PRAGMA user_version = 0;

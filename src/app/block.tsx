@@ -20,27 +20,27 @@ import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
 import { TimeInput } from "../components/time-input";
 import {
+  BLOCK_TYPE_LABELS,
+  BLOCK_TYPES,
   CIRCUIT_TYPE,
   LOCAL_STATUS_NEW,
-  SECTION_TYPE_LABELS,
-  SECTION_TYPES,
   SUPERSET_TYPE,
 } from "../constants/constants";
 import { IconSizes, Sizes, Spacing, Typography } from "../constants/theme";
+import { useBlockLifecycle } from "../hooks/other/useBlockLifecycle";
 import { useOrderedExercises } from "../hooks/other/useOrdererExercises";
-import { useSectionLifecycle } from "../hooks/other/useSectionLifecycle";
 import { useTheme } from "../hooks/useTheme";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
-import { UISection } from "../types/ui";
+import { UIBlock } from "../types/ui";
 import { swapItems } from "../utils/reorder";
 import { handleAndShowError, showSuccessMessage } from "../utils/ui";
-import { validateSection } from "../utils/validation";
+import { validateBlock } from "../utils/validation";
 
-export default function SectionScreen() {
+export default function BlockScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const colors = useTheme();
-  const initialSectionRef = useRef<UISection | null>(null);
+  const initialBlockRef = useRef<UIBlock | null>(null);
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
   const [discardConfirmVisible, setDiscardConfirmVisible] = useState(false);
   const [deleteExerciseConfirmVisible, setDeleteExerciseConfirmVisible] =
@@ -51,31 +51,31 @@ export default function SectionScreen() {
   const [exerciseToDeleteName, setExerciseToDeleteName] = useState<string>("");
 
   const {
-    updateSection,
-    removeSection,
+    updateBlock,
+    removeBlock,
     addExercise,
     updateExercise,
     removeExercise,
   } = useWorkoutStore();
 
-  const { section, sectionId } = useSectionLifecycle(
-    params.sectionId as string | undefined,
+  const { block, blockId } = useBlockLifecycle(
+    params.blockId as string | undefined,
   );
-  const localExercises = useOrderedExercises(section);
+  const localExercises = useOrderedExercises(block);
 
   const handleAddExercise = useCallback(() => {
     try {
-      addExercise(sectionId as string);
+      addExercise(blockId as string);
     } catch (error) {
       handleAndShowError(error);
     }
-  }, [sectionId, addExercise]);
+  }, [blockId, addExercise]);
 
   const handleMovePrevExercise = (index: number) => {
     const reordered = swapItems(localExercises, index, index - 1);
 
     reordered.forEach((e, idx) => {
-      updateExercise(sectionId!, e.id, { position: idx });
+      updateExercise(blockId!, e.id, { position: idx });
     });
   };
 
@@ -83,51 +83,51 @@ export default function SectionScreen() {
     const reordered = swapItems(localExercises, index, index + 1);
 
     reordered.forEach((e, idx) => {
-      updateExercise(sectionId!, e.id, { position: idx });
+      updateExercise(blockId!, e.id, { position: idx });
     });
   };
 
-  const handleUpdateSection = useCallback(
+  const handleUpdateBlock = useCallback(
     (data: any) => {
       try {
-        if (!sectionId) return;
-        updateSection(sectionId.toString(), data);
+        if (!blockId) return;
+        updateBlock(blockId.toString(), data);
       } catch (error) {
         handleAndShowError(error);
       }
     },
-    [sectionId, updateSection],
+    [blockId, updateBlock],
   );
 
-  const handleDeleteSection = useCallback(() => {
+  const handleDeleteBlock = useCallback(() => {
     Keyboard.dismiss();
     setDeleteConfirmVisible(true);
   }, []);
 
-  const doDeleteSection = useCallback(async () => {
+  const doDeleteBlock = useCallback(async () => {
     setDeleteConfirmVisible(false);
     try {
-      removeSection(sectionId as string);
+      removeBlock(blockId as string);
       router.replace("/workout");
-      showSuccessMessage("Section deleted");
+      showSuccessMessage("Block deleted");
     } catch (error) {
       handleAndShowError(error);
     }
-  }, [sectionId, removeSection, router]);
+  }, [blockId, removeBlock, router]);
 
-  const isCreating = section?.id?.toString().startsWith("temp-") || false;
+  const isCreating = block?.id?.toString().startsWith("temp-") || false;
 
   const handleDone = useCallback(() => {
     Keyboard.dismiss();
 
     try {
-      const currentSection = useWorkoutStore.getState().section;
-      const validationError = validateSection(currentSection as UISection);
+      const currentBlock = useWorkoutStore.getState().block;
+      const validationError = validateBlock(currentBlock as UIBlock);
       if (validationError) {
         throw new Error(validationError);
       }
       router.replace("/workout");
-      showSuccessMessage("Section saved");
+      showSuccessMessage("Block saved");
     } catch (error) {
       handleAndShowError(error);
     }
@@ -141,39 +141,39 @@ export default function SectionScreen() {
   const doDiscard = useCallback(() => {
     setDiscardConfirmVisible(false);
     try {
-      if (section?.localStatus === LOCAL_STATUS_NEW) {
-        removeSection(sectionId as string);
-      } else if (initialSectionRef.current) {
-        if (!sectionId) return;
-        updateSection(sectionId.toString(), initialSectionRef.current);
+      if (block?.localStatus === LOCAL_STATUS_NEW) {
+        removeBlock(blockId as string);
+      } else if (initialBlockRef.current) {
+        if (!blockId) return;
+        updateBlock(blockId.toString(), initialBlockRef.current);
       }
       router.replace("/workout");
     } catch (error) {
       handleAndShowError(error);
     }
-  }, [section, sectionId, removeSection, updateSection, router]);
+  }, [block, blockId, removeBlock, updateBlock, router]);
 
   const doDeleteExercise = useCallback(() => {
     setDeleteExerciseConfirmVisible(false);
-    if (exerciseToDeleteId !== null && sectionId) {
-      removeExercise(sectionId, String(exerciseToDeleteId));
+    if (exerciseToDeleteId !== null && blockId) {
+      removeExercise(blockId, String(exerciseToDeleteId));
     }
-  }, [exerciseToDeleteId, sectionId, removeExercise]);
+  }, [exerciseToDeleteId, blockId, removeExercise]);
 
-  if (!section) return null;
+  if (!block) return null;
 
   const isCircuitOrSuperset =
-    section.type === CIRCUIT_TYPE || section.type === SUPERSET_TYPE;
+    block.type === CIRCUIT_TYPE || block.type === SUPERSET_TYPE;
 
   return (
     <>
       <Stack.Screen
         options={{
-          title: "Section",
+          title: "Block",
           headerRight: () => (
             <Header
               handleDiscard={handleDiscard}
-              handleDelete={handleDeleteSection}
+              handleDelete={handleDeleteBlock}
               handleDone={handleDone}
               isCreating={isCreating}
             />
@@ -191,23 +191,23 @@ export default function SectionScreen() {
         >
           <ScrollView contentContainerStyle={createStyles(colors).container}>
             <View style={createStyles(colors).card}>
-              <Field label="Section name">
+              <Field label="Block name">
                 <TextInput
                   style={createStyles(colors).input}
-                  value={section.name}
-                  onChangeText={(text) => handleUpdateSection({ name: text })}
-                  accessibilityLabel="Section name input"
+                  value={block.name}
+                  onChangeText={(text) => handleUpdateBlock({ name: text })}
+                  accessibilityLabel="Block name input"
                 />
               </Field>
 
-              <Field label="Section type">
+              <Field label="Block type">
                 <View style={createStyles(colors).pickerContainer}>
                   <Picker
-                    selectedValue={section.type}
+                    selectedValue={block.type}
                     onValueChange={(value) =>
-                      handleUpdateSection({ type: value })
+                      handleUpdateBlock({ type: value })
                     }
-                    accessibilityLabel="Section type picker"
+                    accessibilityLabel="Block type picker"
                     itemStyle={createStyles(colors).pickerItem}
                   >
                     <Picker.Item
@@ -215,10 +215,10 @@ export default function SectionScreen() {
                       value=""
                       style={createStyles(colors).pickerItem}
                     />
-                    {SECTION_TYPES.map((type) => (
+                    {BLOCK_TYPES.map((type) => (
                       <Picker.Item
                         key={type}
-                        label={SECTION_TYPE_LABELS[type]}
+                        label={BLOCK_TYPE_LABELS[type]}
                         value={type}
                         style={createStyles(colors).pickerItem}
                       />
@@ -229,30 +229,30 @@ export default function SectionScreen() {
 
               <Field label="Prepare time">
                 <TimeInput
-                  value={section.prepare_time}
+                  value={block.prepare_time}
                   onChange={(seconds) =>
-                    handleUpdateSection({ prepare_time: seconds })
+                    handleUpdateBlock({ prepare_time: seconds })
                   }
                 />
               </Field>
 
               <Field label="Rest between exercises">
                 <TimeInput
-                  value={section.rest_exercise}
+                  value={block.rest_exercise}
                   onChange={(seconds) =>
-                    handleUpdateSection({
+                    handleUpdateBlock({
                       rest_exercise: seconds,
                     })
                   }
                 />
               </Field>
 
-              <Field label={`Rest between ${section.type || "group"}`}>
+              <Field label={`Rest between ${block.type || "group"}`}>
                 <TimeInput
                   disabled={!isCircuitOrSuperset}
-                  value={section.rest_group}
+                  value={block.rest_group}
                   onChange={(seconds) =>
-                    handleUpdateSection({
+                    handleUpdateBlock({
                       rest_group: seconds,
                     })
                   }
@@ -281,7 +281,7 @@ export default function SectionScreen() {
                     isDisabledPrev={index === 0}
                     isDisabledNext={index === localExercises.length - 1}
                     setExercise={(exerciseId, ex) => {
-                      updateExercise(sectionId as string, exerciseId, ex);
+                      updateExercise(blockId as string, exerciseId, ex);
                     }}
                     onRemoveExercise={() => {
                       setExerciseToDeleteId(exercise.id);
@@ -310,10 +310,10 @@ export default function SectionScreen() {
         </TouchableWithoutFeedback>
         <ConfirmDialog
           visible={deleteConfirmVisible}
-          title="Remove section?"
-          message="Are you sure you want to remove this section?"
+          title="Remove block?"
+          message="Are you sure you want to remove this block?"
           onCancel={() => setDeleteConfirmVisible(false)}
-          onConfirm={doDeleteSection}
+          onConfirm={doDeleteBlock}
           cancelText="Cancel"
           confirmText="Delete"
           destructive
@@ -321,7 +321,7 @@ export default function SectionScreen() {
         <ConfirmDialog
           visible={discardConfirmVisible}
           title="Discard changes?"
-          message="Are you sure you want to discard changes to this section?"
+          message="Are you sure you want to discard changes to this block?"
           onCancel={() => setDiscardConfirmVisible(false)}
           onConfirm={doDiscard}
           cancelText="Cancel"
