@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { sectionRepository } from "../../repositories/sectionRepository";
 import { workoutRepository } from "../../repositories/workoutRepository";
 import { Section } from "../../types/section";
 import {
@@ -86,68 +85,6 @@ export const useWorkouts = () => {
     [],
   );
 
-  const getWorkoutWithSectionsAndExercises = useCallback(async (id: number) => {
-    try {
-      const workout = await workoutRepository.getWithSectionsAndExercises({
-        id,
-      });
-      return workout;
-    } catch (error) {
-      console.error(
-        "Failed to fetch workout with sections and exercises:",
-        error,
-      );
-      throw error;
-    }
-  }, []);
-
-  const addSectionToWorkout = useCallback(
-    async (workoutId: number, sectionId: number, position: number) => {
-      try {
-        await (sectionRepository as any).addToWorkout({
-          workout_id: workoutId,
-          section_id: sectionId,
-          position,
-        });
-      } catch (error) {
-        console.error("Failed to add section to workout:", error);
-        throw error;
-      }
-    },
-    [],
-  );
-
-  const removeSectionFromWorkout = useCallback(
-    async (workoutId: number, sectionId: number) => {
-      try {
-        await (sectionRepository as any).removeFromWorkout({
-          workout_id: workoutId,
-          section_id: sectionId,
-        });
-      } catch (error) {
-        console.error("Failed to remove section from workout:", error);
-        throw error;
-      }
-    },
-    [],
-  );
-
-  const updateSectionPositionInWorkout = useCallback(
-    async (workoutId: number, sectionId: number, position: number) => {
-      try {
-        await (sectionRepository as any).updatePositionInWorkout({
-          workout_id: workoutId,
-          section_id: sectionId,
-          position,
-        });
-      } catch (error) {
-        console.error("Failed to update section position:", error);
-        throw error;
-      }
-    },
-    [],
-  );
-
   useEffect(() => {
     fetchWorkouts();
   }, [fetchWorkouts]);
@@ -160,9 +97,5 @@ export const useWorkouts = () => {
     updateWorkout,
     deleteWorkout,
     getAllSectionsByWorkoutId,
-    getWorkoutWithSectionsAndExercises,
-    addSectionToWorkout,
-    removeSectionFromWorkout,
-    updateSectionPositionInWorkout,
   };
 };

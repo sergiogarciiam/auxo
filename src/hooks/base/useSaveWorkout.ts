@@ -10,21 +10,8 @@ import { useSections } from "./useSections";
 import { useWorkouts } from "./useWorkouts";
 
 export const useSaveWorkout = () => {
-  const {
-    createWorkout,
-    updateWorkout,
-    addSectionToWorkout,
-    removeSectionFromWorkout,
-    updateSectionPositionInWorkout,
-  } = useWorkouts();
-  const {
-    createSection,
-    updateSection,
-    deleteSection,
-    addExerciseToSection,
-    removeExerciseFromSection,
-    updateExercisePositionInSection,
-  } = useSections();
+  const { createWorkout, updateWorkout } = useWorkouts();
+  const { createSection, updateSection, deleteSection } = useSections();
   const { createExercise, updateExercise, deleteExercise } = useExercises();
 
   /**
@@ -51,53 +38,38 @@ export const useSaveWorkout = () => {
         }
 
         // 2. SECTIONS
-        for (
-          let sectionIndex = 0;
-          sectionIndex < uiWorkout.sections.length;
-          sectionIndex++
-        ) {
-          const sec = uiWorkout.sections[sectionIndex];
+        for (const sec of uiWorkout.sections) {
           let sectionId = sec.id;
 
           switch (sec.localStatus) {
             case LOCAL_STATUS_NEW: {
               sectionId = await createSection({
+                workout_id: workoutId as number,
                 name: sec.name,
                 type: sec.type,
                 rest_exercise: sec.rest_exercise,
                 rest_group: sec.rest_group,
-                prepare_time: sec.prepare_time,
+                position: sec.position,
               });
-              // Link section to workout
-              await addSectionToWorkout(
-                workoutId as number,
-                sectionId as number,
-                sec.position,
-              );
               break;
             }
 
             case LOCAL_STATUS_UPDATED: {
               await updateSection({
                 id: sectionId as number,
+                workout_id: workoutId as number,
                 name: sec.name,
                 type: sec.type,
                 prepare_time: sec.prepare_time,
                 rest_exercise: sec.rest_exercise,
                 rest_group: sec.rest_group,
+                position: sec.position,
               });
-              // Update position in workout
-              await updateSectionPositionInWorkout(
-                workoutId as number,
-                sectionId as number,
-                sec.position,
-              );
               break;
             }
 
             case LOCAL_STATUS_DELETED: {
               if (typeof sectionId === "number") {
-                await removeSectionFromWorkout(workoutId as number, sectionId);
                 await deleteSection(sectionId);
               }
               continue;
@@ -105,52 +77,35 @@ export const useSaveWorkout = () => {
           }
 
           // 3. EXERCISES
-          for (
-            let exerciseIndex = 0;
-            exerciseIndex < sec.exercises.length;
-            exerciseIndex++
-          ) {
-            const ex = sec.exercises[exerciseIndex];
-
+          for (const ex of sec.exercises) {
             switch (ex.localStatus) {
-              case LOCAL_STATUS_NEW: {
-                const exerciseId = await createExercise({
+              case LOCAL_STATUS_NEW:
+                await createExercise({
+                  section_id: sectionId as number,
                   name: ex.name,
                   reps: ex.reps,
                   time_seconds: ex.time_seconds,
                   weight: ex.weight,
                   sets: ex.sets,
+                  position: ex.position,
                 });
-                // Link exercise to section
-                await addExerciseToSection(
-                  sectionId as number,
-                  exerciseId as number,
-                  ex.position,
-                );
                 break;
-              }
 
-              case LOCAL_STATUS_UPDATED: {
+              case LOCAL_STATUS_UPDATED:
                 await updateExercise({
                   id: ex.id as number,
+                  section_id: sectionId as number,
                   name: ex.name,
                   reps: ex.reps,
                   time_seconds: ex.time_seconds,
                   weight: ex.weight,
                   sets: ex.sets,
+                  position: ex.position,
                 });
-                // Update position in section
-                await updateExercisePositionInSection(
-                  sectionId as number,
-                  ex.id as number,
-                  ex.position,
-                );
                 break;
-              }
 
               case LOCAL_STATUS_DELETED:
                 if (typeof ex.id === "number") {
-                  await removeExerciseFromSection(sectionId as number, ex.id);
                   await deleteExercise(ex.id);
                 }
                 break;
@@ -167,15 +122,9 @@ export const useSaveWorkout = () => {
     [
       createWorkout,
       updateWorkout,
-      addSectionToWorkout,
-      removeSectionFromWorkout,
-      updateSectionPositionInWorkout,
       createSection,
       updateSection,
       deleteSection,
-      addExerciseToSection,
-      removeExerciseFromSection,
-      updateExercisePositionInSection,
       createExercise,
       updateExercise,
       deleteExercise,

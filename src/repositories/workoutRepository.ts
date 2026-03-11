@@ -1,4 +1,3 @@
-import { section } from "../database/sqlite/section";
 import { workout } from "../database/sqlite/workout";
 
 export const workoutRepository = {
@@ -7,6 +6,5 @@ export const workoutRepository = {
   create: workout.create,
   update: workout.update,
   delete: workout.delete,
-  getWithSectionsAndExercises: workout.getWithSectionsAndExercises,
-  getAllSectionsByWorkoutId: section.getAllByWorkout,
+  getAllSectionsByWorkoutId: workout.getAllSectionsByWorkoutId,
 };

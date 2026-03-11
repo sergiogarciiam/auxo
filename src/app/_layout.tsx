@@ -25,9 +25,7 @@ export default function RootLayout() {
             color: colors.TEXT_PRIMARY,
           },
         }}
-      >
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      </Stack>
+      />
     </SQLiteProvider>
   );
 }

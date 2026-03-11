@@ -96,7 +96,11 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     if (!state.workout) return;
 
     const workout = get().workout!;
-    const newSection = createTempSection(newSectionId, workout.sections.length);
+    const newSection = createTempSection(
+      newSectionId,
+      workout.id,
+      workout.sections.length,
+    );
 
     set((state) => ({
       section: newSection,
@@ -182,7 +186,11 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       const sections = state.workout!.sections.map((section) => {
         if (section.id?.toString() !== sectionIdStr) return section;
 
-        const newExercise = createTempExercise(tmpId, section.exercises.length);
+        const newExercise = createTempExercise(
+          tmpId,
+          sectionId,
+          section.exercises.length,
+        );
 
         return {
           ...section,

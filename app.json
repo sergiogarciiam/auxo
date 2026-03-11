@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "auxo",
-    "slug": "auxo",
+    "name": "workout-timer",
+    "slug": "workout-timer",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
@@ -57,9 +57,8 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "d4ecc6e2-52c6-4825-a824-bf373bcb615a"
+        "projectId": "421ed512-7d8a-414d-be04-e2d558beae90"
       }
-    },
-    "owner": "sergiogarciiam"
+    }
   }
 }
