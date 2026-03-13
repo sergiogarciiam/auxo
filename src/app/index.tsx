@@ -1,10 +1,9 @@
 import { MaterialIcons } from "@expo/vector-icons";
-import { Stack, useNavigation, useRouter } from "expo-router";
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
-import { Keyboard, ScrollView, StyleSheet } from "react-native";
+import { Stack, useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
+import { ScrollView, StyleSheet } from "react-native";
 import { Card } from "../components/card";
 import { ConfirmDialog } from "../components/confirm-dialog";
-import { ReorderHeader } from "../components/reorder-header";
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
 import { IconSizes, Sizes, Spacing } from "../constants/theme";
@@ -15,80 +14,99 @@ import { useLoadWorkout } from "../hooks/other/useLoadWorkout";
 import { useTheme } from "../hooks/useTheme";
 import { useStartWorkoutStore } from "../stores/useStartWorkoutStore";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
+import { UIWorkout } from "../types/ui";
 import { buildExecutionPlan } from "../utils/planner";
 import { swapItems } from "../utils/reorder";
-import { transformWorkoutsToUI } from "../utils/transformers";
-import { handleAndShowError, showSuccessMessage } from "../utils/ui";
+import { handleAndShowError } from "../utils/ui";
 
 export default function Homepage() {
   const router = useRouter();
-  const navigation = useNavigation();
   const colors = useTheme();
 
   const { localWorkouts, loadWorkouts, loadWorkout, reset } = useWorkoutStore();
   const { startWorkout } = useStartWorkoutStore();
 
   const loadWorkoutWithData = useLoadWorkout();
-  const { workouts, getAllBlocksByWorkoutId, updateWorkout, deleteWorkout } =
+  const { getAllBlocksByWorkoutId, updateWorkout, deleteWorkout } =
     useWorkouts();
   const { getAllExercisesByBlockId, deleteBlock } = useBlocks();
   const { deleteExercise } = useExercises();
 
-  const [isReordering, setIsReordering] = useState(false);
-  const [discardConfirmVisible, setDiscardConfirmVisible] = useState(false);
+  const [uiWorkouts, setUIWorkouts] = useState<UIWorkout[]>([]);
 
   useEffect(() => {
-    if (isReordering) return;
-    loadWorkouts(transformWorkoutsToUI(workouts));
-  }, [workouts, loadWorkouts, isReordering]);
+    setUIWorkouts(localWorkouts || []);
+  }, [localWorkouts]);
 
   const handleMovePrevWorkout = useCallback(
-    (index: number) => {
-      loadWorkouts(swapItems(localWorkouts, index, index - 1));
-      setIsReordering(true);
+    async (index: number) => {
+      if (!localWorkouts || index === 0) return;
+
+      const reordered: UIWorkout[] = swapItems(localWorkouts, index, index - 1);
+      loadWorkouts(reordered); // actualiza UI local
+
+      // Persistimos inmediatamente los dos workouts intercambiados
+      const movedWorkout: UIWorkout = reordered[index - 1];
+      const swappedWorkout: UIWorkout = reordered[index];
+
+      try {
+        if (typeof movedWorkout.id === "number") {
+          await updateWorkout({
+            id: movedWorkout.id,
+            name: movedWorkout.name,
+            position: index - 1,
+          });
+        }
+        if (typeof swappedWorkout.id === "number") {
+          await updateWorkout({
+            id: swappedWorkout.id,
+            name: swappedWorkout.name,
+            position: index,
+          });
+        }
+      } catch (error) {
+        handleAndShowError(error);
+        loadWorkouts(localWorkouts); // revertir cambios en caso de error
+      }
     },
-    [localWorkouts, loadWorkouts],
+    [localWorkouts, loadWorkouts, updateWorkout],
   );
 
-  const handleMoveNextWorkout = useCallback(
-    (index: number) => {
-      loadWorkouts(swapItems(localWorkouts, index, index + 1));
-      setIsReordering(true);
-    },
-    [localWorkouts, loadWorkouts],
-  );
+  const handleMoveNextWorkout = async (index: number) => {
+    if (index >= uiWorkouts.length - 1) return;
+
+    const reordered = swapItems(uiWorkouts, index, index + 1);
+    setUIWorkouts(reordered); // actualiza UI de inmediato
+
+    const movedWorkout = reordered[index + 1];
+    const swappedWorkout = reordered[index];
+
+    try {
+      if (typeof movedWorkout.id === "number") {
+        await updateWorkout({
+          id: movedWorkout.id,
+          name: movedWorkout.name,
+          position: index + 1,
+        });
+      }
+      if (typeof swappedWorkout.id === "number") {
+        await updateWorkout({
+          id: swappedWorkout.id,
+          name: swappedWorkout.name,
+          position: index,
+        });
+      }
+      loadWorkouts(reordered); // persiste cambios en el store
+    } catch (error) {
+      handleAndShowError(error);
+      setUIWorkouts(uiWorkouts); // revertir UI en caso de error
+    }
+  };
 
   const handleCreateWorkout = useCallback(() => {
     reset();
     router.push("/workout");
   }, [reset, router]);
-
-  const handleDone = useCallback(async () => {
-    try {
-      for (let i = 0; i < localWorkouts.length; i++) {
-        const w = localWorkouts[i];
-        if (typeof w.id !== "number") continue;
-
-        await updateWorkout({ id: w.id, name: w.name, position: i });
-      }
-      showSuccessMessage("Workout order updated");
-    } catch (error) {
-      handleAndShowError(error);
-      return;
-    }
-    setIsReordering(false);
-  }, [localWorkouts, updateWorkout]);
-
-  const handleDiscard = useCallback(() => {
-    Keyboard.dismiss();
-    setDiscardConfirmVisible(true);
-  }, []);
-
-  const doDiscardReorder = useCallback(() => {
-    setDiscardConfirmVisible(false);
-    loadWorkouts(transformWorkoutsToUI(workouts));
-    setIsReordering(false);
-  }, [loadWorkouts, workouts]);
 
   const handleEditWorkout = useCallback(
     async (id: number) => {
@@ -165,25 +183,25 @@ export default function Homepage() {
     deleteWorkout,
   ]);
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () =>
-        isReordering ? (
-          <ReorderHeader
-            handleDiscard={handleDiscard}
-            handleDone={handleDone}
-          />
-        ) : null,
-    });
-  }, [navigation, isReordering, handleDone, handleDiscard]);
-
   const hasWorkouts = localWorkouts.filter(Boolean).length > 0;
 
   return (
     <>
       <Stack.Screen
         options={{
-          title: "Your Workouts",
+          title: "Auxo",
+          headerRight: () => (
+            <ThemedButton
+              onPress={() => router.push("/settings")}
+              icon={
+                <MaterialIcons
+                  name="settings"
+                  size={IconSizes.MEDIUM}
+                  color={colors.PRIMARY_ICON_COLOR}
+                />
+              }
+            />
+          ),
         }}
       />
       <ScrollView contentContainerStyle={createStyles(colors).container}>
@@ -202,7 +220,6 @@ export default function Homepage() {
                 handleMoveNext={handleMoveNextWorkout}
                 isDisabledPrev={index === 0}
                 isDisabledNext={index === localWorkouts.length - 1}
-                isDisabled={isReordering}
               />
             ))
         ) : (
@@ -211,7 +228,6 @@ export default function Homepage() {
 
         <ThemedButton
           text="New Workout"
-          disabled={isReordering}
           icon={
             <MaterialIcons
               name="add"
@@ -222,16 +238,6 @@ export default function Homepage() {
           onPress={handleCreateWorkout}
         />
       </ScrollView>
-      <ConfirmDialog
-        visible={discardConfirmVisible}
-        title="Discard changes?"
-        message="Are you sure you want to discard reordering?"
-        onCancel={() => setDiscardConfirmVisible(false)}
-        onConfirm={doDiscardReorder}
-        cancelText="Cancel"
-        confirmText="Discard"
-        destructive
-      />
       <ConfirmDialog
         visible={deleteConfirmVisible}
         title="Remove workout?"

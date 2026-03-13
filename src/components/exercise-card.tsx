@@ -4,6 +4,7 @@ import { IconSizes, Sizes, Spacing, Typography } from "../constants/theme";
 import { useTheme } from "../hooks/useTheme";
 import { UIExercise } from "../types/ui";
 import { Field } from "./field";
+import { NumberInput } from "./number-input";
 import { ThemedButton } from "./themed-button";
 import { TimeInput } from "./time-input";
 
@@ -57,39 +58,41 @@ export function ExerciseCard({
         />
       </Field>
 
-      <Field label="Reps">
-        <TextInput
-          style={styles.input}
-          keyboardType="numeric"
-          value={exercise.reps.toString()}
-          onChangeText={(text) => handleNumericChange("reps", text)}
+      <Field label="Sets">
+        <NumberInput
+          value={exercise.sets}
+          step={1}
+          min={1}
+          onChange={(v) => handleInputChange("sets", v)}
         />
       </Field>
 
-      <Field label="Time">
+      <View style={styles.filedsContainer}>
+        <Field label="Reps">
+          <NumberInput
+            value={exercise.reps}
+            step={1}
+            min={0}
+            onChange={(v) => handleInputChange("reps", v)}
+          />
+        </Field>
+
+        <Field label="Weight (kg)">
+          <NumberInput
+            value={exercise.weight}
+            step={1}
+            min={0}
+            onChange={(v) => handleInputChange("weight", v)}
+          />
+        </Field>
+      </View>
+
+      <Field label="Exercise time">
         <TimeInput
           value={exercise.time_seconds}
           onChange={(seconds) =>
             handleNumericChange("time_seconds", seconds.toString())
           }
-        />
-      </Field>
-
-      <Field label="Weight (kg)">
-        <TextInput
-          style={styles.input}
-          keyboardType="numeric"
-          value={exercise.weight.toString()}
-          onChangeText={(text) => handleNumericChange("weight", text)}
-        />
-      </Field>
-
-      <Field label="Sets">
-        <TextInput
-          style={styles.input}
-          keyboardType="numeric"
-          value={exercise.sets.toString()}
-          onChangeText={(text) => handleNumericChange("sets", text)}
         />
       </Field>
 
@@ -181,5 +184,9 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
     arrowButton: {
       flex: 1,
       borderRadius: Sizes.BORDER_RADIUS,
+    },
+    filedsContainer: {
+      flexDirection: "row",
+      gap: Spacing.DOUBLE_EXTRA_LARGE,
     },
   });

@@ -16,6 +16,7 @@ import { ConfirmDialog } from "../components/confirm-dialog";
 import { ExerciseCard } from "../components/exercise-card";
 import { Field } from "../components/field";
 import { Header } from "../components/header";
+import InfoDialog from "../components/info-dialog";
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
 import { TimeInput } from "../components/time-input";
@@ -49,6 +50,9 @@ export default function BlockScreen() {
     string | number | null
   >(null);
   const [exerciseToDeleteName, setExerciseToDeleteName] = useState<string>("");
+  const [infoDialogType, setInfoDialogType] = useState<
+    "type" | "prepare_time" | "rest_exercise" | "rest_group" | null
+  >(null);
 
   const {
     updateBlock,
@@ -200,7 +204,10 @@ export default function BlockScreen() {
                 />
               </Field>
 
-              <Field label="Block type">
+              <Field
+                label="Block type"
+                onHelpPress={() => setInfoDialogType("type")}
+              >
                 <View style={createStyles(colors).pickerContainer}>
                   <Picker
                     selectedValue={block.type}
@@ -227,7 +234,10 @@ export default function BlockScreen() {
                 </View>
               </Field>
 
-              <Field label="Prepare time">
+              <Field
+                label="Prepare time"
+                onHelpPress={() => setInfoDialogType("prepare_time")}
+              >
                 <TimeInput
                   value={block.prepare_time}
                   onChange={(seconds) =>
@@ -236,7 +246,10 @@ export default function BlockScreen() {
                 />
               </Field>
 
-              <Field label="Rest between exercises">
+              <Field
+                label="Rest between exercises"
+                onHelpPress={() => setInfoDialogType("rest_exercise")}
+              >
                 <TimeInput
                   value={block.rest_exercise}
                   onChange={(seconds) =>
@@ -247,17 +260,23 @@ export default function BlockScreen() {
                 />
               </Field>
 
-              <Field label={`Rest between ${block.type || "group"}`}>
-                <TimeInput
-                  disabled={!isCircuitOrSuperset}
-                  value={block.rest_group}
-                  onChange={(seconds) =>
-                    handleUpdateBlock({
-                      rest_group: seconds,
-                    })
-                  }
-                />
-              </Field>
+              {(block.type === CIRCUIT_TYPE ||
+                block.type === SUPERSET_TYPE) && (
+                <Field
+                  label={`Rest between ${block.type || "group"}`}
+                  onHelpPress={() => setInfoDialogType("rest_group")}
+                >
+                  <TimeInput
+                    disabled={!isCircuitOrSuperset}
+                    value={block.rest_group}
+                    onChange={(seconds) =>
+                      handleUpdateBlock({
+                        rest_group: seconds,
+                      })
+                    }
+                  />
+                </Field>
+              )}
             </View>
 
             <ThemedText type="subtitle">Exercises</ThemedText>
@@ -337,6 +356,30 @@ export default function BlockScreen() {
           cancelText="Cancel"
           confirmText="Delete"
           destructive
+        />
+        <InfoDialog
+          title="Block type"
+          message="The block type determines how rest times are applied."
+          visible={infoDialogType === "type"} // You can add a state to control the visibility of this dialog and a button to trigger it if you want.
+          onCancel={() => setInfoDialogType(null)}
+        />
+        <InfoDialog
+          title="Prepare time"
+          message="This is the time you have to get ready before starting the exercises in this block. It only applies before the first exercise and is ideal for setting up equipment or getting into position."
+          visible={infoDialogType === "prepare_time"} // You can add a state to control the visibility of this dialog and a button to trigger it if you want.
+          onCancel={() => setInfoDialogType(null)}
+        />
+        <InfoDialog
+          title="Rest between exercises"
+          message="This is the time you have to rest between each exercise in this block. It only applies between exercises and is ideal for recovering from one exercise to the next."
+          visible={infoDialogType === "rest_exercise"} // You can add a state to control the visibility of this dialog and a button to trigger it if you want.
+          onCancel={() => setInfoDialogType(null)}
+        />
+        <InfoDialog
+          title="Rest between groups"
+          message="This is the time you have to rest between each group of exercises in this block. It only applies between groups and is ideal for recovering from one group to the next."
+          visible={infoDialogType === "rest_group"} // You can add a state to control the visibility of this dialog and a button to trigger it if you want.
+          onCancel={() => setInfoDialogType(null)}
         />
       </KeyboardAvoidingView>
     </>

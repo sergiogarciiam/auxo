@@ -31,3 +31,5 @@ export const REST_STEP_TYPE = "rest";
 export const SNACKBAR_VARIANT_SUCCESS = "success";
 export const SNACKBAR_VARIANT_ERROR = "error";
 export const SNACKBAR_VARIANT_WARNING = "warning";
+
+export const MAX_SECONDS = 59 * 60 + 59; // 3599

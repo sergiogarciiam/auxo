@@ -18,6 +18,7 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
       DROP TABLE IF EXISTS exercises;
       DROP TABLE IF EXISTS blocks;
       DROP TABLE IF EXISTS workouts;
+      DROP TABLE IF EXISTS user_settings;
       PRAGMA foreign_keys = ON;
       PRAGMA user_version = 0;
     `);

@@ -37,6 +37,12 @@ export const v1Migration = `
     FOREIGN KEY (block_id) REFERENCES blocks(id) ON DELETE CASCADE
   );
 
+  CREATE TABLE user_settings (
+    theme VARCHAR(10) DEFAULT 'system',
+    weight_unit VARCHAR(2) DEFAULT 'kg',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+
   -- Indexes for performance
   CREATE INDEX IF NOT EXISTS idx_blocks_workout_id ON blocks(workout_id);
   CREATE INDEX IF NOT EXISTS idx_exercises_block_id ON exercises(block_id);
