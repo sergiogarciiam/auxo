@@ -30,7 +30,6 @@ export const SettingsProvider = ({
   useEffect(() => {
     const load = async () => {
       const data = await settings.get();
-      console.log("Loaded settings:", data);
       setThemeState(data.theme as ThemeOption);
       setWeightUnitState(data.weightUnit as WeightUnit);
       setLoading(false);

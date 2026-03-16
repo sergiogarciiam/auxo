@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+import { Text } from "@/components/ui/text";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
@@ -226,17 +228,9 @@ export default function Homepage() {
           <ThemedText>No workouts yet. Create one to get started!</ThemedText>
         )}
 
-        <ThemedButton
-          text="New Workout"
-          icon={
-            <MaterialIcons
-              name="add"
-              size={IconSizes.SMALL}
-              color={colors.PRIMARY_ICON_COLOR}
-            />
-          }
-          onPress={handleCreateWorkout}
-        />
+        <Button variant="destructive" onPress={handleCreateWorkout}>
+          <Text>Button</Text>
+        </Button>
       </ScrollView>
       <ConfirmDialog
         visible={deleteConfirmVisible}

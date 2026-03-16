@@ -19,7 +19,6 @@ export const settings = {
     const sql = `SELECT theme, weight_unit FROM settings;`;
     let result = await getFirstRow(sql);
 
-    console.log("Current settings:", result);
     // Si no existe ningún registro, crea uno por defecto
     if (!result) {
       const defaults = {
