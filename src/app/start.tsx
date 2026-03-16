@@ -17,6 +17,7 @@ import { ConfirmDialog } from "../components/confirm-dialog";
 import { ThemedButton } from "../components/themed-button";
 import { ThemedText } from "../components/themed-text";
 import { IconSizes, Spacing } from "../constants/theme";
+import { useSettingsContext } from "../context/useSettingsContext";
 import { usePauseTimer } from "../hooks/start/usePauseTimer";
 import { useStartTimer } from "../hooks/start/useStartTimer";
 import { useTheme } from "../hooks/useTheme";
@@ -43,6 +44,7 @@ export default function StartWorkout() {
   const beepPlayer = useAudioPlayer(beep);
   const doubleBeepPlayer = useAudioPlayer(doubleBeep);
 
+  const { weightUnit } = useSettingsContext();
   const { workout, executionPlan, stopWorkout } = useStartWorkoutStore();
 
   const [index, setIndex] = useState(0);
@@ -389,7 +391,7 @@ export default function StartWorkout() {
               <ThemedText style={contentStyle.meta}>
                 {showSet && `Set ${step.set}`}
                 {showReps && ` · ${step.reps} reps`}
-                {showWeight && ` · ${step.weight}kg`}
+                {showWeight && ` · ${step.weight}${weightUnit}`}
               </ThemedText>
             </View>
           )}

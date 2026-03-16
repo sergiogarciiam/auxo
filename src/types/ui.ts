@@ -47,3 +47,6 @@ export interface ExecutionStep {
   weight?: number;
   duration_seconds?: number; // for rest steps
 }
+
+export type ThemeOption = "system" | "light" | "dark";
+export type WeightUnit = "kg" | "lb";

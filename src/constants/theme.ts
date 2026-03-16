@@ -1,5 +1,3 @@
-import { ColorSchemeName } from "react-native";
-
 export const Colors = {
   PRIMARY: "#2E90FA",
   BACKGROUND: "#fff",
@@ -83,5 +81,5 @@ export const IconSizes = {
   LARGE: 20,
 } as const;
 
-export const getColors = (scheme: ColorSchemeName) =>
+export const getColors = (scheme: string) =>
   scheme === "dark" ? DarkColors : Colors;

@@ -1,10 +1,9 @@
 import { settings } from "@/src/database/sqlite/settings";
-import { ThemeOption, WeightUnit } from "@/src/stores/useSettingsStore";
 import { useCallback, useEffect, useState } from "react";
 
 export const useSettings = () => {
-  const [theme, setTheme] = useState<ThemeOption>("system");
-  const [weightUnit, setWeightUnit] = useState<WeightUnit>("kg");
+  const [theme, setTheme] = useState<string>("system");
+  const [weightUnit, setWeightUnit] = useState<string>("kg");
   const [loading, setLoading] = useState(true);
 
   const fetchSettings = useCallback(async () => {
@@ -20,13 +19,11 @@ export const useSettings = () => {
   }, []);
 
   const updateSettings = useCallback(
-    async (newTheme: ThemeOption, newWeightUnit: WeightUnit) => {
+    async (newTheme: string, newWeightUnit: string) => {
       try {
-        await settings.update({ theme: newTheme, weightUnit: newWeightUnit });
-        // Refresca los valores desde DB para asegurar consistencia
-        const updated = await settings.get();
-        setTheme(updated.theme);
-        setWeightUnit(updated.weightUnit);
+        await settings.update({ theme: newTheme, weight_unit: newWeightUnit });
+        setTheme(newTheme);
+        setWeightUnit(newWeightUnit);
       } catch (error) {
         console.error("Failed to update settings:", error);
       }

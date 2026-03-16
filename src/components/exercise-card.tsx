@@ -1,6 +1,7 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { StyleSheet, TextInput, View } from "react-native";
 import { IconSizes, Sizes, Spacing, Typography } from "../constants/theme";
+import { useSettingsContext } from "../context/useSettingsContext";
 import { useTheme } from "../hooks/useTheme";
 import { UIExercise } from "../types/ui";
 import { Field } from "./field";
@@ -37,6 +38,8 @@ export function ExerciseCard({
     // Send only the changed field to avoid accidental overwrites
     setExercise(exerciseId, { [field]: value });
   };
+
+  const { weightUnit } = useSettingsContext();
 
   const handleNumericChange = (field: keyof UIExercise, value: string) => {
     const numValue =
@@ -77,7 +80,7 @@ export function ExerciseCard({
           />
         </Field>
 
-        <Field label="Weight (kg)">
+        <Field label={`Weight (${weightUnit})`}>
           <NumberInput
             value={exercise.weight}
             step={1}

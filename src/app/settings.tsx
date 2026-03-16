@@ -1,39 +1,26 @@
 import { Picker } from "@react-native-picker/picker";
 import { Stack } from "expo-router";
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { Sizes, Spacing, Typography } from "../constants/theme";
-import { useSettings } from "../hooks/base/useSettings";
+import { useSettingsContext } from "../context/useSettingsContext";
 import { useTheme } from "../hooks/useTheme";
+import { ThemeOption, WeightUnit } from "../types/ui";
 
 export default function SettingsScreen() {
   const colors = useTheme();
-  const {
-    theme: currentTheme,
-    weightUnit,
-    updateSettings,
-    loading,
-  } = useSettings();
+  const { theme, weightUnit, setTheme, setWeightUnit } = useSettingsContext();
 
-  if (loading) return <ActivityIndicator style={{ flex: 1 }} />;
-
-  const handleThemeChange = async (newTheme) => {
+  const handleThemeChange = async (newTheme: ThemeOption) => {
     try {
-      await updateSettings(newTheme, weightUnit); // actualiza DB
-      //setTheme(newTheme); // actualiza UI inmediatamente
+      setTheme(newTheme);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const handleWeightUnitChange = async (newUnit) => {
+  const handleWeightUnitChange = async (newUnit: WeightUnit) => {
     try {
-      await updateSettings(currentTheme, newUnit); // actualiza DB
+      setWeightUnit(newUnit);
     } catch (err) {
       console.error(err);
     }
@@ -53,8 +40,8 @@ export default function SettingsScreen() {
         <Text style={styles.label}>Theme</Text>
         <View style={styles.pickerContainer}>
           <Picker
-            selectedValue={currentTheme}
-            onValueChange={(value) => handleThemeChange(value)}
+            selectedValue={theme}
+            onValueChange={(value) => handleThemeChange(value as ThemeOption)}
             itemStyle={styles.pickerItem}
           >
             <Picker.Item
@@ -75,7 +62,9 @@ export default function SettingsScreen() {
         <View style={styles.pickerContainer}>
           <Picker
             selectedValue={weightUnit}
-            onValueChange={(value) => handleWeightUnitChange(value)}
+            onValueChange={(value) =>
+              handleWeightUnitChange(value as WeightUnit)
+            }
             itemStyle={styles.pickerItem}
           >
             <Picker.Item

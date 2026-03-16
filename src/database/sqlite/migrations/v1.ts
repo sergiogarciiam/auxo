@@ -37,7 +37,7 @@ export const v1Migration = `
     FOREIGN KEY (block_id) REFERENCES blocks(id) ON DELETE CASCADE
   );
 
-  CREATE TABLE user_settings (
+  CREATE TABLE IF NOT EXISTS settings (
     theme VARCHAR(10) DEFAULT 'system',
     weight_unit VARCHAR(2) DEFAULT 'kg',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
