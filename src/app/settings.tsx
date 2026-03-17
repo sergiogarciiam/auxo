@@ -1,114 +1,134 @@
-import { Picker } from "@react-native-picker/picker";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { TriggerRef } from "@rn-primitives/select";
 import { Stack } from "expo-router";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { Sizes, Spacing, Typography } from "../constants/theme";
+import * as React from "react";
+import { Platform, ScrollView, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSettingsContext } from "../context/useSettingsContext";
-import { useTheme } from "../hooks/useTheme";
 import { ThemeOption, WeightUnit } from "../types/ui";
 
 export default function SettingsScreen() {
-  const colors = useTheme();
   const { theme, weightUnit, setTheme, setWeightUnit } = useSettingsContext();
 
-  const handleThemeChange = async (newTheme: ThemeOption) => {
-    try {
-      setTheme(newTheme);
-    } catch (err) {
-      console.error(err);
-    }
+  const themeRef = React.useRef<TriggerRef>(null);
+  const weightRef = React.useRef<TriggerRef>(null);
+
+  const insets = useSafeAreaInsets();
+
+  const THEME_OPTIONS = [
+    { label: "System", value: "system" },
+    { label: "Light", value: "light" },
+    { label: "Dark", value: "dark" },
+  ];
+
+  const WEIGHT_UNIT_OPTIONS = [
+    { label: "Kilograms (kg)", value: "kg" },
+    { label: "Pounds (lb)", value: "lb" },
+  ];
+
+  const selectedTheme = THEME_OPTIONS.find((opt) => opt.value === theme);
+  const selectedWeightUnit = WEIGHT_UNIT_OPTIONS.find(
+    (opt) => opt.value === weightUnit,
+  );
+
+  const contentInsets = {
+    top: insets.top,
+    bottom: Platform.select({
+      ios: insets.bottom,
+      android: insets.bottom + 24,
+    }),
+    left: 12,
+    right: 12,
   };
 
-  const handleWeightUnitChange = async (newUnit: WeightUnit) => {
-    try {
-      setWeightUnit(newUnit);
-    } catch (err) {
-      console.error(err);
-    }
+  // Fix web
+  const onTouchStart = (ref: React.RefObject<TriggerRef>) => () => {
+    ref.current?.open();
   };
-
-  const styles = createStyles(colors);
 
   return (
     <>
       <Stack.Screen
         options={{
           title: "Settings",
-          headerBackVisible: true,
         }}
       />
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.label}>Theme</Text>
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={theme}
-            onValueChange={(value) => handleThemeChange(value as ThemeOption)}
-            itemStyle={styles.pickerItem}
+
+      <ScrollView contentContainerStyle={{ gap: 20, padding: 16 }}>
+        {/* THEME */}
+        <View>
+          <Label>Theme</Label>
+
+          <Select
+            value={selectedTheme}
+            onValueChange={(option) => setTheme(option.value as ThemeOption)}
           >
-            <Picker.Item
-              label="System"
-              value="system"
-              style={styles.pickerItem}
-            />
-            <Picker.Item
-              label="Light"
-              value="light"
-              style={styles.pickerItem}
-            />
-            <Picker.Item label="Dark" value="dark" style={styles.pickerItem} />
-          </Picker>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select theme" />
+            </SelectTrigger>
+
+            <SelectContent insets={contentInsets}>
+              <SelectGroup>
+                <SelectLabel>Theme</SelectLabel>
+
+                {THEME_OPTIONS.map((opt) => (
+                  <SelectItem
+                    key={opt.value}
+                    label={opt.label}
+                    value={opt.value}
+                  >
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </View>
 
-        <Text style={styles.label}>Weight Unit</Text>
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={weightUnit}
-            onValueChange={(value) =>
-              handleWeightUnitChange(value as WeightUnit)
+        {/* WEIGHT UNIT */}
+        <View>
+          <Label>Weight Unit</Label>
+
+          <Select
+            value={selectedWeightUnit}
+            onValueChange={(option) =>
+              setWeightUnit(option.value as WeightUnit)
             }
-            itemStyle={styles.pickerItem}
           >
-            <Picker.Item
-              label="Kilograms (kg)"
-              value="kg"
-              style={styles.pickerItem}
-            />
-            <Picker.Item
-              label="Pounds (lb)"
-              value="lb"
-              style={styles.pickerItem}
-            />
-          </Picker>
+            <SelectTrigger
+              ref={weightRef}
+              className="w-full"
+              onTouchStart={Platform.select({
+                web: onTouchStart(weightRef),
+              })}
+            >
+              <SelectValue placeholder="Select unit" />
+            </SelectTrigger>
+
+            <SelectContent insets={contentInsets}>
+              <SelectGroup>
+                <SelectLabel>Weight Unit</SelectLabel>
+
+                <SelectItem label="Kilograms (kg)" value="kg">
+                  Kilograms (kg)
+                </SelectItem>
+                <SelectItem label="Pounds (lb)" value="lb">
+                  Pounds (lb)
+                </SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </View>
       </ScrollView>
     </>
   );
 }
-
-const createStyles = (colors: ReturnType<typeof useTheme>) =>
-  StyleSheet.create({
-    container: {
-      padding: Sizes.PADDING_LARGE,
-      gap: Spacing.LARGE,
-      backgroundColor: colors.BACKGROUND_SECONDARY,
-      flexGrow: 1,
-    },
-    label: {
-      fontSize: Typography.FONT_SIZE_DEFAULT,
-      fontWeight: "600",
-      color: colors.TEXT_PRIMARY,
-      marginBottom: Spacing.SMALL,
-    },
-
-    pickerItem: {
-      color: colors.TEXT_PRIMARY,
-      backgroundColor: colors.PICKER_BACKGROUND,
-    },
-    pickerContainer: {
-      borderWidth: Sizes.BORDER_WIDTH,
-      borderColor: colors.BORDER,
-      borderRadius: Sizes.BORDER_RADIUS,
-      backgroundColor: colors.LIGHT_BACKGROUND,
-      color: colors.TEXT_PRIMARY,
-      overflow: "hidden",
-    },
-  });

@@ -176,7 +176,6 @@ export default function BlockScreen() {
           title: "Block",
           headerRight: () => (
             <Header
-              handleDiscard={handleDiscard}
               handleDelete={handleDeleteBlock}
               handleDone={handleDone}
               isCreating={isCreating}

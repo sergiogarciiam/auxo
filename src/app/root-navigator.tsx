@@ -12,7 +12,6 @@ export default function RootNavigator() {
       <Stack
         screenOptions={{
           headerShadowVisible: false,
-          headerBackVisible: false,
           headerStyle: {
             backgroundColor: colors.BACKGROUND,
           },

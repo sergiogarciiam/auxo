@@ -18,8 +18,10 @@ import { ThemedText } from "../components/themed-text";
 import { IconSizes, Sizes, Spacing } from "../constants/theme";
 import { useTheme } from "../hooks/useTheme";
 
+import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
+import { Trash } from "lucide-react-native";
 import { ConfirmDialog } from "../components/confirm-dialog";
-import { Header } from "../components/header";
 import { LOCAL_STATUS_NEW } from "../constants/constants";
 import { useBlocks } from "../hooks/base/useBlocks";
 import { useExercises } from "../hooks/base/useExercises";
@@ -129,7 +131,7 @@ export default function WorkoutScreen() {
     [router],
   );
 
-  const handleDeleteWorkout = useCallback(async () => {
+  const handleDeleteWorkout = useCallback(() => {
     Keyboard.dismiss();
     setDeleteWorkoutConfirmVisible(true);
   }, []);
@@ -200,12 +202,13 @@ export default function WorkoutScreen() {
         options={{
           title: "Workout",
           headerRight: () => (
-            <Header
-              handleDelete={handleDeleteWorkout}
-              handleDiscard={handleDiscard}
-              handleDone={handleDone}
-              isCreating={isCreating}
-            ></Header>
+            <Button
+              variant="destructive"
+              size="icon"
+              onPress={() => handleDeleteWorkout()}
+            >
+              <Icon as={Trash}></Icon>
+            </Button>
           ),
         }}
       />

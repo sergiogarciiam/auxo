@@ -1,16 +1,13 @@
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
-import { MaterialIcons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
+import { Plus, Settings } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
-import { ScrollView, StyleSheet } from "react-native";
-import { Card } from "../components/card";
-import { ConfirmDialog } from "../components/confirm-dialog";
-import { ThemedButton } from "../components/themed-button";
-import { ThemedText } from "../components/themed-text";
-import { IconSizes, Sizes, Spacing } from "../constants/theme";
-import { useBlocks } from "../hooks/base/useBlocks";
-import { useExercises } from "../hooks/base/useExercises";
+import { StyleSheet, View } from "react-native";
+import DraggableFlatList from "react-native-draggable-flatlist";
+import { WorkoutCard } from "../components/workout-card";
+import { Sizes, Spacing } from "../constants/theme";
 import { useWorkouts } from "../hooks/base/useWorkouts";
 import { useLoadWorkout } from "../hooks/other/useLoadWorkout";
 import { useTheme } from "../hooks/useTheme";
@@ -18,7 +15,7 @@ import { useStartWorkoutStore } from "../stores/useStartWorkoutStore";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
 import { UIWorkout } from "../types/ui";
 import { buildExecutionPlan } from "../utils/planner";
-import { swapItems } from "../utils/reorder";
+import { transformWorkoutsToUI } from "../utils/transformers";
 import { handleAndShowError } from "../utils/ui";
 
 export default function Homepage() {
@@ -29,81 +26,17 @@ export default function Homepage() {
   const { startWorkout } = useStartWorkoutStore();
 
   const loadWorkoutWithData = useLoadWorkout();
-  const { getAllBlocksByWorkoutId, updateWorkout, deleteWorkout } =
-    useWorkouts();
-  const { getAllExercisesByBlockId, deleteBlock } = useBlocks();
-  const { deleteExercise } = useExercises();
+  const { workouts, updateWorkout } = useWorkouts();
 
   const [uiWorkouts, setUIWorkouts] = useState<UIWorkout[]>([]);
 
   useEffect(() => {
+    loadWorkouts(transformWorkoutsToUI(workouts));
+  }, [workouts, loadWorkouts]);
+
+  useEffect(() => {
     setUIWorkouts(localWorkouts || []);
   }, [localWorkouts]);
-
-  const handleMovePrevWorkout = useCallback(
-    async (index: number) => {
-      if (!localWorkouts || index === 0) return;
-
-      const reordered: UIWorkout[] = swapItems(localWorkouts, index, index - 1);
-      loadWorkouts(reordered); // actualiza UI local
-
-      // Persistimos inmediatamente los dos workouts intercambiados
-      const movedWorkout: UIWorkout = reordered[index - 1];
-      const swappedWorkout: UIWorkout = reordered[index];
-
-      try {
-        if (typeof movedWorkout.id === "number") {
-          await updateWorkout({
-            id: movedWorkout.id,
-            name: movedWorkout.name,
-            position: index - 1,
-          });
-        }
-        if (typeof swappedWorkout.id === "number") {
-          await updateWorkout({
-            id: swappedWorkout.id,
-            name: swappedWorkout.name,
-            position: index,
-          });
-        }
-      } catch (error) {
-        handleAndShowError(error);
-        loadWorkouts(localWorkouts); // revertir cambios en caso de error
-      }
-    },
-    [localWorkouts, loadWorkouts, updateWorkout],
-  );
-
-  const handleMoveNextWorkout = async (index: number) => {
-    if (index >= uiWorkouts.length - 1) return;
-
-    const reordered = swapItems(uiWorkouts, index, index + 1);
-    setUIWorkouts(reordered); // actualiza UI de inmediato
-
-    const movedWorkout = reordered[index + 1];
-    const swappedWorkout = reordered[index];
-
-    try {
-      if (typeof movedWorkout.id === "number") {
-        await updateWorkout({
-          id: movedWorkout.id,
-          name: movedWorkout.name,
-          position: index + 1,
-        });
-      }
-      if (typeof swappedWorkout.id === "number") {
-        await updateWorkout({
-          id: swappedWorkout.id,
-          name: swappedWorkout.name,
-          position: index,
-        });
-      }
-      loadWorkouts(reordered); // persiste cambios en el store
-    } catch (error) {
-      handleAndShowError(error);
-      setUIWorkouts(uiWorkouts); // revertir UI en caso de error
-    }
-  };
 
   const handleCreateWorkout = useCallback(() => {
     reset();
@@ -124,6 +57,32 @@ export default function Homepage() {
     [loadWorkoutWithData, loadWorkout, reset, router],
   );
 
+  const handleDragEnd = useCallback(
+    async ({ data }: { data: UIWorkout[] }) => {
+      setUIWorkouts(data); // UI inmediata
+      loadWorkouts(data); // store local
+
+      try {
+        // Persistimos la nueva posición en la BD
+        await Promise.all(
+          data.map((w, index) =>
+            updateWorkout({
+              id: Number(w.id),
+              name: w.name,
+              position: index, // nuevo orden
+            }),
+          ),
+        );
+      } catch (error) {
+        handleAndShowError(error);
+        // revertimos si falla
+        setUIWorkouts(localWorkouts);
+        loadWorkouts(localWorkouts);
+      }
+    },
+    [loadWorkouts, updateWorkout, localWorkouts],
+  );
+
   const handleStartWorkout = useCallback(
     async (id: number) => {
       try {
@@ -138,120 +97,84 @@ export default function Homepage() {
     [loadWorkoutWithData, startWorkout, router],
   );
 
-  const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
-  const [workoutToDelete, setWorkoutToDelete] = useState<number | null>(null);
-
-  const handleDeleteWorkout = useCallback((id: number) => {
-    setWorkoutToDelete(id);
-    setDeleteConfirmVisible(true);
-  }, []);
-
-  const doDeleteWorkout = useCallback(async () => {
-    setDeleteConfirmVisible(false);
-    if (workoutToDelete === null) return;
-    try {
-      const blocksToDelete = await getAllBlocksByWorkoutId(workoutToDelete);
-
-      const exercisesToDelete = (
-        await Promise.all(
-          (blocksToDelete || []).map(async (s: any) => {
-            return await getAllExercisesByBlockId(Number(s.id));
-          }),
-        )
-      ).flat();
-
-      await Promise.all(
-        (blocksToDelete || []).map((s: any) => deleteBlock(Number(s.id))),
-      );
-
-      await Promise.all(
-        (exercisesToDelete || [])
-          .map((e: any) => e.id)
-          .map(async (exerciseId: number) =>
-            deleteExercise(Number(exerciseId)),
-          ),
-      );
-
-      await deleteWorkout(Number(workoutToDelete));
-    } catch (error) {
-      handleAndShowError(error);
-    }
-  }, [
-    workoutToDelete,
-    getAllBlocksByWorkoutId,
-    getAllExercisesByBlockId,
-    deleteBlock,
-    deleteExercise,
-    deleteWorkout,
-  ]);
-
-  const hasWorkouts = localWorkouts.filter(Boolean).length > 0;
-
   return (
     <>
       <Stack.Screen
         options={{
+          headerBackVisible: false,
           title: "Auxo",
           headerRight: () => (
-            <ThemedButton
-              onPress={() => router.push("/settings")}
-              icon={
-                <MaterialIcons
-                  name="settings"
-                  size={IconSizes.MEDIUM}
-                  color={colors.PRIMARY_ICON_COLOR}
-                />
-              }
-            />
+            <Button
+              variant="ghost"
+              size="icon"
+              onPress={() => router.navigate("/settings")}
+            >
+              <Icon as={Settings} />
+            </Button>
           ),
         }}
       />
-      <ScrollView contentContainerStyle={createStyles(colors).container}>
-        {hasWorkouts ? (
-          localWorkouts
-            .filter(Boolean)
-            .map((workout: any, index: number) => (
-              <Card
-                key={workout.id || `tmp-${index}`}
-                onStart={() => handleStartWorkout(workout.id)}
-                onEdit={() => workout.id && handleEditWorkout(workout.id)}
-                onDelete={() => workout.id && handleDeleteWorkout(workout.id)}
-                text={workout.name}
-                index={index}
-                handleMovePrev={handleMovePrevWorkout}
-                handleMoveNext={handleMoveNextWorkout}
-                isDisabledPrev={index === 0}
-                isDisabledNext={index === localWorkouts.length - 1}
-              />
-            ))
-        ) : (
-          <ThemedText>No workouts yet. Create one to get started!</ThemedText>
-        )}
-
-        <Button variant="destructive" onPress={handleCreateWorkout}>
-          <Text>Button</Text>
+      <View style={createStyles(colors).container}>
+        <DraggableFlatList
+          contentContainerStyle={createStyles(colors).list}
+          data={uiWorkouts}
+          keyExtractor={(item) => item.id.toString()}
+          onDragEnd={handleDragEnd}
+          renderItem={({ item, drag, isActive }) => (
+            <WorkoutCard
+              key={item.id}
+              workout={item}
+              drag={drag}
+              isActive={isActive}
+              handleEditWorkout={handleEditWorkout}
+              handleStartWorkout={handleStartWorkout}
+            />
+          )}
+          ListEmptyComponent={<Text>No workouts available</Text>}
+        />
+        <Button
+          size="icon"
+          variant="default"
+          onPress={handleCreateWorkout}
+          style={styles.fab}
+        >
+          <Icon as={Plus} size={32} />
         </Button>
-      </ScrollView>
-      <ConfirmDialog
-        visible={deleteConfirmVisible}
-        title="Remove workout?"
-        message="Are you sure you want to remove this workout?"
-        onCancel={() => setDeleteConfirmVisible(false)}
-        onConfirm={doDeleteWorkout}
-        cancelText="Cancel"
-        confirmText="Delete"
-        destructive
-      />
+      </View>
     </>
   );
 }
 
+const styles = StyleSheet.create({
+  fab: {
+    position: "absolute",
+    bottom: 24, // distancia desde el borde inferior
+    right: 24, // distancia desde el borde derecho
+    width: 56,
+    height: 56,
+    borderRadius: 28, // círculo perfecto
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 5, // sombra en Android
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4, // sombra en iOS
+  },
+});
+
 const createStyles = (colors: ReturnType<typeof useTheme>) =>
   StyleSheet.create({
     container: {
+      position: "relative",
+      flex: 1,
+      backgroundColor: colors.BACKGROUND_SECONDARY,
+    },
+    list: {
       padding: Sizes.PADDING_LARGE,
       gap: Spacing.LARGE,
       backgroundColor: colors.BACKGROUND_SECONDARY,
       flexGrow: 1,
+      paddingBottom: 100,
     },
   });

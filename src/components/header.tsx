@@ -5,32 +5,15 @@ import { useTheme } from "../hooks/useTheme";
 import { ThemedButton } from "./themed-button";
 
 interface HeaderProps {
-  handleDiscard: () => void;
   handleDelete: () => void;
   handleDone: () => void;
   isCreating: boolean;
 }
 
-export function Header({
-  handleDiscard,
-  handleDelete,
-  handleDone,
-  isCreating,
-}: HeaderProps) {
+export function Header({ handleDelete, handleDone, isCreating }: HeaderProps) {
   const colors = useTheme();
   return (
     <View style={styles.headerButtonRow}>
-      <ThemedButton
-        icon={
-          <MaterialIcons
-            name="arrow-back"
-            size={IconSizes.MEDIUM}
-            color={colors.PRIMARY_ICON_COLOR}
-          />
-        }
-        onPress={handleDiscard}
-      />
-
       {!isCreating && (
         <ThemedButton
           icon={

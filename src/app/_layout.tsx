@@ -6,6 +6,7 @@ import RootNavigator from "./root-navigator";
 
 import { NAV_THEME } from "@/lib/theme";
 import { ThemeProvider } from "@react-navigation/native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "../global.css";
 
 export default function RootLayout() {
@@ -16,7 +17,9 @@ export default function RootLayout() {
         onInit={dbRepository.onInit}
       >
         <SettingsProvider>
-          <RootNavigator />
+          <GestureHandlerRootView>
+            <RootNavigator />
+          </GestureHandlerRootView>
         </SettingsProvider>
         <PortalHost />
       </SQLiteProvider>
