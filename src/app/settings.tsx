@@ -8,10 +8,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import type { TriggerRef } from "@rn-primitives/select";
+import * as Notifications from "expo-notifications";
 import { Stack } from "expo-router";
 import * as React from "react";
-import { Platform, ScrollView, View } from "react-native";
+import {
+  AppState,
+  Linking,
+  Platform,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSettingsContext } from "../context/useSettingsContext";
 import { ThemeOption, WeightUnit } from "../types/ui";
@@ -19,10 +28,11 @@ import { ThemeOption, WeightUnit } from "../types/ui";
 export default function SettingsScreen() {
   const { theme, weightUnit, setTheme, setWeightUnit } = useSettingsContext();
 
-  const themeRef = React.useRef<TriggerRef>(null);
   const weightRef = React.useRef<TriggerRef>(null);
 
   const insets = useSafeAreaInsets();
+  const [notificationsEnabled, setNotificationsEnabled] =
+    React.useState<boolean>(false);
 
   const THEME_OPTIONS = [
     { label: "System", value: "system" },
@@ -53,6 +63,40 @@ export default function SettingsScreen() {
   // Fix web
   const onTouchStart = (ref: React.RefObject<TriggerRef>) => () => {
     ref.current?.open();
+  };
+
+  const updateNotificationsState = async () => {
+    try {
+      const { status } = await Notifications.getPermissionsAsync();
+      setNotificationsEnabled(status === "granted");
+    } catch {
+      setNotificationsEnabled(false);
+    }
+  };
+
+  // Revisar permisos al montar
+  React.useEffect(() => {
+    updateNotificationsState();
+  }, []);
+
+  // Revisar permisos cuando la app vuelve del background
+  React.useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      if (nextState === "active") {
+        updateNotificationsState();
+      }
+    });
+
+    return () => subscription.remove();
+  }, []);
+
+  // Abrir ajustes del sistema si no está activado
+  const openSystemSettings = () => {
+    if (Platform.OS === "ios") {
+      Linking.openURL("app-settings:");
+    } else {
+      Linking.openSettings();
+    }
   };
 
   return (
@@ -107,9 +151,7 @@ export default function SettingsScreen() {
             <SelectTrigger
               ref={weightRef}
               className="w-full"
-              onTouchStart={Platform.select({
-                web: onTouchStart(weightRef),
-              })}
+              onTouchStart={Platform.select({ web: onTouchStart(weightRef) })}
             >
               <SelectValue placeholder="Select unit" />
             </SelectTrigger>
@@ -127,6 +169,52 @@ export default function SettingsScreen() {
               </SelectGroup>
             </SelectContent>
           </Select>
+        </View>
+
+        {/* NOTIFICATIONS */}
+        <View className="flex-row items-center gap-2 mt-4">
+          <Label>Notifications</Label>
+          <Switch
+            checked={notificationsEnabled}
+            disabled={!notificationsEnabled}
+            onCheckedChange={() => {
+              if (!notificationsEnabled) openSystemSettings();
+            }}
+          />
+        </View>
+        {!notificationsEnabled && (
+          <Text className="mt-1 text-sm text-gray-400">
+            Recommended to enable notifications so you are alerted when an
+            exercise finishes, even if the app is in background.{" "}
+            <Text className="text-blue-500" onPress={openSystemSettings}>
+              Open Settings
+            </Text>
+          </Text>
+        )}
+
+        {/* SOUND CREDITS */}
+        <View className="mt-6">
+          <Label>Sound Effects</Label>
+          <Text className="mt-1 text-sm text-gray-400">
+            - beep.wav:{" "}
+            <Text
+              className="text-blue-500"
+              onPress={() => Linking.openURL("https://freesound.org/s/124904/")}
+            >
+              FreeSound
+            </Text>{" "}
+            (CC BY 3.0)
+          </Text>
+          <Text className="mt-1 text-sm text-gray-400">
+            - double-beep.wav:{" "}
+            <Text
+              className="text-blue-500"
+              onPress={() => Linking.openURL("https://freesound.org/s/124907/")}
+            >
+              FreeSound
+            </Text>{" "}
+            (CC BY 3.0)
+          </Text>
         </View>
       </ScrollView>
     </>

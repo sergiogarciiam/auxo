@@ -1,26 +1,30 @@
-import { MaterialIcons } from "@expo/vector-icons";
-import { useAudioPlayer } from "expo-audio";
+import { setAudioModeAsync, useAudioPlayer } from "expo-audio";
 import * as Notifications from "expo-notifications";
 import { Stack, useRouter } from "expo-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AppState,
   AppStateStatus,
-  StyleSheet,
   View,
   useWindowDimensions,
 } from "react-native";
 
+import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
+import { Text } from "@/components/ui/text";
 import * as Haptics from "expo-haptics";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Pause,
+  Play,
+  SquareArrowRightExit,
+} from "lucide-react-native";
 import ConfettiCannon from "react-native-confetti-cannon";
-import { ConfirmDialog } from "../components/confirm-dialog";
-import { ThemedButton } from "../components/themed-button";
-import { ThemedText } from "../components/themed-text";
-import { IconSizes, Spacing } from "../constants/theme";
+import { CustomAlertDialog } from "../components/alert-dialog";
 import { useSettingsContext } from "../context/useSettingsContext";
 import { usePauseTimer } from "../hooks/start/usePauseTimer";
 import { useStartTimer } from "../hooks/start/useStartTimer";
-import { useTheme } from "../hooks/useTheme";
 import { useStartWorkoutStore } from "../stores/useStartWorkoutStore";
 import { formatTime } from "../utils/formatTime";
 
@@ -40,7 +44,6 @@ Notifications.setNotificationHandler({
 
 export default function StartWorkout() {
   const router = useRouter();
-  const colors = useTheme();
   const beepPlayer = useAudioPlayer(beep);
   const doubleBeepPlayer = useAudioPlayer(doubleBeep);
 
@@ -59,6 +62,15 @@ export default function StartWorkout() {
   const isTimerStoppedRef = useRef(false);
   const isAppInBackgroundRef = useRef(false);
   const isPausedRef = useRef(isPaused);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    setAudioModeAsync({
+      playsInSilentMode: true,
+      shouldPlayInBackground: true,
+      interruptionMode: "duckOthers",
+    });
+  }, []);
 
   const startTimer = (seconds: number) => {
     // Don't start if timer is stopped
@@ -118,8 +130,7 @@ export default function StartWorkout() {
     setIsTimerStopped(false);
     isTimerStoppedRef.current = false;
     if (!isLast) {
-      doubleBeepPlayer.seekTo(0);
-      doubleBeepPlayer.play();
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       setIndex((i) => i + 1);
     }
   };
@@ -131,8 +142,7 @@ export default function StartWorkout() {
     setIsTimerStopped(false);
     isTimerStoppedRef.current = false;
     if (index > 0) {
-      doubleBeepPlayer.seekTo(0);
-      doubleBeepPlayer.play();
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       setIndex((i) => i - 1);
     }
   };
@@ -145,14 +155,18 @@ export default function StartWorkout() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   };
 
-  const [exitConfirmVisible, setExitConfirmVisible] = useState(false);
-
   const handleExit = () => {
-    setExitConfirmVisible(true);
+    setOpen(true);
+    setIsPaused(true);
   };
 
-  const doExit = async () => {
-    setExitConfirmVisible(false);
+  const cancelExit = () => {
+    setOpen(false);
+    setIsPaused(false);
+  };
+
+  const confirmExit = async () => {
+    setOpen(false);
     clearTimer();
     stopWorkout();
 
@@ -168,9 +182,6 @@ export default function StartWorkout() {
 
   // Get current step and block early for use in effects
   const step = executionPlan?.[index];
-  const currentBlockName = workout?.blocks?.find(
-    (s) => String(s.id) === String(step?.blockId),
-  )?.name;
 
   // Start timer when step changes
   useStartTimer(
@@ -283,9 +294,6 @@ export default function StartWorkout() {
     };
   }, [remaining, step]);
 
-  // Pause / Resume timer
-  const contentStyle = useMemo(() => createStyles(colors), [colors]);
-
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
 
@@ -293,8 +301,8 @@ export default function StartWorkout() {
 
   if (!workout || !executionPlan || !step || executionPlan.length === 0) {
     return (
-      <View style={contentStyle.container}>
-        <ThemedText>No execution plan available</ThemedText>
+      <View className="items-center justify-center flex-1">
+        <Text>No execution plan</Text>
       </View>
     );
   }
@@ -319,37 +327,33 @@ export default function StartWorkout() {
     <>
       <Stack.Screen
         options={{
-          title: isFinished
-            ? `${workout.name}`
-            : `${workout.name} > ${currentBlockName ?? ""}`,
+          title: workout.name,
+          headerBackVisible: false,
           headerRight: () => (
-            <ThemedButton
-              text="Exit"
-              variant="destructive"
-              onPress={handleExit}
-            />
+            <Button variant="destructive" size="icon" onPress={handleExit}>
+              <Icon as={SquareArrowRightExit} />
+            </Button>
           ),
         }}
       />
 
       {(isPaused || isTimerStopped) && (
-        <View style={contentStyle.pausedOverlay}></View>
+        <View className="absolute inset-0 z-10 bg-black/60" />
       )}
 
-      <View style={contentStyle.container}>
-        <View style={contentStyle.progressBarWrapper}>
+      <View className="flex-1 gap-6 p-6 bg-neutral-900">
+        {/* Progress */}
+        <View className="w-full h-5 overflow-hidden rounded-full bg-neutral-700">
           <View
-            style={[contentStyle.progressBarFill, { width: `${percent}%` }]}
+            className="items-end justify-center h-full pr-3 bg-green-500 rounded-full"
+            style={{ width: `${percent}%` }}
           >
-            {percent > 5 && (
-              <ThemedText style={contentStyle.progressTextInside}>
-                {percent}%
-              </ThemedText>
-            )}
+            {percent > 5 && <Text className="font-semibold">{percent}%</Text>}
           </View>
         </View>
 
-        <View style={contentStyle.stepContainer}>
+        {/* Step */}
+        <View className="items-center justify-center flex-1 gap-10">
           {isFinished ? (
             <>
               <ConfettiCannon count={80} origin={{ x: -10, y: 0 }} fadeOut />
@@ -358,26 +362,23 @@ export default function StartWorkout() {
                 origin={{ x: width + 10, y: 0 }}
                 fadeOut
               />
-              <ThemedText type="title">🎉 Workout completed!</ThemedText>
-              <ThemedText type="subtitle">{workout.name}</ThemedText>
 
-              <ThemedButton
-                variant="primary"
-                onPress={() => router.replace("/")}
-                text="Return homepage"
-              />
+              <Text className="text-xl font-bold">🎉 Workout completed!</Text>
+
+              <Button onPress={() => router.replace("/")}>
+                <Text>Go home</Text>
+              </Button>
             </>
           ) : (
-            <View style={contentStyle.exerciseDataContainer}>
-              <ThemedText type="subtitle" style={contentStyle.exerciseName}>
+            <View className="items-center gap-6">
+              <Text className="text-2xl font-bold text-center">
                 {step.name}
-              </ThemedText>
-              <ThemedText
-                type="title"
-                style={[
-                  contentStyle.bigValue,
-                  isLandscape && contentStyle.bigValueLandscape,
-                ]}
+              </Text>
+
+              <Text
+                className={`text-[96px] font-bold text-center ${
+                  isLandscape ? "text-[110px]" : ""
+                }`}
               >
                 {remaining !== null
                   ? formatTime(remaining)
@@ -386,149 +387,46 @@ export default function StartWorkout() {
                     : step.reps
                       ? `${step.reps} reps`
                       : "-"}
-              </ThemedText>
+              </Text>
 
-              <ThemedText style={contentStyle.meta}>
+              <Text className="text-base font-bold">
                 {showSet && `Set ${step.set}`}
                 {showReps && ` · ${step.reps} reps`}
                 {showWeight && ` · ${step.weight}${weightUnit}`}
-              </ThemedText>
+              </Text>
             </View>
           )}
         </View>
+
+        {/* Controls */}
+        {!isFinished && (
+          <View className="flex-row items-center justify-between gap-6">
+            <Button size="icon" onPress={handlePrev} disabled={index === 0}>
+              <Icon as={ArrowLeft} />
+            </Button>
+
+            <Button
+              size="icon"
+              onPress={() => setIsPaused((p) => !p)}
+              disabled={remaining === null}
+              className="z-20"
+            >
+              {isPaused ? <Icon as={Play} /> : <Icon as={Pause} />}
+            </Button>
+
+            <Button size="icon" onPress={isLast ? handleFinish : handleNext}>
+              <Icon as={ArrowRight} />
+            </Button>
+          </View>
+        )}
       </View>
 
-      {!isFinished && (
-        <View style={contentStyle.controls}>
-          <ThemedButton
-            text="Prev"
-            icon={
-              <MaterialIcons
-                name="chevron-left"
-                size={IconSizes.MEDIUM}
-                color={colors.PRIMARY_ICON_COLOR}
-              />
-            }
-            onPress={handlePrev}
-            disabled={index === 0}
-          />
-
-          <ThemedButton
-            style={contentStyle.playButton}
-            icon={
-              <MaterialIcons
-                name={isPaused ? "play-arrow" : "pause"}
-                size={IconSizes.MEDIUM}
-                color={colors.PRIMARY_ICON_COLOR}
-              />
-            }
-            onPress={() => setIsPaused((p) => !p)}
-            disabled={remaining === null || isTimerStopped}
-          />
-
-          <ThemedButton
-            text={isLast ? "Finish" : "Next"}
-            icon={
-              <MaterialIcons
-                name="chevron-right"
-                size={IconSizes.MEDIUM}
-                color={colors.PRIMARY_ICON_COLOR}
-              />
-            }
-            onPress={isLast ? handleFinish : handleNext}
-          />
-        </View>
-      )}
-      <ConfirmDialog
-        visible={exitConfirmVisible}
-        title="Exit workout?"
-        message="Are you sure you want to exit this workout?"
-        onCancel={() => setExitConfirmVisible(false)}
-        onConfirm={doExit}
-        cancelText="Cancel"
-        confirmText="Exit"
-        destructive
-      />
+      <CustomAlertDialog
+        message="Do you want to exit workout?"
+        open={open}
+        confirm={confirmExit}
+        cancel={cancelExit}
+      ></CustomAlertDialog>
     </>
   );
 }
-
-const createStyles = (colors: ReturnType<typeof useTheme>) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      padding: Spacing.LARGE,
-      gap: Spacing.LARGE,
-      backgroundColor: colors.BACKGROUND_SECONDARY,
-    },
-    exerciseDataContainer: {
-      alignItems: "center",
-      gap: Spacing.LARGE,
-    },
-    stepContainer: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      gap: Spacing.EXTRA_LARGE,
-    },
-    bigValue: {
-      fontSize: 96,
-      fontWeight: "bold",
-      textAlign: "center",
-      color: colors.TEXT_PRIMARY,
-    },
-    exerciseName: {
-      fontSize: 26,
-      fontWeight: "700",
-      textAlign: "center",
-      color: colors.TEXT_PRIMARY,
-    },
-    meta: {
-      fontSize: 16,
-      fontWeight: "bold",
-      color: colors.TEXT_PRIMARY,
-    },
-    bigValueLandscape: {
-      fontSize: 100,
-      lineHeight: 100,
-    },
-    progressBarWrapper: {
-      width: "100%",
-      height: 24,
-      backgroundColor: "#e6e6e6",
-      borderRadius: 14,
-      overflow: "hidden",
-    },
-    progressBarFill: {
-      height: "100%",
-      backgroundColor: colors.SUCCESS,
-      justifyContent: "center",
-      alignItems: "flex-end",
-      paddingRight: Spacing.MEDIUM,
-    },
-    progressTextInside: {
-      color: "#e6e6e6",
-      fontWeight: "600",
-    },
-    controls: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      gap: Spacing.LARGE,
-      padding: Spacing.LARGE,
-      backgroundColor: colors.BACKGROUND_SECONDARY,
-    },
-    pausedOverlay: {
-      opacity: 0.7,
-      backgroundColor: colors.BACKGROUND,
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      zIndex: 2,
-    },
-    playButton: {
-      zIndex: 3,
-    },
-  });

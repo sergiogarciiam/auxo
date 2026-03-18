@@ -40,7 +40,7 @@ export default function Homepage() {
 
   const handleCreateWorkout = useCallback(() => {
     reset();
-    router.push("/workout");
+    router.push("/workout-form");
   }, [reset, router]);
 
   const handleEditWorkout = useCallback(
@@ -49,7 +49,7 @@ export default function Homepage() {
         reset();
         const workout = await loadWorkoutWithData(id);
         loadWorkout(workout);
-        router.push("/workout");
+        router.push("/workout-form");
       } catch (error) {
         handleAndShowError(error);
       }

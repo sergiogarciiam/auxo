@@ -126,7 +126,7 @@ export default function WorkoutScreen() {
 
   const handleEditBlock = useCallback(
     (blockId: string) => {
-      router.push(`/block?blockId=${blockId}`);
+      router.push(`/block-form?blockId=${blockId}`);
     },
     [router],
   );
@@ -165,7 +165,7 @@ export default function WorkoutScreen() {
   }, [workout, deleteWorkout, deleteBlock, deleteExercise, reset, router]);
 
   const handleAddBlock = useCallback(() => {
-    router.push("/block");
+    router.push("/block-form");
   }, [router]);
 
   const handleDeleteBlock = useCallback((blockId: string) => {

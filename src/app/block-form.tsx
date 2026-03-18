@@ -112,7 +112,7 @@ export default function BlockScreen() {
     setDeleteConfirmVisible(false);
     try {
       removeBlock(blockId as string);
-      router.replace("/workout");
+      router.replace("/workout-form");
       showSuccessMessage("Block deleted");
     } catch (error) {
       handleAndShowError(error);
@@ -130,7 +130,7 @@ export default function BlockScreen() {
       if (validationError) {
         throw new Error(validationError);
       }
-      router.replace("/workout");
+      router.replace("/workout-form");
       showSuccessMessage("Block saved");
     } catch (error) {
       handleAndShowError(error);
@@ -151,7 +151,7 @@ export default function BlockScreen() {
         if (!blockId) return;
         updateBlock(blockId.toString(), initialBlockRef.current);
       }
-      router.replace("/workout");
+      router.replace("/workout-form");
     } catch (error) {
       handleAndShowError(error);
     }
