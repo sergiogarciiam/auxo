@@ -422,7 +422,7 @@ export default function StartWorkout() {
       </View>
 
       <CustomAlertDialog
-        message="Do you want to exit workout?"
+        message="Are your sure do you want to exit workout?"
         open={open}
         confirm={confirmExit}
         cancel={cancelExit}

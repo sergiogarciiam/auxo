@@ -182,15 +182,13 @@ export default function SettingsScreen() {
             }}
           />
         </View>
-        {!notificationsEnabled && (
-          <Text className="mt-1 text-sm text-gray-400">
-            Recommended to enable notifications so you are alerted when an
-            exercise finishes, even if the app is in background.{" "}
-            <Text className="text-blue-500" onPress={openSystemSettings}>
-              Open Settings
-            </Text>
+        <Text className="mt-1 text-sm text-gray-400">
+          Recommended to enable notifications so you are alerted when an
+          exercise finishes, even if the app is in background.{" "}
+          <Text className="text-blue-500" onPress={openSystemSettings}>
+            Open Settings
           </Text>
-        )}
+        </Text>
 
         {/* SOUND CREDITS */}
         <View className="mt-6">

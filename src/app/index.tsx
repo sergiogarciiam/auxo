@@ -130,15 +130,15 @@ export default function Homepage() {
               handleStartWorkout={handleStartWorkout}
             />
           )}
-          ListEmptyComponent={<Text>No workouts available</Text>}
+          ListEmptyComponent={<Text>No workouts yet</Text>}
         />
         <Button
-          size="icon"
-          variant="default"
+          variant="outline"
           onPress={handleCreateWorkout}
           style={styles.fab}
         >
-          <Icon as={Plus} size={32} />
+          <Icon as={Plus} size={20} />
+          <Text>New workout</Text>
         </Button>
       </View>
     </>
@@ -148,18 +148,15 @@ export default function Homepage() {
 const styles = StyleSheet.create({
   fab: {
     position: "absolute",
-    bottom: 24, // distancia desde el borde inferior
-    right: 24, // distancia desde el borde derecho
-    width: 56,
-    height: 56,
-    borderRadius: 28, // círculo perfecto
+    bottom: 24,
+    right: 24,
     justifyContent: "center",
     alignItems: "center",
-    elevation: 5, // sombra en Android
+    elevation: 5,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
-    shadowRadius: 4, // sombra en iOS
+    shadowRadius: 4,
   },
 });
 
