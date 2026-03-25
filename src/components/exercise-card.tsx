@@ -1,12 +1,16 @@
-import { MaterialIcons } from "@expo/vector-icons";
-import { StyleSheet, TextInput, View } from "react-native";
-import { IconSizes, Sizes, Spacing, Typography } from "../constants/theme";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Icon } from "@/components/ui/icon";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ArrowLeft, ArrowRight, Trash } from "lucide-react-native";
+import { StyleSheet, View } from "react-native";
+import { Sizes, Spacing, Typography } from "../constants/theme";
 import { useSettingsContext } from "../context/useSettingsContext";
 import { useTheme } from "../hooks/useTheme";
 import { UIExercise } from "../types/ui";
 import { Field } from "./field";
 import { NumberInput } from "./number-input";
-import { ThemedButton } from "./themed-button";
 import { TimeInput } from "./time-input";
 
 interface ExerciseCardProps {
@@ -52,124 +56,88 @@ export function ExerciseCard({
   };
 
   return (
-    <View style={styles.card}>
-      <Field label="Name">
-        <TextInput
+    <Card className="relative w-[320px]">
+      <Button
+        style={styles.removeButton}
+        variant="destructive"
+        onPress={onRemoveExercise}
+      >
+        <Icon as={Trash}></Icon>
+      </Button>
+      <CardContent className="mt-2">
+        <Label>Exercise name</Label>
+        <Input
           style={styles.input}
           value={exercise.name}
           onChangeText={(text) => handleInputChange("name", text)}
         />
-      </Field>
-
-      <Field label="Sets">
+        <Label>Sets</Label>
         <NumberInput
           value={exercise.sets}
           step={1}
           min={1}
           onChange={(v) => handleInputChange("sets", v)}
         />
-      </Field>
 
-      <View style={styles.filedsContainer}>
-        <Field label="Reps">
-          <NumberInput
-            value={exercise.reps}
-            step={1}
-            min={0}
-            onChange={(v) => handleInputChange("reps", v)}
+        <View style={styles.filedsContainer}>
+          <Field label="Reps">
+            <NumberInput
+              value={exercise.reps}
+              step={1}
+              min={0}
+              onChange={(v) => handleInputChange("reps", v)}
+            />
+          </Field>
+
+          <Field label={`Weight (${weightUnit})`}>
+            <NumberInput
+              value={exercise.weight}
+              step={1}
+              min={0}
+              onChange={(v) => handleInputChange("weight", v)}
+            />
+          </Field>
+        </View>
+
+        <Field label="Exercise time">
+          <TimeInput
+            value={exercise.time_seconds}
+            onChange={(seconds) =>
+              handleNumericChange("time_seconds", seconds.toString())
+            }
           />
         </Field>
-
-        <Field label={`Weight (${weightUnit})`}>
-          <NumberInput
-            value={exercise.weight}
-            step={1}
-            min={0}
-            onChange={(v) => handleInputChange("weight", v)}
-          />
-        </Field>
-      </View>
-
-      <Field label="Exercise time">
-        <TimeInput
-          value={exercise.time_seconds}
-          onChange={(seconds) =>
-            handleNumericChange("time_seconds", seconds.toString())
-          }
-        />
-      </Field>
-
-      <ThemedButton
-        text="Remove"
-        icon={
-          <MaterialIcons
-            name="delete"
-            size={IconSizes.SMALL}
-            color={colors.PRIMARY_ICON_COLOR}
-          />
-        }
-        onPress={onRemoveExercise}
-        variant="destructive"
-      />
-
-      <View style={styles.arrowsRow}>
-        <ThemedButton
-          style={styles.arrowButton}
-          icon={
-            <MaterialIcons
-              name="chevron-left"
-              size={IconSizes.MEDIUM}
-              color={
-                !handleMovePrev || isDisabledPrev
-                  ? colors.DISABLE_ICON_COLOR
-                  : colors.PRIMARY_ICON_COLOR
-              }
-            />
-          }
-          variant="icon"
-          disabled={!handleMovePrev || isDisabledPrev}
-          onPress={() => {
-            if (!handleMovePrev || index === undefined) return;
-            handleMovePrev(index);
-          }}
-        />
-
-        <ThemedButton
-          style={styles.arrowButton}
-          icon={
-            <MaterialIcons
-              name="chevron-right"
-              size={IconSizes.MEDIUM}
-              color={
-                !handleMoveNext || isDisabledNext
-                  ? colors.DISABLE_ICON_COLOR
-                  : colors.PRIMARY_ICON_COLOR
-              }
-            />
-          }
-          variant="icon"
-          disabled={!handleMoveNext || isDisabledNext}
-          onPress={() => {
-            if (!handleMoveNext || index === undefined) return;
-            handleMoveNext(index);
-          }}
-        />
-      </View>
-    </View>
+      </CardContent>
+      <CardFooter>
+        <View style={styles.arrowsRow}>
+          <Button
+            style={styles.arrowButton}
+            disabled={!handleMovePrev || isDisabledPrev}
+            onPress={() => {
+              if (!handleMovePrev || index === undefined) return;
+              handleMovePrev(index);
+            }}
+          >
+            <Icon as={ArrowLeft}></Icon>
+          </Button>
+          <Button
+            style={styles.arrowButton}
+            disabled={!handleMoveNext || isDisabledNext}
+            onPress={() => {
+              if (!handleMoveNext || index === undefined) return;
+              handleMoveNext(index);
+            }}
+          >
+            <Icon as={ArrowRight}></Icon>
+          </Button>
+        </View>
+      </CardFooter>
+    </Card>
   );
 }
 
 const createStyles = (colors: ReturnType<typeof useTheme>) =>
   StyleSheet.create({
-    card: {
-      padding: Sizes.PADDING_LARGE,
-      backgroundColor: colors.BACKGROUND,
-      borderRadius: Sizes.BORDER_RADIUS_LARGE,
-      marginBottom: Spacing.DOUBLE_EXTRA_LARGE,
-      borderWidth: Sizes.BORDER_WIDTH,
-      borderColor: colors.BORDER,
-      gap: Spacing.DOUBLE_EXTRA_LARGE,
-    },
     input: {
       borderWidth: Sizes.BORDER_WIDTH,
       borderColor: colors.BORDER,
@@ -180,6 +148,7 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
       color: colors.TEXT_PRIMARY,
     },
     arrowsRow: {
+      width: "100%",
       flexDirection: "row",
       justifyContent: "space-between",
       gap: Spacing.MEDIUM,
@@ -187,9 +156,16 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
     arrowButton: {
       flex: 1,
       borderRadius: Sizes.BORDER_RADIUS,
+      justifyContent: "center",
+      alignItems: "center",
     },
     filedsContainer: {
       flexDirection: "row",
       gap: Spacing.DOUBLE_EXTRA_LARGE,
+    },
+    removeButton: {
+      position: "absolute",
+      top: 6,
+      right: 6,
     },
   });

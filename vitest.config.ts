@@ -7,7 +7,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": "/home/sergio/repos/workout-timer",
+      "@": "/home/sergio/repos/auxo",
     },
   },
 });

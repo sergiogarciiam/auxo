@@ -5,12 +5,12 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "workouttimer",
+    "scheme": "auxo",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.workouttimer"
+      "bundleIdentifier": "com.anonymous.auxo"
     },
     "android": {
       "adaptiveIcon": {
@@ -26,7 +26,7 @@
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.POST_NOTIFICATIONS"
       ],
-      "package": "com.anonymous.workouttimer"
+      "package": "com.anonymous.auxo"
     },
     "web": {
       "output": "static",

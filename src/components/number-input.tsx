@@ -1,13 +1,10 @@
-import { MaterialIcons } from "@expo/vector-icons";
-import { useEffect, useRef, useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { IconSizes, Sizes, Typography } from "../constants/theme";
+import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
+import { Input } from "@/components/ui/input";
+import { Minus, Plus } from "lucide-react-native";
+import { useEffect, useState } from "react";
+import { StyleSheet, View } from "react-native";
+import { Sizes, Typography } from "../constants/theme";
 import { useTheme } from "../hooks/useTheme";
 
 type Props = {
@@ -16,7 +13,6 @@ type Props = {
   step?: number;
   min?: number;
   max?: number;
-  unit?: string;
   allowKeyboard?: boolean;
 };
 
@@ -26,14 +22,11 @@ export function NumberInput({
   step = 1,
   min = 0,
   max,
-  unit,
   allowKeyboard = true,
 }: Props) {
   const colors = useTheme();
   const styles = createStyles(colors);
-
   const [text, setText] = useState(value.toString());
-  const interval = useRef<number | null>(null);
 
   useEffect(() => {
     setText(value.toString());
@@ -50,17 +43,8 @@ export function NumberInput({
     onChange(next);
   };
 
-  const startHold = (delta: number) => {
-    update(delta);
-    interval.current = setInterval(() => update(delta), 120);
-  };
-
-  const stopHold = () => {
-    if (interval.current) clearInterval(interval.current);
-  };
-
   const handleTextChange = (t: string) => {
-    const clean = t.replace(/[^0-9.]/g, "");
+    const clean = t.replace(/[^0-9]/g, ""); // solo enteros
     setText(clean);
 
     const num = Number(clean);
@@ -69,44 +53,34 @@ export function NumberInput({
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
+      <Button
+        size="icon"
+        variant="outline"
         onPress={() => update(-step)}
-        onLongPress={() => startHold(-step)}
-        onPressOut={stopHold}
         style={styles.button}
       >
-        <MaterialIcons
-          name="remove"
-          size={IconSizes.SMALL}
-          color={colors.PRIMARY_ICON_COLOR}
-        />
-      </TouchableOpacity>
+        <Icon as={Minus} />
+      </Button>
 
       <View style={styles.inputWrapper}>
-        <TextInput
-          style={styles.input}
+        <Input
           value={text}
           keyboardType="numeric"
           editable={allowKeyboard}
           selectTextOnFocus
           onChangeText={handleTextChange}
+          style={styles.input}
         />
-
-        {unit && <Text style={styles.unit}>{unit}</Text>}
       </View>
 
-      <TouchableOpacity
+      <Button
+        size="icon"
+        variant="outline"
         onPress={() => update(step)}
-        onLongPress={() => startHold(step)}
-        onPressOut={stopHold}
         style={styles.button}
       >
-        <MaterialIcons
-          name="add"
-          size={IconSizes.SMALL}
-          color={colors.PRIMARY_ICON_COLOR}
-        />
-      </TouchableOpacity>
+        <Icon as={Plus} />
+      </Button>
     </View>
   );
 }
@@ -115,38 +89,35 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
   StyleSheet.create({
     container: {
       flexDirection: "row",
+      alignItems: "center",
       borderWidth: Sizes.BORDER_WIDTH,
       borderColor: colors.BORDER,
       borderRadius: Sizes.BORDER_RADIUS,
-      backgroundColor: colors.LIGHT_BACKGROUND,
-      alignItems: "center",
       overflow: "hidden",
+      backgroundColor: colors.LIGHT_BACKGROUND,
     },
-
     button: {
       paddingHorizontal: Sizes.PADDING,
       paddingVertical: Sizes.PADDING,
       justifyContent: "center",
       alignItems: "center",
-      backgroundColor: colors.PRIMARY,
-      borderRadius: Sizes.BORDER_RADIUS,
+      borderRadius: 0, // para que quede unido al input
     },
-
     inputWrapper: {
+      flex: 1,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      flex: 1,
-      paddingHorizontal: Sizes.PADDING,
     },
-
     input: {
       fontSize: Typography.FONT_SIZE_DEFAULT,
       color: colors.TEXT_PRIMARY,
       textAlign: "center",
-      minWidth: 40,
+      minWidth: 50,
+      paddingVertical: Sizes.PADDING / 2,
+      borderRadius: 0,
+      borderWidth: 0,
     },
-
     unit: {
       marginLeft: 4,
       color: colors.TEXT_SECONDARY,

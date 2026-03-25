@@ -1,6 +1,20 @@
-import { MaterialIcons } from "@expo/vector-icons";
-import { Picker } from "@react-native-picker/picker";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Icon } from "@/components/ui/icon";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Text } from "@/components/ui/text";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Plus, Save, Trash } from "lucide-react-native";
 import { useCallback, useRef, useState } from "react";
 import {
   Keyboard,
@@ -8,16 +22,11 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  TextInput,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { ConfirmDialog } from "../components/confirm-dialog";
-import { ExerciseCard } from "../components/exercise-card";
-import { Field } from "../components/field";
-import { Header } from "../components/header";
-import InfoDialog from "../components/info-dialog";
-import { ThemedButton } from "../components/themed-button";
+import { ExercisesBlock } from "../components/exercises-block";
 import { ThemedText } from "../components/themed-text";
 import { TimeInput } from "../components/time-input";
 import {
@@ -27,7 +36,7 @@ import {
   LOCAL_STATUS_NEW,
   SUPERSET_TYPE,
 } from "../constants/constants";
-import { IconSizes, Sizes, Spacing, Typography } from "../constants/theme";
+import { Sizes, Spacing, Typography } from "../constants/theme";
 import { useBlockLifecycle } from "../hooks/other/useBlockLifecycle";
 import { useOrderedExercises } from "../hooks/other/useOrdererExercises";
 import { useTheme } from "../hooks/useTheme";
@@ -37,7 +46,7 @@ import { swapItems } from "../utils/reorder";
 import { handleAndShowError, showSuccessMessage } from "../utils/ui";
 import { validateBlock } from "../utils/validation";
 
-export default function BlockScreen() {
+export default function BlockForm() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const colors = useTheme();
@@ -175,11 +184,13 @@ export default function BlockScreen() {
         options={{
           title: "Block",
           headerRight: () => (
-            <Header
-              handleDelete={handleDeleteBlock}
-              handleDone={handleDone}
-              isCreating={isCreating}
-            />
+            <Button
+              variant="destructive"
+              size="icon"
+              onPress={handleDeleteBlock}
+            >
+              <Icon as={Trash} />
+            </Button>
           ),
         }}
       />
@@ -193,137 +204,115 @@ export default function BlockScreen() {
           style={{ flex: 1 }}
         >
           <ScrollView contentContainerStyle={createStyles(colors).container}>
-            <View style={createStyles(colors).card}>
-              <Field label="Block name">
-                <TextInput
-                  style={createStyles(colors).input}
-                  value={block.name}
-                  onChangeText={(text) => handleUpdateBlock({ name: text })}
-                  accessibilityLabel="Block name input"
-                />
-              </Field>
+            <Card>
+              <CardContent className="gap-2">
+                <View>
+                  <Label>Block name</Label>
+                  <Input
+                    value={block.name}
+                    onChangeText={(text) => handleUpdateBlock({ name: text })}
+                  />
+                </View>
 
-              <Field
-                label="Block type"
-                onHelpPress={() => setInfoDialogType("type")}
-              >
-                <View style={createStyles(colors).pickerContainer}>
-                  <Picker
-                    selectedValue={block.type}
+                <View>
+                  <Label>Block type</Label>
+                  <Select
+                    value={
+                      block.type
+                        ? {
+                            value: block.type,
+                            label: BLOCK_TYPE_LABELS[block.type],
+                          }
+                        : undefined
+                    }
                     onValueChange={(value) =>
                       handleUpdateBlock({ type: value })
                     }
-                    accessibilityLabel="Block type picker"
-                    itemStyle={createStyles(colors).pickerItem}
                   >
-                    <Picker.Item
-                      label="Select Type"
-                      value=""
-                      style={createStyles(colors).pickerItem}
-                    />
-                    {BLOCK_TYPES.map((type) => (
-                      <Picker.Item
-                        key={type}
-                        label={BLOCK_TYPE_LABELS[type]}
-                        value={type}
-                        style={createStyles(colors).pickerItem}
-                      />
-                    ))}
-                  </Picker>
+                    <SelectTrigger className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md">
+                      <SelectValue placeholder="Select Type" />
+                    </SelectTrigger>
+
+                    <SelectContent className="w-full mt-1 bg-white border border-gray-300 rounded-md">
+                      <SelectGroup>
+                        <SelectLabel>Block Types</SelectLabel>
+                        <SelectItem label="Select Type" value="">
+                          Select Type
+                        </SelectItem>
+                        {BLOCK_TYPES.map((type) => (
+                          <SelectItem label={type} key={type} value={type}>
+                            {BLOCK_TYPE_LABELS[type]}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
                 </View>
-              </Field>
 
-              <Field
-                label="Prepare time"
-                onHelpPress={() => setInfoDialogType("prepare_time")}
-              >
-                <TimeInput
-                  value={block.prepare_time}
-                  onChange={(seconds) =>
-                    handleUpdateBlock({ prepare_time: seconds })
-                  }
-                />
-              </Field>
-
-              <Field
-                label="Rest between exercises"
-                onHelpPress={() => setInfoDialogType("rest_exercise")}
-              >
-                <TimeInput
-                  value={block.rest_exercise}
-                  onChange={(seconds) =>
-                    handleUpdateBlock({
-                      rest_exercise: seconds,
-                    })
-                  }
-                />
-              </Field>
-
-              {(block.type === CIRCUIT_TYPE ||
-                block.type === SUPERSET_TYPE) && (
-                <Field
-                  label={`Rest between ${block.type || "group"}`}
-                  onHelpPress={() => setInfoDialogType("rest_group")}
-                >
+                <View>
+                  <Label>Prepare time</Label>
                   <TimeInput
-                    disabled={!isCircuitOrSuperset}
-                    value={block.rest_group}
+                    value={block.prepare_time}
+                    onChange={(seconds) =>
+                      handleUpdateBlock({ prepare_time: seconds })
+                    }
+                  />
+                </View>
+
+                <View>
+                  <Label>Rest between exercises</Label>
+                  <TimeInput
+                    value={block.rest_exercise}
                     onChange={(seconds) =>
                       handleUpdateBlock({
-                        rest_group: seconds,
+                        rest_exercise: seconds,
                       })
                     }
                   />
-                </Field>
-              )}
-            </View>
+                </View>
+
+                {(block.type === CIRCUIT_TYPE ||
+                  block.type === SUPERSET_TYPE) && (
+                  <View>
+                    <Label>Rest between {block.type || "group"}</Label>
+
+                    <TimeInput
+                      disabled={!isCircuitOrSuperset}
+                      value={block.rest_group}
+                      onChange={(seconds) =>
+                        handleUpdateBlock({
+                          rest_group: seconds,
+                        })
+                      }
+                    />
+                  </View>
+                )}
+              </CardContent>
+            </Card>
 
             <ThemedText type="subtitle">Exercises</ThemedText>
 
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={createStyles(colors).exercisesScroll}
-            >
-              {localExercises.map((exercise, index) => (
-                <View
-                  key={exercise.id}
-                  style={createStyles(colors).exerciseWrapper}
-                >
-                  <ExerciseCard
-                    exercise={exercise}
-                    exerciseId={exercise.id}
-                    index={index}
-                    handleMovePrev={handleMovePrevExercise}
-                    handleMoveNext={handleMoveNextExercise}
-                    isDisabledPrev={index === 0}
-                    isDisabledNext={index === localExercises.length - 1}
-                    setExercise={(exerciseId, ex) => {
-                      updateExercise(blockId as string, exerciseId, ex);
-                    }}
-                    onRemoveExercise={() => {
-                      setExerciseToDeleteId(exercise.id);
-                      setExerciseToDeleteName(exercise.name);
-                      setDeleteExerciseConfirmVisible(true);
-                    }}
-                  />
-                </View>
-              ))}
+            <View className="relative flex flex-grow mb-8">
+              <ExercisesBlock
+                exercises={localExercises}
+                blockId={blockId!}
+                updateExercise={updateExercise}
+                removeExercise={removeExercise}
+                onMovePrev={handleMovePrevExercise}
+                onMoveNext={handleMoveNextExercise}
+              />
+              <View className="gap-2">
+                <Button variant="outline" onPress={handleAddExercise}>
+                  <Icon as={Plus} size={20} />
+                  <Text>New exercise</Text>
+                </Button>
 
-              <View style={createStyles(colors).newExerciseButtonContainer}>
-                <ThemedButton
-                  text="New Exercise"
-                  icon={
-                    <MaterialIcons
-                      name="add"
-                      size={IconSizes.SMALL}
-                      color={colors.PRIMARY_ICON_COLOR}
-                    />
-                  }
-                  onPress={handleAddExercise}
-                />
+                <Button onPress={handleDone}>
+                  <Icon as={Save} size={20} />
+                  <Text>Save block</Text>
+                </Button>
               </View>
-            </ScrollView>
+            </View>
           </ScrollView>
         </TouchableWithoutFeedback>
         <ConfirmDialog
@@ -356,30 +345,6 @@ export default function BlockScreen() {
           confirmText="Delete"
           destructive
         />
-        <InfoDialog
-          title="Block type"
-          message="The block type determines how rest times are applied."
-          visible={infoDialogType === "type"} // You can add a state to control the visibility of this dialog and a button to trigger it if you want.
-          onCancel={() => setInfoDialogType(null)}
-        />
-        <InfoDialog
-          title="Prepare time"
-          message="This is the time you have to get ready before starting the exercises in this block. It only applies before the first exercise and is ideal for setting up equipment or getting into position."
-          visible={infoDialogType === "prepare_time"} // You can add a state to control the visibility of this dialog and a button to trigger it if you want.
-          onCancel={() => setInfoDialogType(null)}
-        />
-        <InfoDialog
-          title="Rest between exercises"
-          message="This is the time you have to rest between each exercise in this block. It only applies between exercises and is ideal for recovering from one exercise to the next."
-          visible={infoDialogType === "rest_exercise"} // You can add a state to control the visibility of this dialog and a button to trigger it if you want.
-          onCancel={() => setInfoDialogType(null)}
-        />
-        <InfoDialog
-          title="Rest between groups"
-          message="This is the time you have to rest between each group of exercises in this block. It only applies between groups and is ideal for recovering from one group to the next."
-          visible={infoDialogType === "rest_group"} // You can add a state to control the visibility of this dialog and a button to trigger it if you want.
-          onCancel={() => setInfoDialogType(null)}
-        />
       </KeyboardAvoidingView>
     </>
   );
@@ -392,6 +357,7 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
       gap: Spacing.DOUBLE_EXTRA_LARGE,
       backgroundColor: colors.BACKGROUND_SECONDARY,
       flexGrow: 1,
+      position: "relative",
     },
     card: {
       padding: Sizes.PADDING_LARGE,
@@ -410,11 +376,6 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
       backgroundColor: colors.LIGHT_BACKGROUND,
       fontSize: Typography.FONT_SIZE_DEFAULT,
     },
-    inputDisabled: {
-      backgroundColor: colors.DISABLED_BACKGROUND,
-      borderColor: colors.BORDER,
-      color: colors.DISABLED_TEXT,
-    },
     pickerContainer: {
       borderWidth: Sizes.BORDER_WIDTH,
       borderColor: colors.BORDER,
@@ -426,23 +387,5 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
     pickerItem: {
       color: colors.TEXT_PRIMARY,
       backgroundColor: colors.PICKER_BACKGROUND,
-    },
-    exercisesScroll: {
-      paddingVertical: Spacing.MEDIUM,
-    },
-    exerciseWrapper: {
-      marginRight: Spacing.LARGE,
-      width: 320,
-    },
-    exerciseAddButton: {
-      justifyContent: "center",
-      alignItems: "center",
-      alignSelf: "center",
-    },
-    newExerciseButtonContainer: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      paddingVertical: Spacing.LARGE,
     },
   });
