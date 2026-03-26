@@ -39,6 +39,6 @@ export const createTempExercise = (
   time_seconds: 0,
   position,
   weight: 0,
-  sets: 0,
+  sets: 1,
   localStatus: LOCAL_STATUS_NEW,
 });

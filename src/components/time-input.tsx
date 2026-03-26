@@ -8,7 +8,7 @@ import { Sizes, Spacing, Typography } from "../constants/theme";
 import { useTheme } from "../hooks/useTheme";
 
 type Props = {
-  value: number; // segundos totales
+  value: number;
   onChange: (seconds: number) => void;
   disabled?: boolean;
 };

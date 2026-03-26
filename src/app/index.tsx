@@ -4,7 +4,7 @@ import { Text } from "@/components/ui/text";
 import { Stack, useRouter } from "expo-router";
 import { Plus, Settings } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 import DraggableFlatList from "react-native-draggable-flatlist";
 import { WorkoutCard } from "../components/workout-card";
 import { Sizes, Spacing } from "../constants/theme";
@@ -22,13 +22,12 @@ export default function Homepage() {
   const router = useRouter();
   const colors = useTheme();
 
+  const [uiWorkouts, setUIWorkouts] = useState<UIWorkout[]>([]);
+
   const { localWorkouts, loadWorkouts, loadWorkout, reset } = useWorkoutStore();
   const { startWorkout } = useStartWorkoutStore();
-
   const loadWorkoutWithData = useLoadWorkout();
   const { workouts, updateWorkout } = useWorkouts();
-
-  const [uiWorkouts, setUIWorkouts] = useState<UIWorkout[]>([]);
 
   useEffect(() => {
     loadWorkouts(transformWorkoutsToUI(workouts));
@@ -59,23 +58,16 @@ export default function Homepage() {
 
   const handleDragEnd = useCallback(
     async ({ data }: { data: UIWorkout[] }) => {
-      setUIWorkouts(data); // UI inmediata
-      loadWorkouts(data); // store local
-
+      setUIWorkouts(data);
+      loadWorkouts(data);
       try {
-        // Persistimos la nueva posición en la BD
         await Promise.all(
           data.map((w, index) =>
-            updateWorkout({
-              id: Number(w.id),
-              name: w.name,
-              position: index, // nuevo orden
-            }),
+            updateWorkout({ id: Number(w.id), name: w.name, position: index }),
           ),
         );
       } catch (error) {
         handleAndShowError(error);
-        // revertimos si falla
         setUIWorkouts(localWorkouts);
         loadWorkouts(localWorkouts);
       }
@@ -114,9 +106,19 @@ export default function Homepage() {
           ),
         }}
       />
-      <View style={createStyles(colors).container}>
+
+      <View
+        className="relative flex-1"
+        style={{ backgroundColor: colors.BACKGROUND_SECONDARY }}
+      >
         <DraggableFlatList
-          contentContainerStyle={createStyles(colors).list}
+          contentContainerStyle={{
+            padding: Sizes.PADDING_LARGE,
+            gap: Spacing.LARGE,
+            flexGrow: 1,
+            paddingBottom: 100,
+            backgroundColor: colors.BACKGROUND_SECONDARY,
+          }}
           data={uiWorkouts}
           keyExtractor={(item) => item.id.toString()}
           onDragEnd={handleDragEnd}
@@ -132,10 +134,11 @@ export default function Homepage() {
           )}
           ListEmptyComponent={<Text>No workouts yet</Text>}
         />
+
         <Button
           variant="outline"
           onPress={handleCreateWorkout}
-          style={styles.fab}
+          className="absolute flex-row items-center justify-center shadow-lg bottom-6 right-6"
         >
           <Icon as={Plus} size={20} />
           <Text>New workout</Text>
@@ -144,34 +147,3 @@ export default function Homepage() {
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  fab: {
-    position: "absolute",
-    bottom: 24,
-    right: 24,
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-  },
-});
-
-const createStyles = (colors: ReturnType<typeof useTheme>) =>
-  StyleSheet.create({
-    container: {
-      position: "relative",
-      flex: 1,
-      backgroundColor: colors.BACKGROUND_SECONDARY,
-    },
-    list: {
-      padding: Sizes.PADDING_LARGE,
-      gap: Spacing.LARGE,
-      backgroundColor: colors.BACKGROUND_SECONDARY,
-      flexGrow: 1,
-      paddingBottom: 100,
-    },
-  });

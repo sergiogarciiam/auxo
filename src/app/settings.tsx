@@ -13,6 +13,7 @@ import type { TriggerRef } from "@rn-primitives/select";
 import * as Notifications from "expo-notifications";
 import { Stack } from "expo-router";
 import * as React from "react";
+import { useEffect, useState } from "react";
 import {
   AppState,
   Linking,
@@ -23,16 +24,18 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSettingsContext } from "../context/useSettingsContext";
+import { useTheme } from "../hooks/useTheme";
 import { ThemeOption, WeightUnit } from "../types/ui";
 
 export default function SettingsScreen() {
   const { theme, weightUnit, setTheme, setWeightUnit } = useSettingsContext();
+  const colors = useTheme();
 
   const weightRef = React.useRef<TriggerRef>(null);
 
   const insets = useSafeAreaInsets();
   const [notificationsEnabled, setNotificationsEnabled] =
-    React.useState<boolean>(false);
+    useState<boolean>(false);
 
   const THEME_OPTIONS = [
     { label: "System", value: "system" },
@@ -60,7 +63,6 @@ export default function SettingsScreen() {
     right: 12,
   };
 
-  // Fix web
   const onTouchStart = (ref: React.RefObject<TriggerRef>) => () => {
     ref.current?.open();
   };
@@ -74,13 +76,11 @@ export default function SettingsScreen() {
     }
   };
 
-  // Revisar permisos al montar
-  React.useEffect(() => {
+  useEffect(() => {
     updateNotificationsState();
   }, []);
 
-  // Revisar permisos cuando la app vuelve del background
-  React.useEffect(() => {
+  useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextState) => {
       if (nextState === "active") {
         updateNotificationsState();
@@ -90,7 +90,6 @@ export default function SettingsScreen() {
     return () => subscription.remove();
   }, []);
 
-  // Abrir ajustes del sistema si no está activado
   const openSystemSettings = () => {
     if (Platform.OS === "ios") {
       Linking.openURL("app-settings:");
@@ -107,7 +106,14 @@ export default function SettingsScreen() {
         }}
       />
 
-      <ScrollView contentContainerStyle={{ gap: 20, padding: 16 }}>
+      <ScrollView
+        contentContainerStyle={{
+          gap: 20,
+          padding: 16,
+          flexGrow: 1,
+          backgroundColor: colors.BACKGROUND_SECONDARY,
+        }}
+      >
         {/* THEME */}
         <View>
           <Label>Theme</Label>

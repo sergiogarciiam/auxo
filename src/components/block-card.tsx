@@ -22,7 +22,7 @@ export const BlockCard = memo(function BlockCard({
     <Pressable
       onPressIn={() => setDragging(true)}
       onPressOut={() => setDragging(false)}
-      onLongPress={drag} // drag real
+      onLongPress={drag}
       delayLongPress={200}
       onPress={() => handleEditBlock(block.id)}
     >

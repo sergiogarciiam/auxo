@@ -28,7 +28,6 @@ export function Snackbar() {
   useEffect(() => {
     if (!msg) return;
 
-    // announce for accessibility
     AccessibilityInfo.announceForAccessibility(msg.text);
 
     Animated.parallel([

@@ -9,7 +9,6 @@ import { Sizes, Spacing, Typography } from "../constants/theme";
 import { useSettingsContext } from "../context/useSettingsContext";
 import { useTheme } from "../hooks/useTheme";
 import { UIExercise } from "../types/ui";
-import { Field } from "./field";
 import { NumberInput } from "./number-input";
 import { TimeInput } from "./time-input";
 
@@ -39,7 +38,6 @@ export function ExerciseCard({
   const colors = useTheme();
   const styles = createStyles(colors);
   const handleInputChange = (field: keyof UIExercise, value: any) => {
-    // Send only the changed field to avoid accidental overwrites
     setExercise(exerciseId, { [field]: value });
   };
 
@@ -64,49 +62,54 @@ export function ExerciseCard({
       >
         <Icon as={Trash}></Icon>
       </Button>
-      <CardContent className="mt-2">
-        <Label>Exercise name</Label>
-        <Input
-          style={styles.input}
-          value={exercise.name}
-          onChangeText={(text) => handleInputChange("name", text)}
-        />
-        <Label>Sets</Label>
-        <NumberInput
-          value={exercise.sets}
-          step={1}
-          min={1}
-          onChange={(v) => handleInputChange("sets", v)}
-        />
+      <CardContent className="gap-2 mt-2">
+        <View>
+          <Label>Exercise name</Label>
+          <Input
+            style={styles.input}
+            value={exercise.name}
+            onChangeText={(text) => handleInputChange("name", text)}
+          />
+        </View>
+        <View>
+          <Label>Sets</Label>
+          <NumberInput
+            value={exercise.sets}
+            step={1}
+            min={1}
+            onChange={(v) => handleInputChange("sets", v)}
+          />
+        </View>
 
         <View style={styles.filedsContainer}>
-          <Field label="Reps">
+          <View className="flex-1">
+            <Label>Reps</Label>
             <NumberInput
               value={exercise.reps}
               step={1}
               min={0}
               onChange={(v) => handleInputChange("reps", v)}
             />
-          </Field>
-
-          <Field label={`Weight (${weightUnit})`}>
+          </View>
+          <View className="flex-1">
+            <Label>{`Weight (${weightUnit})`} </Label>
             <NumberInput
               value={exercise.weight}
               step={1}
               min={0}
               onChange={(v) => handleInputChange("weight", v)}
             />
-          </Field>
+          </View>
         </View>
-
-        <Field label="Exercise time">
+        <View>
+          <Label>Exercise time</Label>
           <TimeInput
             value={exercise.time_seconds}
             onChange={(seconds) =>
               handleNumericChange("time_seconds", seconds.toString())
             }
           />
-        </Field>
+        </View>
       </CardContent>
       <CardFooter>
         <View style={styles.arrowsRow}>

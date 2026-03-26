@@ -44,7 +44,7 @@ export function NumberInput({
   };
 
   const handleTextChange = (t: string) => {
-    const clean = t.replace(/[^0-9]/g, ""); // solo enteros
+    const clean = t.replace(/[^0-9]/g, "");
     setText(clean);
 
     const num = Number(clean);
@@ -101,7 +101,7 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
       paddingVertical: Sizes.PADDING,
       justifyContent: "center",
       alignItems: "center",
-      borderRadius: 0, // para que quede unido al input
+      borderRadius: 0,
     },
     inputWrapper: {
       flex: 1,

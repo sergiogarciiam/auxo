@@ -4,7 +4,6 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-  StyleSheet,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
@@ -149,14 +148,17 @@ export default function WorkoutForm() {
       />
 
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        className="flex-1"
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={createStyles(colors).container}>
+          <View
+            className="flex-1"
+            style={{ backgroundColor: colors.BACKGROUND_SECONDARY }}
+          >
             {/* INPUT */}
-            <Card>
+            <Card className="m-4">
               <CardContent>
                 <Label>Workout Name</Label>
                 <Input
@@ -168,10 +170,16 @@ export default function WorkoutForm() {
             </Card>
 
             {/* BLOCKS */}
-            <Text variant="h3">Blocks</Text>
+            <Text variant="h3" className="px-4 mb-2">
+              Blocks
+            </Text>
 
             <DraggableFlatList
-              contentContainerStyle={createStyles(colors).list}
+              contentContainerStyle={{
+                paddingHorizontal: Sizes.PADDING_LARGE,
+                paddingBottom: 0, // ya no necesitamos espacio extra
+                gap: Spacing.LARGE,
+              }}
               data={blocks}
               keyExtractor={(item) => item.id.toString()}
               onDragEnd={handleDragEnd}
@@ -183,21 +191,28 @@ export default function WorkoutForm() {
                   handleEditBlock={() => handleEditBlock(item.id.toString())}
                 />
               )}
-              ListEmptyComponent={<Text>No blocks yet</Text>}
+              ListEmptyComponent={
+                <Text className="mt-4 text-center text-gray-400">
+                  No blocks yet
+                </Text>
+              }
             />
 
-            {/* ACTIONS */}
-            <View style={styles.actions}>
+            {/* BOTONES FLOTANTES */}
+            <View className="absolute flex-col gap-2 bottom-6 right-6">
               <Button
-                style={styles.fullButton}
                 variant="outline"
+                className="flex-row items-center justify-center"
                 onPress={handleAddBlock}
               >
                 <Icon as={Plus} size={20} />
                 <Text>New block</Text>
               </Button>
 
-              <Button style={styles.fullButton} onPress={handleDone}>
+              <Button
+                className="flex-row items-center justify-center"
+                onPress={handleDone}
+              >
                 <Icon as={Save} size={20} />
                 <Text>Save workout</Text>
               </Button>
@@ -215,43 +230,3 @@ export default function WorkoutForm() {
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  actions: {
-    position: "absolute",
-    bottom: 24, // distancia desde el borde inferior
-    right: 24, // distancia desde el borde derecho
-    borderRadius: 28, // círculo perfecto
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 5, // sombra en Android
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4, // sombra en iOS
-    gap: 10,
-  },
-  fullButton: {
-    width: "100%",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    gap: 8,
-    paddingHorizontal: 16,
-  },
-});
-
-const createStyles = (colors: ReturnType<typeof useTheme>) =>
-  StyleSheet.create({
-    container: {
-      padding: Sizes.PADDING_LARGE,
-      gap: Spacing.DOUBLE_EXTRA_LARGE,
-      backgroundColor: colors.BACKGROUND_SECONDARY,
-      flexGrow: 1,
-      position: "relative",
-    },
-    list: {
-      gap: Spacing.LARGE,
-      flexGrow: 1,
-    },
-  });

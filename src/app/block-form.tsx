@@ -15,28 +15,24 @@ import {
 import { Text } from "@/components/ui/text";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Plus, Save, Trash } from "lucide-react-native";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { ConfirmDialog } from "../components/confirm-dialog";
+import { CustomAlertDialog } from "../components/alert-dialog";
 import { ExercisesBlock } from "../components/exercises-block";
-import { ThemedText } from "../components/themed-text";
 import { TimeInput } from "../components/time-input";
 import {
   BLOCK_TYPE_LABELS,
   BLOCK_TYPES,
   CIRCUIT_TYPE,
-  LOCAL_STATUS_NEW,
   SUPERSET_TYPE,
 } from "../constants/constants";
-import { Sizes, Spacing, Typography } from "../constants/theme";
 import { useBlockLifecycle } from "../hooks/other/useBlockLifecycle";
 import { useOrderedExercises } from "../hooks/other/useOrdererExercises";
 import { useTheme } from "../hooks/useTheme";
@@ -50,17 +46,11 @@ export default function BlockForm() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const colors = useTheme();
-  const initialBlockRef = useRef<UIBlock | null>(null);
-  const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
-  const [discardConfirmVisible, setDiscardConfirmVisible] = useState(false);
-  const [deleteExerciseConfirmVisible, setDeleteExerciseConfirmVisible] =
-    useState(false);
+
+  const [open, setOpen] = useState(false);
+  const [isExerciseAlert, setExerciseAlert] = useState(false);
   const [exerciseToDeleteId, setExerciseToDeleteId] = useState<
     string | number | null
-  >(null);
-  const [exerciseToDeleteName, setExerciseToDeleteName] = useState<string>("");
-  const [infoDialogType, setInfoDialogType] = useState<
-    "type" | "prepare_time" | "rest_exercise" | "rest_group" | null
   >(null);
 
   const {
@@ -74,6 +64,7 @@ export default function BlockForm() {
   const { block, blockId } = useBlockLifecycle(
     params.blockId as string | undefined,
   );
+
   const localExercises = useOrderedExercises(block);
 
   const handleAddExercise = useCallback(() => {
@@ -86,19 +77,29 @@ export default function BlockForm() {
 
   const handleMovePrevExercise = (index: number) => {
     const reordered = swapItems(localExercises, index, index - 1);
-
-    reordered.forEach((e, idx) => {
-      updateExercise(blockId!, e.id, { position: idx });
-    });
+    reordered.forEach((e, idx) =>
+      updateExercise(blockId!, e.id, { position: idx }),
+    );
   };
 
   const handleMoveNextExercise = (index: number) => {
     const reordered = swapItems(localExercises, index, index + 1);
-
-    reordered.forEach((e, idx) => {
-      updateExercise(blockId!, e.id, { position: idx });
-    });
+    reordered.forEach((e, idx) =>
+      updateExercise(blockId!, e.id, { position: idx }),
+    );
   };
+
+  const handleDeleteExercise = useCallback((exerciseId) => {
+    setExerciseToDeleteId(exerciseId);
+    setExerciseAlert(true);
+  }, []);
+
+  const doDeleteExercise = useCallback(() => {
+    setExerciseAlert(false);
+    if (exerciseToDeleteId !== null && blockId) {
+      removeExercise(blockId, String(exerciseToDeleteId));
+    }
+  }, [exerciseToDeleteId, blockId, removeExercise]);
 
   const handleUpdateBlock = useCallback(
     (data: any) => {
@@ -114,11 +115,11 @@ export default function BlockForm() {
 
   const handleDeleteBlock = useCallback(() => {
     Keyboard.dismiss();
-    setDeleteConfirmVisible(true);
+    setOpen(true);
   }, []);
 
   const doDeleteBlock = useCallback(async () => {
-    setDeleteConfirmVisible(false);
+    setOpen(false);
     try {
       removeBlock(blockId as string);
       router.replace("/workout-form");
@@ -128,17 +129,12 @@ export default function BlockForm() {
     }
   }, [blockId, removeBlock, router]);
 
-  const isCreating = block?.id?.toString().startsWith("temp-") || false;
-
   const handleDone = useCallback(() => {
     Keyboard.dismiss();
-
     try {
       const currentBlock = useWorkoutStore.getState().block;
       const validationError = validateBlock(currentBlock as UIBlock);
-      if (validationError) {
-        throw new Error(validationError);
-      }
+      if (validationError) throw new Error(validationError);
       router.replace("/workout-form");
       showSuccessMessage("Block saved");
     } catch (error) {
@@ -146,35 +142,16 @@ export default function BlockForm() {
     }
   }, [router]);
 
-  const handleDiscard = useCallback(() => {
-    Keyboard.dismiss();
-    setDiscardConfirmVisible(true);
-  }, []);
-
-  const doDiscard = useCallback(() => {
-    setDiscardConfirmVisible(false);
-    try {
-      if (block?.localStatus === LOCAL_STATUS_NEW) {
-        removeBlock(blockId as string);
-      } else if (initialBlockRef.current) {
-        if (!blockId) return;
-        updateBlock(blockId.toString(), initialBlockRef.current);
-      }
-      router.replace("/workout-form");
-    } catch (error) {
-      handleAndShowError(error);
-    }
-  }, [block, blockId, removeBlock, updateBlock, router]);
-
-  const doDeleteExercise = useCallback(() => {
-    setDeleteExerciseConfirmVisible(false);
-    if (exerciseToDeleteId !== null && blockId) {
-      removeExercise(blockId, String(exerciseToDeleteId));
-    }
-  }, [exerciseToDeleteId, blockId, removeExercise]);
-
   if (!block) return null;
 
+  const BLOCK_TYPE_OPTIONS = BLOCK_TYPES.map((type) => ({
+    label: BLOCK_TYPE_LABELS[type],
+    value: type,
+  }));
+
+  const selectedBlockType = BLOCK_TYPE_OPTIONS.find(
+    (opt) => opt.value === block.type,
+  );
   const isCircuitOrSuperset =
     block.type === CIRCUIT_TYPE || block.type === SUPERSET_TYPE;
 
@@ -195,16 +172,16 @@ export default function BlockForm() {
         }}
       />
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        className="flex-1"
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       >
-        <TouchableWithoutFeedback
-          onPress={Keyboard.dismiss}
-          style={{ flex: 1 }}
-        >
-          <ScrollView contentContainerStyle={createStyles(colors).container}>
-            <Card>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} className="flex-1">
+          <ScrollView
+            className="flex-grow gap-8 p-6"
+            style={{ backgroundColor: colors.BACKGROUND_SECONDARY }}
+          >
+            <Card className="mb-6">
               <CardContent className="gap-2">
                 <View>
                   <Label>Block name</Label>
@@ -217,31 +194,23 @@ export default function BlockForm() {
                 <View>
                   <Label>Block type</Label>
                   <Select
-                    value={
-                      block.type
-                        ? {
-                            value: block.type,
-                            label: BLOCK_TYPE_LABELS[block.type],
-                          }
-                        : undefined
-                    }
+                    value={selectedBlockType}
                     onValueChange={(value) =>
                       handleUpdateBlock({ type: value })
                     }
                   >
-                    <SelectTrigger className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md">
-                      <SelectValue placeholder="Select Type" />
-                    </SelectTrigger>
-
-                    <SelectContent className="w-full mt-1 bg-white border border-gray-300 rounded-md">
+                    <SelectTrigger className="w-full" />
+                    <SelectValue placeholder="Select Type" />
+                    <SelectContent className="w-full">
                       <SelectGroup>
                         <SelectLabel>Block Types</SelectLabel>
-                        <SelectItem label="Select Type" value="">
-                          Select Type
-                        </SelectItem>
-                        {BLOCK_TYPES.map((type) => (
-                          <SelectItem label={type} key={type} value={type}>
-                            {BLOCK_TYPE_LABELS[type]}
+                        {BLOCK_TYPE_OPTIONS.map((opt) => (
+                          <SelectItem
+                            key={opt.value}
+                            value={opt.value}
+                            label={opt.label}
+                          >
+                            {opt.label}
                           </SelectItem>
                         ))}
                       </SelectGroup>
@@ -264,25 +233,19 @@ export default function BlockForm() {
                   <TimeInput
                     value={block.rest_exercise}
                     onChange={(seconds) =>
-                      handleUpdateBlock({
-                        rest_exercise: seconds,
-                      })
+                      handleUpdateBlock({ rest_exercise: seconds })
                     }
                   />
                 </View>
 
-                {(block.type === CIRCUIT_TYPE ||
-                  block.type === SUPERSET_TYPE) && (
+                {isCircuitOrSuperset && (
                   <View>
-                    <Label>Rest between {block.type || "group"}</Label>
-
+                    <Label>Rest between {block.type}</Label>
                     <TimeInput
                       disabled={!isCircuitOrSuperset}
                       value={block.rest_group}
                       onChange={(seconds) =>
-                        handleUpdateBlock({
-                          rest_group: seconds,
-                        })
+                        handleUpdateBlock({ rest_group: seconds })
                       }
                     />
                   </View>
@@ -290,102 +253,51 @@ export default function BlockForm() {
               </CardContent>
             </Card>
 
-            <ThemedText type="subtitle">Exercises</ThemedText>
+            <Text variant="h3">Exercises</Text>
 
-            <View className="relative flex flex-grow mb-8">
+            <View className="relative flex flex-grow gap-2 mb-8">
               <ExercisesBlock
                 exercises={localExercises}
                 blockId={blockId!}
                 updateExercise={updateExercise}
-                removeExercise={removeExercise}
+                handleDeleteExercise={handleDeleteExercise}
                 onMovePrev={handleMovePrevExercise}
                 onMoveNext={handleMoveNextExercise}
               />
-              <View className="gap-2">
-                <Button variant="outline" onPress={handleAddExercise}>
-                  <Icon as={Plus} size={20} />
-                  <Text>New exercise</Text>
-                </Button>
 
-                <Button onPress={handleDone}>
-                  <Icon as={Save} size={20} />
-                  <Text>Save block</Text>
-                </Button>
-              </View>
+              <Button
+                variant="outline"
+                onPress={handleAddExercise}
+                className="flex-row items-center gap-2"
+              >
+                <Icon as={Plus} size={20} />
+                <Text>New exercise</Text>
+              </Button>
+
+              <Button
+                onPress={handleDone}
+                className="flex-row items-center gap-2"
+              >
+                <Icon as={Save} size={20} />
+                <Text>Save block</Text>
+              </Button>
             </View>
           </ScrollView>
         </TouchableWithoutFeedback>
-        <ConfirmDialog
-          visible={deleteConfirmVisible}
-          title="Remove block?"
+
+        <CustomAlertDialog
+          open={open}
           message="Are you sure you want to remove this block?"
-          onCancel={() => setDeleteConfirmVisible(false)}
-          onConfirm={doDeleteBlock}
-          cancelText="Cancel"
-          confirmText="Delete"
-          destructive
+          cancel={() => setOpen(false)}
+          confirm={doDeleteBlock}
         />
-        <ConfirmDialog
-          visible={discardConfirmVisible}
-          title="Discard changes?"
-          message="Are you sure you want to discard changes to this block?"
-          onCancel={() => setDiscardConfirmVisible(false)}
-          onConfirm={doDiscard}
-          cancelText="Cancel"
-          confirmText="Discard"
-          destructive
-        />
-        <ConfirmDialog
-          visible={deleteExerciseConfirmVisible}
-          title="Remove exercise?"
-          message={`Are you sure you want to remove ${exerciseToDeleteName !== "" ? `"${exerciseToDeleteName}"` : "this exercise"}?`}
-          onCancel={() => setDeleteExerciseConfirmVisible(false)}
-          onConfirm={doDeleteExercise}
-          cancelText="Cancel"
-          confirmText="Delete"
-          destructive
+        <CustomAlertDialog
+          open={isExerciseAlert}
+          message="Are you sure you want to remove this exercise?"
+          cancel={() => setExerciseAlert(false)}
+          confirm={doDeleteExercise}
         />
       </KeyboardAvoidingView>
     </>
   );
 }
-
-const createStyles = (colors: ReturnType<typeof useTheme>) =>
-  StyleSheet.create({
-    container: {
-      padding: Sizes.PADDING_LARGE,
-      gap: Spacing.DOUBLE_EXTRA_LARGE,
-      backgroundColor: colors.BACKGROUND_SECONDARY,
-      flexGrow: 1,
-      position: "relative",
-    },
-    card: {
-      padding: Sizes.PADDING_LARGE,
-      backgroundColor: colors.BACKGROUND,
-      borderRadius: Sizes.BORDER_RADIUS_LARGE,
-      borderWidth: Sizes.BORDER_WIDTH,
-      borderColor: colors.BORDER,
-      gap: Spacing.LARGE,
-    },
-    input: {
-      borderWidth: Sizes.BORDER_WIDTH,
-      borderColor: colors.BORDER,
-      padding: Sizes.PADDING,
-      color: colors.TEXT_PRIMARY,
-      borderRadius: Sizes.BORDER_RADIUS,
-      backgroundColor: colors.LIGHT_BACKGROUND,
-      fontSize: Typography.FONT_SIZE_DEFAULT,
-    },
-    pickerContainer: {
-      borderWidth: Sizes.BORDER_WIDTH,
-      borderColor: colors.BORDER,
-      borderRadius: Sizes.BORDER_RADIUS,
-      backgroundColor: colors.LIGHT_BACKGROUND,
-      color: colors.TEXT_PRIMARY,
-      overflow: "hidden",
-    },
-    pickerItem: {
-      color: colors.TEXT_PRIMARY,
-      backgroundColor: colors.PICKER_BACKGROUND,
-    },
-  });

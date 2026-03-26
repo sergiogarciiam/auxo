@@ -31,7 +31,6 @@ import { formatTime } from "../utils/formatTime";
 const beep = require("../../assets/beep.wav");
 const doubleBeep = require("../../assets/double-beep.wav");
 
-// Configure notifications with minimal settings
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -73,7 +72,6 @@ export default function StartWorkout() {
   }, []);
 
   const startTimer = (seconds: number) => {
-    // Don't start if timer is stopped
     if (isTimerStoppedRef.current) {
       return;
     }
@@ -170,7 +168,6 @@ export default function StartWorkout() {
     clearTimer();
     stopWorkout();
 
-    // cancel any pending notification when leaving workout altogether
     try {
       await Notifications.cancelAllScheduledNotificationsAsync();
     } catch {
@@ -180,10 +177,8 @@ export default function StartWorkout() {
     router.replace("/");
   };
 
-  // Get current step and block early for use in effects
   const step = executionPlan?.[index];
 
-  // Start timer when step changes
   useStartTimer(
     executionPlan?.[index],
     startTimer,
@@ -193,30 +188,23 @@ export default function StartWorkout() {
     index,
   );
 
-  // keep paused ref in sync immediately and clear notifications
-  // when the user explicitly pauses; this avoids a race where the
-  // app could be backgrounded before the larger app-state effect runs.
   useEffect(() => {
     isPausedRef.current = isPaused;
 
     if (isPaused) {
-      // cancel any notification scheduled earlier - pause behaves like stop
       Notifications.cancelAllScheduledNotificationsAsync().catch(() => {});
       backgroundTimeRef.current = null;
     }
   }, [isPaused]);
 
-  // Handle app state changes (background/foreground)
   useEffect(() => {
     const handleAppStateChange = async (nextAppState: AppStateStatus) => {
       if (
         appStateRef.current.match(/inactive|background/) &&
         nextAppState === "active"
       ) {
-        // App has come to foreground
         isAppInBackgroundRef.current = false;
 
-        // cancel any notification we may have scheduled while backgrounded
         try {
           await Notifications.cancelAllScheduledNotificationsAsync();
         } catch {
@@ -249,26 +237,18 @@ export default function StartWorkout() {
         !isTimerStoppedRef.current &&
         !isPausedRef.current
       ) {
-        // App is going to background - save timestamp only if timer is running
         isAppInBackgroundRef.current = true;
         backgroundTimeRef.current = Date.now();
 
-        // Send system notification ONLY when going to background
-        // If we background during an active timer we schedule a notification
-        // to fire when the countdown would reach zero. This way the user gets
-        // alerted even if the JS timer stops while the app is suspended.
         if (remaining > 0 && step) {
           try {
-            // clear any previous scheduled notifications so we don't stack
             await Notifications.cancelAllScheduledNotificationsAsync();
-
             await Notifications.scheduleNotificationAsync({
               content: {
                 title: "Workout Timer",
                 body: `${step.name} finished!`,
                 sound: true,
               },
-              // trigger after `remaining` seconds from now
               trigger: {
                 type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
                 seconds: remaining,

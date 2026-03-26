@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { FlatList } from "react-native";
+import { FlatList, View } from "react-native";
 import { UIExercise } from "../types/ui";
 import { ExerciseCard } from "./exercise-card";
 
@@ -13,7 +13,7 @@ interface Props {
     data: Partial<UIExercise>,
   ) => void;
 
-  removeExercise: (blockId: string, exerciseId: string) => void;
+  handleDeleteExercise: (exerciseId: string) => void;
 
   onMovePrev: (index: number) => void;
   onMoveNext: (index: number) => void;
@@ -23,7 +23,7 @@ export function ExercisesBlock({
   exercises,
   blockId,
   updateExercise,
-  removeExercise,
+  handleDeleteExercise,
   onMovePrev,
   onMoveNext,
 }: Props) {
@@ -72,7 +72,7 @@ export function ExercisesBlock({
 
   const handleRemove = (index: number, exerciseId: string) => {
     lastRemovedIndexRef.current = index;
-    removeExercise(blockId, exerciseId);
+    handleDeleteExercise(exerciseId);
   };
 
   return (
@@ -83,6 +83,7 @@ export function ExercisesBlock({
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={{ paddingVertical: 12 }}
+      ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
       renderItem={({ item, index }) => (
         <ExerciseCard
           exercise={item}
@@ -117,7 +118,7 @@ export function ExercisesBlock({
         />
       )}
       getItemLayout={(_, index) => ({
-        length: 340, // ⚠️ ajusta a ancho real de tu card
+        length: 340,
         offset: 340 * index,
         index,
       })}
