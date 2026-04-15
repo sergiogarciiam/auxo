@@ -5,6 +5,7 @@ import {
   LOCAL_STATUS_UPDATED,
 } from "../../constants/constants";
 import { UIWorkout } from "../../types/ui";
+import { serializeSetsData } from "../../utils/exercise-utils";
 import { useBlocks } from "./useBlocks";
 import { useExercises } from "./useExercises";
 import { useWorkouts } from "./useWorkouts";
@@ -79,30 +80,48 @@ export const useSaveWorkout = () => {
           // 3. EXERCISES
           for (const ex of sec.exercises) {
             switch (ex.localStatus) {
-              case LOCAL_STATUS_NEW:
+              case LOCAL_STATUS_NEW: {
+                const setsDataJson = serializeSetsData(
+                  ex.config_type === "complex" ? ex.sets_data : undefined,
+                );
+
                 await createExercise({
                   block_id: blockId as number,
                   name: ex.name,
                   reps: ex.reps,
-                  time_seconds: ex.time_seconds,
+                  time_seconds: ex.exercise_time,
+                  rest_time: ex.rest_time,
+                  exercise_type: ex.exercise_type,
+                  config_type: ex.config_type,
                   weight: ex.weight,
                   sets: ex.sets,
+                  sets_data: setsDataJson,
                   position: ex.position,
                 });
                 break;
+              }
 
-              case LOCAL_STATUS_UPDATED:
+              case LOCAL_STATUS_UPDATED: {
+                const setsDataJson = serializeSetsData(
+                  ex.config_type === "complex" ? ex.sets_data : undefined,
+                );
+
                 await updateExercise({
                   id: ex.id as number,
                   block_id: blockId as number,
                   name: ex.name,
                   reps: ex.reps,
-                  time_seconds: ex.time_seconds,
+                  time_seconds: ex.exercise_time,
+                  rest_time: ex.rest_time,
+                  exercise_type: ex.exercise_type,
+                  config_type: ex.config_type,
                   weight: ex.weight,
                   sets: ex.sets,
+                  sets_data: setsDataJson,
                   position: ex.position,
                 });
                 break;
+              }
 
               case LOCAL_STATUS_DELETED:
                 if (typeof ex.id === "number") {

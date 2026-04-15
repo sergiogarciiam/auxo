@@ -89,7 +89,7 @@ export default function BlockForm() {
     );
   };
 
-  const handleDeleteExercise = useCallback((exerciseId) => {
+  const handleDeleteExercise = useCallback((exerciseId: string) => {
     setExerciseToDeleteId(exerciseId);
     setExerciseAlert(true);
   }, []);
@@ -122,7 +122,7 @@ export default function BlockForm() {
     setOpen(false);
     try {
       removeBlock(blockId as string);
-      router.replace("/workout-form");
+      router.back();
       showSuccessMessage("Block deleted");
     } catch (error) {
       handleAndShowError(error);
@@ -135,7 +135,7 @@ export default function BlockForm() {
       const currentBlock = useWorkoutStore.getState().block;
       const validationError = validateBlock(currentBlock as UIBlock);
       if (validationError) throw new Error(validationError);
-      router.replace("/workout-form");
+      router.back();
       showSuccessMessage("Block saved");
     } catch (error) {
       handleAndShowError(error);
@@ -152,6 +152,7 @@ export default function BlockForm() {
   const selectedBlockType = BLOCK_TYPE_OPTIONS.find(
     (opt) => opt.value === block.type,
   );
+
   const isCircuitOrSuperset =
     block.type === CIRCUIT_TYPE || block.type === SUPERSET_TYPE;
 
@@ -171,18 +172,20 @@ export default function BlockForm() {
           ),
         }}
       />
+
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss} className="flex-1">
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
             className="flex-grow gap-8 p-6"
             style={{ backgroundColor: colors.BACKGROUND_SECONDARY }}
           >
             <Card className="mb-6">
               <CardContent className="gap-2">
+                {/* NAME */}
                 <View>
                   <Label>Block name</Label>
                   <Input
@@ -191,19 +194,24 @@ export default function BlockForm() {
                   />
                 </View>
 
+                {/* BLOCK TYPE */}
                 <View>
                   <Label>Block type</Label>
+
                   <Select
                     value={selectedBlockType}
-                    onValueChange={(value) =>
-                      handleUpdateBlock({ type: value })
+                    onValueChange={(option) =>
+                      handleUpdateBlock({ type: option?.value ?? option })
                     }
                   >
-                    <SelectTrigger className="w-full" />
-                    <SelectValue placeholder="Select Type" />
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Type" />
+                    </SelectTrigger>
+
                     <SelectContent className="w-full">
                       <SelectGroup>
                         <SelectLabel>Block Types</SelectLabel>
+
                         {BLOCK_TYPE_OPTIONS.map((opt) => (
                           <SelectItem
                             key={opt.value}
@@ -218,6 +226,7 @@ export default function BlockForm() {
                   </Select>
                 </View>
 
+                {/* TIMES */}
                 <View>
                   <Label>Prepare time</Label>
                   <TimeInput
@@ -242,7 +251,6 @@ export default function BlockForm() {
                   <View>
                     <Label>Rest between {block.type}</Label>
                     <TimeInput
-                      disabled={!isCircuitOrSuperset}
                       value={block.rest_group}
                       onChange={(seconds) =>
                         handleUpdateBlock({ rest_group: seconds })
@@ -253,6 +261,7 @@ export default function BlockForm() {
               </CardContent>
             </Card>
 
+            {/* EXERCISES */}
             <Text variant="h3">Exercises</Text>
 
             <View className="relative flex flex-grow gap-2 mb-8">
@@ -285,12 +294,14 @@ export default function BlockForm() {
           </ScrollView>
         </TouchableWithoutFeedback>
 
+        {/* ALERTS */}
         <CustomAlertDialog
           open={open}
           message="Are you sure you want to remove this block?"
           cancel={() => setOpen(false)}
           confirm={doDeleteBlock}
         />
+
         <CustomAlertDialog
           open={isExerciseAlert}
           message="Are you sure you want to remove this exercise?"

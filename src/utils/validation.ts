@@ -54,7 +54,7 @@ export function validateBlock(block: UIBlock): string | null {
 
     if (
       (!isNumberDefined(exercise.reps) || exercise.reps === 0) &&
-      !isNumberDefined(exercise.time_seconds)
+      !isNumberDefined(exercise.exercise_time)
     ) {
       return "Either reps or time is required";
     }

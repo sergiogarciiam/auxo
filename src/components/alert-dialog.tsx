@@ -9,7 +9,19 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Text } from "@/components/ui/text";
 
-export function CustomAlertDialog({ message, open, confirm, cancel }) {
+interface CustomAlertDialogProps {
+  message: string;
+  open: boolean;
+  confirm: () => void;
+  cancel: () => void;
+}
+
+export function CustomAlertDialog({
+  message,
+  open,
+  confirm,
+  cancel,
+}: CustomAlertDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={cancel}>
       <AlertDialogContent>

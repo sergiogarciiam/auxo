@@ -32,6 +32,10 @@ export const v1Migration = `
     time_seconds INTEGER,
     weight REAL,
     sets INTEGER,
+    rest_time INTEGER DEFAULT 0,
+    exercise_type TEXT DEFAULT 'reps',
+    config_type TEXT DEFAULT 'simple',
+    sets_data TEXT,
     position INTEGER NOT NULL,
     created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
     FOREIGN KEY (block_id) REFERENCES blocks(id) ON DELETE CASCADE

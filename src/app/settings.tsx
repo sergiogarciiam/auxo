@@ -120,7 +120,7 @@ export default function SettingsScreen() {
 
           <Select
             value={selectedTheme}
-            onValueChange={(option) => setTheme(option.value as ThemeOption)}
+            onValueChange={(option) => setTheme(option?.value as ThemeOption)}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select theme" />
@@ -151,7 +151,7 @@ export default function SettingsScreen() {
           <Select
             value={selectedWeightUnit}
             onValueChange={(option) =>
-              setWeightUnit(option.value as WeightUnit)
+              setWeightUnit(option?.value as WeightUnit)
             }
           >
             <SelectTrigger

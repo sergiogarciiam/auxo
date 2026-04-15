@@ -5,9 +5,18 @@ export interface UIExercise {
   block_id: number | string;
   name: string;
   reps: number;
-  time_seconds: number;
+  exercise_time: number;
+  exercise_type: string;
+  config_type: string;
+  rest_time: number;
   weight: number;
   sets: number;
+  sets_data?: {
+    reps: number;
+    time_seconds: number;
+    weight: number;
+    rest_time: number;
+  }[]; // Complex mode only
   position: number;
   localStatus: LocalStatus;
 }

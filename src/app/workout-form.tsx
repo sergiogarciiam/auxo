@@ -70,7 +70,7 @@ export default function WorkoutForm() {
       await saveWorkout(workout!);
       showSuccessMessage("Workout saved");
       reset();
-      router.replace("/");
+      router.back();
     } catch (error) {
       handleAndShowError(error);
     }
@@ -105,7 +105,7 @@ export default function WorkoutForm() {
       await deleteWorkout(Number(workout!.id));
       showSuccessMessage("Workout deleted");
       reset();
-      router.replace("/");
+      router.back();
     } catch (error) {
       handleAndShowError(error);
     }

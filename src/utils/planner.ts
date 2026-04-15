@@ -6,7 +6,31 @@ import {
   REST_STEP_TYPE,
   SUPERSET_TYPE,
 } from "../constants/constants";
-import { ExecutionStep, UIWorkout } from "../types/ui";
+import { ExecutionStep, UIExercise, UIWorkout } from "../types/ui";
+
+/**
+ * Get exercise metrics for a specific set
+ * Handles both SIMPLE mode (single values) and COMPLEX mode (per-set data)
+ */
+function getExerciseMetricsForSet(exercise: UIExercise, setIndex: number) {
+  if (exercise.config_type === "complex" && exercise.sets_data?.[setIndex]) {
+    const setData = exercise.sets_data[setIndex];
+    return {
+      reps: setData.reps,
+      time_seconds: setData.time_seconds,
+      weight: setData.weight,
+      rest_time: setData.rest_time,
+    };
+  }
+
+  // SIMPLE mode: use base values
+  return {
+    reps: exercise.reps,
+    time_seconds: exercise.exercise_time,
+    weight: exercise.weight,
+    rest_time: exercise.rest_time,
+  };
+}
 
 export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
   const plan: ExecutionStep[] = [];
@@ -43,6 +67,7 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
       let first = 0;
       let second = exercises.length > 1 ? 1 : 0;
       let nextExercise = true;
+      let lastRestTime = 0;
 
       while (queue.some((ex) => ex.remainingSets > 0)) {
         let activeExercise = nextExercise ? first : second;
@@ -52,7 +77,7 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
 
           if (queue[activeExercise]?.remainingSets === 0) {
             const nextIndex = queue.findIndex((ex) => ex.remainingSets > 0);
-            if (nextIndex === -1) break; // ya no quedan sets
+            if (nextIndex === -1) break;
             first = nextIndex;
             second = nextIndex + 1 < queue.length ? nextIndex + 1 : nextIndex;
             activeExercise = first;
@@ -60,6 +85,8 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
         }
 
         const exercise = exercises[activeExercise];
+        const setIndex = queue[activeExercise].completedSets;
+        const metrics = getExerciseMetricsForSet(exercise, setIndex);
 
         plan.push({
           id: nanoid(),
@@ -67,19 +94,21 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
           blockId: block.id,
           exerciseId: exercise.id,
           name: exercise.name,
-          reps: exercise.reps,
-          time_seconds: exercise.time_seconds,
-          weight: exercise.weight,
-          set: queue[activeExercise].completedSets + 1,
+          reps: metrics.reps,
+          time_seconds: metrics.time_seconds,
+          weight: metrics.weight,
+          set: setIndex + 1,
         });
 
-        if (activeExercise % 2 === 0 && block.rest_exercise > 0) {
+        lastRestTime = metrics.rest_time;
+
+        if (activeExercise % 2 === 0 && metrics.rest_time > 0) {
           plan.push({
             id: nanoid(),
             type: REST_STEP_TYPE,
             blockId: block.id,
             name: "Rest",
-            duration_seconds: block.rest_exercise,
+            duration_seconds: metrics.rest_time,
           });
         } else if (activeExercise % 2 !== 0 && block.rest_group > 0) {
           plan.push({
@@ -103,26 +132,28 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
       for (let round = 0; round < maxSets; round++) {
         exercises.forEach((ex, idx) => {
           if ((ex.sets || 0) > round) {
+            const metrics = getExerciseMetricsForSet(ex, round);
+
             plan.push({
               id: nanoid(),
               type: EXERCISE_STEP_TYPE,
               blockId: block.id,
               exerciseId: ex.id,
               name: ex.name,
-              reps: ex.reps,
-              time_seconds: ex.time_seconds,
-              weight: ex.weight,
+              reps: metrics.reps,
+              time_seconds: metrics.time_seconds,
+              weight: metrics.weight,
               set: round + 1,
             });
 
             // rest between exercises in circuit
-            if (block.rest_exercise > 0 && idx < exercises.length - 1) {
+            if (metrics.rest_time > 0 && idx < exercises.length - 1) {
               plan.push({
                 id: nanoid(),
                 type: REST_STEP_TYPE,
                 blockId: block.id,
                 name: "Rest",
-                duration_seconds: block.rest_exercise,
+                duration_seconds: metrics.rest_time,
               });
             }
           }
@@ -143,39 +174,45 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
     } else {
       exercises.forEach((ex, exIdx) => {
         for (let s = 0; s < (ex.sets || 0); s++) {
+          const metrics = getExerciseMetricsForSet(ex, s);
+
           plan.push({
             id: nanoid(),
             type: EXERCISE_STEP_TYPE,
             blockId: block.id,
             exerciseId: ex.id,
             name: ex.name,
-            reps: ex.reps,
-            time_seconds: ex.time_seconds,
-            weight: ex.weight,
+            reps: metrics.reps,
+            time_seconds: metrics.time_seconds,
+            weight: metrics.weight,
             set: s + 1,
           });
 
           // rest between sets
-          if (s < (ex.sets || 0) - 1 && block.rest_exercise > 0) {
+          if (s < (ex.sets || 0) - 1 && metrics.rest_time > 0) {
             plan.push({
               id: nanoid(),
               type: REST_STEP_TYPE,
               blockId: block.id,
               name: "Rest",
-              duration_seconds: block.rest_exercise,
+              duration_seconds: metrics.rest_time,
             });
           }
         }
 
         // rest between exercises
-        if (exIdx < exercises.length - 1 && block.rest_exercise > 0) {
-          plan.push({
-            id: nanoid(),
-            type: REST_STEP_TYPE,
-            blockId: block.id,
-            name: "Rest",
-            duration_seconds: block.rest_exercise,
-          });
+        if (exIdx < exercises.length - 1) {
+          const lastSet = ex.sets ? ex.sets - 1 : 0;
+          const lastMetrics = getExerciseMetricsForSet(ex, lastSet);
+          if (lastMetrics.rest_time > 0) {
+            plan.push({
+              id: nanoid(),
+              type: REST_STEP_TYPE,
+              blockId: block.id,
+              name: "Rest",
+              duration_seconds: lastMetrics.rest_time,
+            });
+          }
         }
       });
     }

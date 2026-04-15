@@ -11,11 +11,22 @@ export const exercise = {
   create: async (exerciseData: CreateExercisePayload): Promise<any> => {
     const sql = `
       INSERT INTO exercises 
-      (block_id, name, reps, time_seconds, weight, sets, position) 
-      VALUES (?, ?, ?, ?, ?, ?, ?);
+      (block_id, name, reps, time_seconds, weight, sets, rest_time, exercise_type, config_type, sets_data, position) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `;
-    const { block_id, name, reps, time_seconds, weight, sets, position } =
-      exerciseData;
+    const {
+      block_id,
+      name,
+      reps,
+      time_seconds,
+      weight,
+      sets,
+      rest_time,
+      exercise_type,
+      config_type,
+      sets_data,
+      position,
+    } = exerciseData;
     const result = await runQuery(sql, [
       block_id,
       name,
@@ -23,6 +34,10 @@ export const exercise = {
       time_seconds,
       weight,
       sets,
+      rest_time,
+      exercise_type,
+      config_type,
+      sets_data ?? null,
       position,
     ]);
     return result;
@@ -34,11 +49,23 @@ export const exercise = {
   update: async (exerciseData: UpdateExercisePayload): Promise<any> => {
     const sql = `
       UPDATE exercises 
-      SET block_id = ?, name = ?, reps = ?, time_seconds = ?, weight = ?, sets = ?, position = ?
+      SET block_id = ?, name = ?, reps = ?, time_seconds = ?, weight = ?, sets = ?, rest_time = ?, exercise_type = ?, config_type = ?, sets_data = ?, position = ?
       WHERE id = ?;
     `;
-    const { id, block_id, name, reps, time_seconds, weight, sets, position } =
-      exerciseData;
+    const {
+      id,
+      block_id,
+      name,
+      reps,
+      time_seconds,
+      weight,
+      sets,
+      rest_time,
+      exercise_type,
+      config_type,
+      sets_data,
+      position,
+    } = exerciseData;
     const result = await runQuery(sql, [
       block_id,
       name,
@@ -46,6 +73,10 @@ export const exercise = {
       time_seconds,
       weight,
       sets,
+      rest_time,
+      exercise_type,
+      config_type,
+      sets_data ?? null,
       position,
       id,
     ]);

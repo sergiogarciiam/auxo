@@ -1,0 +1,53 @@
+/**
+ * Utilities for exercise data manipulation
+ */
+
+export interface ExerciseSetData {
+  reps: number;
+  time_seconds: number;
+  weight: number;
+  rest_time: number;
+}
+
+/**
+ * Initialize sets_data array for complex exercises
+ * Each set gets default values from the base exercise fields
+ */
+export const initializeSetsData = (
+  numSets: number,
+  reps: number,
+  exerciseTime: number,
+  weight: number,
+  restTime: number,
+): ExerciseSetData[] => {
+  return Array.from({ length: numSets }, () => ({
+    reps,
+    time_seconds: exerciseTime,
+    weight,
+    rest_time: restTime,
+  }));
+};
+
+/**
+ * Serialize sets_data to JSON string for database storage
+ */
+export const serializeSetsData = (
+  setsData: ExerciseSetData[] | undefined,
+): string | undefined => {
+  if (!setsData || setsData.length === 0) {
+    return undefined;
+  }
+  return JSON.stringify(setsData);
+};
+
+/**
+ * Deserialize JSON string to sets_data array
+ */
+export const deserializeSetsData = (jsonString: string): ExerciseSetData[] => {
+  try {
+    return JSON.parse(jsonString);
+  } catch (e) {
+    console.warn("Failed to parse sets_data JSON:", e);
+    return [];
+  }
+};
