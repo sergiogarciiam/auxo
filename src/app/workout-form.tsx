@@ -1,4 +1,9 @@
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import {
+  Stack,
+  useLocalSearchParams,
+  useNavigation,
+  useRouter,
+} from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Keyboard,
@@ -36,6 +41,7 @@ export default function WorkoutForm() {
   const router = useRouter();
   const colors = useTheme();
   const params = useLocalSearchParams();
+  const navigation = useNavigation();
 
   const { deleteWorkout } = useWorkouts();
   const { deleteBlock } = useBlocks();
@@ -49,6 +55,17 @@ export default function WorkoutForm() {
   const blocks = useOrderedBlocks(workout);
 
   const [open, setOpen] = useState(false);
+  const [isOPenDiscardDialog, setIsOpenDiscardDialog] = useState(false);
+
+  const isLeavingRef = useRef(false);
+
+  const hasChanges = () => {
+    if (!initialWorkoutRef.current || !workout) return false;
+
+    return (
+      JSON.stringify(initialWorkoutRef.current) !== JSON.stringify(workout)
+    );
+  };
 
   useEffect(() => {
     if (!workout) startNewWorkout();
@@ -59,6 +76,19 @@ export default function WorkoutForm() {
       initialWorkoutRef.current = JSON.parse(JSON.stringify(workout));
     }
   }, [workout, block?.id]);
+
+  useEffect(() => {
+    const unsub = navigation.addListener("beforeRemove", (e) => {
+      if (isLeavingRef.current) return;
+
+      if (!hasChanges()) return;
+
+      e.preventDefault();
+      setIsOpenDiscardDialog(true);
+    });
+
+    return unsub;
+  }, [navigation]);
 
   const handleDone = useCallback(async () => {
     Keyboard.dismiss();
@@ -127,6 +157,19 @@ export default function WorkoutForm() {
     },
     [updateBlock],
   );
+
+  const handleDiscard = () => {
+    isLeavingRef.current = true;
+    setIsOpenDiscardDialog(false);
+    reset();
+    router.back();
+  };
+
+  const handleSaveAndExit = async () => {
+    isLeavingRef.current = true;
+    setIsOpenDiscardDialog(false);
+    await handleDone();
+  };
 
   if (!workout) return null;
 
@@ -226,6 +269,14 @@ export default function WorkoutForm() {
         message="Are you sure you want to delete this workout?"
         confirm={confirmDeleteWorkout}
         cancel={cancelDeleteWorkout}
+      />
+      <CustomAlertDialog
+        open={isOPenDiscardDialog}
+        message="Save changes before leaving?"
+        confirm={handleSaveAndExit}
+        cancel={handleDiscard}
+        confirmText="Save"
+        cancelText="Discard"
       />
     </>
   );

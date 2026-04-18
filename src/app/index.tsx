@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
-import { Stack, useRouter } from "expo-router";
+import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { Plus, Settings } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
@@ -27,7 +27,13 @@ export default function Homepage() {
   const { localWorkouts, loadWorkouts, loadWorkout, reset } = useWorkoutStore();
   const { startWorkout } = useStartWorkoutStore();
   const loadWorkoutWithData = useLoadWorkout();
-  const { workouts, updateWorkout } = useWorkouts();
+  const { workouts, updateWorkout, fetchWorkouts } = useWorkouts();
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchWorkouts();
+    }, [fetchWorkouts]),
+  );
 
   useEffect(() => {
     loadWorkouts(transformWorkoutsToUI(workouts));

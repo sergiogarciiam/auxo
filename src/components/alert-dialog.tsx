@@ -12,6 +12,8 @@ import { Text } from "@/components/ui/text";
 interface CustomAlertDialogProps {
   message: string;
   open: boolean;
+  confirmText?: string;
+  cancelText?: string;
   confirm: () => void;
   cancel: () => void;
 }
@@ -19,6 +21,8 @@ interface CustomAlertDialogProps {
 export function CustomAlertDialog({
   message,
   open,
+  confirmText,
+  cancelText,
   confirm,
   cancel,
 }: CustomAlertDialogProps) {
@@ -31,11 +35,11 @@ export function CustomAlertDialog({
 
         <AlertDialogFooter className="flex-row justify-end gap-3">
           <AlertDialogCancel onPress={cancel}>
-            <Text>Cancel</Text>
+            <Text>{cancelText || "Cancel"}</Text>
           </AlertDialogCancel>
 
           <AlertDialogAction onPress={confirm}>
-            <Text>Confirm</Text>
+            <Text>{confirmText || "Confirm"}</Text>
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

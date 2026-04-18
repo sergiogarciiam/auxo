@@ -1,6 +1,6 @@
 import { setAudioModeAsync, useAudioPlayer } from "expo-audio";
 import * as Notifications from "expo-notifications";
-import { Stack, useRouter } from "expo-router";
+import { Stack, useNavigation, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   AppState,
@@ -48,6 +48,7 @@ Notifications.setNotificationHandler({
 
 export default function StartWorkout() {
   const router = useRouter();
+  const navigation = useNavigation();
 
   const beepPlayer = useAudioPlayer(beep);
   const doubleBeepPlayer = useAudioPlayer(doubleBeep);
@@ -80,6 +81,7 @@ export default function StartWorkout() {
   const backgroundTimeRef = useRef<number | null>(null);
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
   const isPausedRef = useRef(false);
+  const allowExitRef = useRef(false);
 
   useEffect(() => {
     setAudioModeAsync({
@@ -88,6 +90,18 @@ export default function StartWorkout() {
       interruptionMode: "duckOthers",
     });
   }, []);
+
+  useEffect(() => {
+    const unsub = navigation.addListener("beforeRemove", (e) => {
+      if (allowExitRef.current) return;
+
+      e.preventDefault();
+      setIsPaused(true);
+      setOpen(true);
+    });
+
+    return unsub;
+  }, [navigation]);
 
   /**
    * ACTIVE STEP
@@ -242,6 +256,8 @@ export default function StartWorkout() {
   };
 
   const confirmExit = async () => {
+    allowExitRef.current = true;
+
     clearTimer();
     stopWorkout();
 
@@ -253,6 +269,8 @@ export default function StartWorkout() {
   };
 
   const handleGoHome = async () => {
+    allowExitRef.current = true;
+
     stopWorkout();
     router.replace("/");
   };
