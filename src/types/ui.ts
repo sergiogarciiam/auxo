@@ -42,7 +42,17 @@ export interface UIWorkout {
   localStatus: LocalStatus;
 }
 
-export type ExecutionStepType = "exercise" | "rest";
+export type ExecutionStepType = "exercise" | "rest" | "flexible-selection";
+
+/**
+ * Tracks progress within a flexible block for a specific exercise
+ * Updated as user completes sets, carries forward until they skip/exit
+ */
+export interface FlexibleBlockSelection {
+  exerciseId: number | string;
+  currentSet: number; // 0-indexed
+  isComplete: boolean;
+}
 
 export interface ExecutionStep {
   id: string;
@@ -55,6 +65,9 @@ export interface ExecutionStep {
   set?: number;
   weight?: number;
   duration_seconds?: number; // for rest steps
+  availableExercises?: UIExercise[]; // for flexible-selection steps
+  lastRestTime?: number; // for flexible blocks - rest after last completed exercise
+  blockName?: string; // for flexible blocks - display block name
 }
 
 export type ThemeOption = "system" | "light" | "dark";

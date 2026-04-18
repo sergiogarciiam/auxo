@@ -15,7 +15,7 @@ export const v1Migration = `
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     workout_id INTEGER NOT NULL,
     name TEXT NOT NULL,
-    type TEXT NOT NULL CHECK(type IN ('warmup','cooldown','traditional','superset','circuit')),
+    type TEXT NOT NULL CHECK(type IN ('warmup','cooldown','traditional','superset','circuit', 'flexible')),
     prepare_time INTEGER DEFAULT 0,
     rest_exercise INTEGER DEFAULT 0,
     rest_group INTEGER DEFAULT 0,

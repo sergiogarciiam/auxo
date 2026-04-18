@@ -3,6 +3,7 @@ export const COOLDOWN_TYPE = "cooldown";
 export const TRADITIONAL_TYPE = "traditional";
 export const CIRCUIT_TYPE = "circuit";
 export const SUPERSET_TYPE = "superset";
+export const FLEXIBLE_TYPE = "flexible";
 
 export const BLOCK_TYPES = [
   WARMUP_TYPE,
@@ -10,6 +11,7 @@ export const BLOCK_TYPES = [
   TRADITIONAL_TYPE,
   CIRCUIT_TYPE,
   SUPERSET_TYPE,
+  FLEXIBLE_TYPE,
 ] as const;
 
 export const BLOCK_TYPE_LABELS: Record<string, string> = {
@@ -18,6 +20,7 @@ export const BLOCK_TYPE_LABELS: Record<string, string> = {
   traditional: "Traditional",
   circuit: "Circuit",
   superset: "Superset",
+  flexible: "Flexible",
 } as const;
 
 export const LOCAL_STATUS_NEW = "new";

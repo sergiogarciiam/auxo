@@ -2,6 +2,7 @@ import { nanoid } from "nanoid/non-secure";
 import {
   CIRCUIT_TYPE,
   EXERCISE_STEP_TYPE,
+  FLEXIBLE_TYPE,
   LOCAL_STATUS_DELETED,
   REST_STEP_TYPE,
   SUPERSET_TYPE,
@@ -54,6 +55,26 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
         name: `Prepare for ${block.name}`,
         duration_seconds: block.prepare_time,
       });
+    }
+
+    // FLEXIBLE PLANNING - User selects exercises on the fly
+    if (block.type === FLEXIBLE_TYPE) {
+      // Get last rest time from any exercise in the block for final rest
+      const lastRestTime = Math.max(
+        ...exercises.map((ex) => ex.rest_time || 0),
+        0,
+      );
+
+      plan.push({
+        id: nanoid(),
+        type: "flexible-selection" as const,
+        blockId: block.id,
+        name: block.name,
+        blockName: block.name,
+        availableExercises: exercises,
+        lastRestTime: lastRestTime,
+      });
+      return; // Skip all other type handling
     }
 
     // SUPERSET PLANNING
