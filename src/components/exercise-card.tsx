@@ -13,9 +13,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Text } from "@/components/ui/text";
 import { ArrowLeft, ArrowRight, Trash } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
-import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Platform, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Sizes, Spacing, Typography } from "../constants/theme";
 import { useSettingsContext } from "../context/useSettingsContext";
@@ -428,6 +429,7 @@ export function ExerciseCard({
       <CardFooter>
         <View style={styles.arrowsRow}>
           <Button
+            variant="outline"
             style={styles.arrowButton}
             disabled={!handleMovePrev || isDisabledPrev}
             onPress={() => {
@@ -437,8 +439,11 @@ export function ExerciseCard({
           >
             <Icon as={ArrowLeft} />
           </Button>
-
+          <Text className="text-xs">
+            Position: #{index !== undefined ? index + 1 : 0}
+          </Text>
           <Button
+            variant="outline"
             style={styles.arrowButton}
             disabled={!handleMoveNext || isDisabledNext}
             onPress={() => {
@@ -469,6 +474,7 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
       width: "100%",
       flexDirection: "row",
       justifyContent: "space-between",
+      alignItems: "center",
       gap: Spacing.MEDIUM,
     },
     arrowButton: {

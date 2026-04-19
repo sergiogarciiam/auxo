@@ -99,6 +99,7 @@ export default function WorkoutForm() {
 
       await saveWorkout(workout!);
       showSuccessMessage("Workout saved");
+      isLeavingRef.current = true;
       reset();
       router.back();
     } catch (error) {
@@ -134,6 +135,7 @@ export default function WorkoutForm() {
 
       await deleteWorkout(Number(workout!.id));
       showSuccessMessage("Workout deleted");
+      isLeavingRef.current = true;
       reset();
       router.back();
     } catch (error) {
@@ -217,34 +219,37 @@ export default function WorkoutForm() {
               Blocks
             </Text>
 
-            <DraggableFlatList
-              contentContainerStyle={{
-                paddingHorizontal: Sizes.PADDING_LARGE,
-                paddingBottom: 0, // ya no necesitamos espacio extra
-                gap: Spacing.LARGE,
-              }}
-              data={blocks}
-              keyExtractor={(item) => item.id.toString()}
-              onDragEnd={handleDragEnd}
-              renderItem={({ item, drag, isActive }) => (
-                <BlockCard
-                  block={item}
-                  drag={drag}
-                  isActive={isActive}
-                  handleEditBlock={() => handleEditBlock(item.id.toString())}
-                />
-              )}
-              ListEmptyComponent={
-                <Text className="mt-4 text-center text-gray-400">
-                  No blocks yet
-                </Text>
-              }
-            />
+            <View className="flex-1">
+              <DraggableFlatList
+                contentContainerStyle={{
+                  paddingHorizontal: Sizes.PADDING_LARGE,
+                  paddingBottom: 125,
+                  gap: Spacing.LARGE,
+                  flexGrow: 1,
+                }}
+                data={blocks}
+                keyExtractor={(item) => item.id.toString()}
+                onDragEnd={handleDragEnd}
+                renderItem={({ item, drag, isActive }) => (
+                  <BlockCard
+                    block={item}
+                    drag={drag}
+                    isActive={isActive}
+                    handleEditBlock={() => handleEditBlock(item.id.toString())}
+                  />
+                )}
+                ListEmptyComponent={
+                  <Text className="mt-4 text-center text-gray-400">
+                    No blocks yet
+                  </Text>
+                }
+              />
+            </View>
 
             {/* BOTONES FLOTANTES */}
             <View className="absolute flex-col gap-2 bottom-6 right-6">
               <Button
-                variant="outline"
+                variant="secondary"
                 className="flex-row items-center justify-center"
                 onPress={handleAddBlock}
               >

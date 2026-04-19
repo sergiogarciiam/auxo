@@ -33,10 +33,6 @@ export function validateBlock(block: UIBlock): string | null {
     return "Prepare time is required";
   }
 
-  if (!isNumberDefined(block.rest_exercise)) {
-    return "Rest between exercises is requiered";
-  }
-
   if (
     block.exercises.filter(
       (exercise) => exercise.localStatus !== LOCAL_STATUS_DELETED,
@@ -44,23 +40,6 @@ export function validateBlock(block: UIBlock): string | null {
   ) {
     return "Block requiere at least one exercise";
   }
-
-  for (const exercise of block.exercises) {
-    if (exercise.localStatus === LOCAL_STATUS_DELETED) continue;
-
-    if (!isNonEmptyString(exercise.name)) {
-      return "Exercise name is required";
-    }
-
-    if (
-      (!isNumberDefined(exercise.reps) || exercise.reps === 0) &&
-      !isNumberDefined(exercise.exercise_time)
-    ) {
-      return "Either reps or time is required";
-    }
-  }
-
-  return null;
 }
 
 export function validateWorkout(workout: UIWorkout): string | null {

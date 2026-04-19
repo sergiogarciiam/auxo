@@ -27,7 +27,6 @@ export interface UIBlock {
   name: string;
   type: string;
   prepare_time: number;
-  rest_exercise: number;
   rest_group: number;
   position: number;
   localStatus: LocalStatus;

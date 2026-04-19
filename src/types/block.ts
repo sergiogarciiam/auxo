@@ -4,7 +4,6 @@ export interface Block {
   name: string;
   type: string;
   prepare_time?: number;
-  rest_exercise: number;
   rest_group?: number;
   position: number;
 }
@@ -14,7 +13,6 @@ export interface CreateBlockPayload {
   name: string;
   type: string;
   prepare_time?: number;
-  rest_exercise?: number;
   rest_group?: number;
   position: number;
 }
@@ -25,7 +23,6 @@ export interface UpdateBlockPayload {
   name?: string;
   type?: string;
   prepare_time?: number;
-  rest_exercise?: number;
   rest_group?: number;
   position?: number;
 }

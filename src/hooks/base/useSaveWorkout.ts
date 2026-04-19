@@ -48,7 +48,6 @@ export const useSaveWorkout = () => {
                 workout_id: workoutId as number,
                 name: sec.name,
                 type: sec.type,
-                rest_exercise: sec.rest_exercise,
                 rest_group: sec.rest_group,
                 position: sec.position,
               });
@@ -62,7 +61,6 @@ export const useSaveWorkout = () => {
                 name: sec.name,
                 type: sec.type,
                 prepare_time: sec.prepare_time,
-                rest_exercise: sec.rest_exercise,
                 rest_group: sec.rest_group,
                 position: sec.position,
               });

@@ -181,7 +181,9 @@ export default function BlockForm() {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
             className="flex-grow gap-8 p-6"
-            style={{ backgroundColor: colors.BACKGROUND_SECONDARY }}
+            style={{
+              backgroundColor: colors.BACKGROUND_SECONDARY,
+            }}
           >
             <Card className="mb-6">
               <CardContent className="gap-2">
@@ -233,16 +235,6 @@ export default function BlockForm() {
                     value={block.prepare_time}
                     onChange={(seconds) =>
                       handleUpdateBlock({ prepare_time: seconds })
-                    }
-                  />
-                </View>
-
-                <View>
-                  <Label>Rest between exercises</Label>
-                  <TimeInput
-                    value={block.rest_exercise}
-                    onChange={(seconds) =>
-                      handleUpdateBlock({ rest_exercise: seconds })
                     }
                   />
                 </View>

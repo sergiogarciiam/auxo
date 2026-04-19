@@ -32,17 +32,15 @@ export const block = {
     name,
     type,
     prepare_time,
-    rest_exercise,
     rest_group,
     position,
   }: CreateBlockPayload): Promise<any> => {
-    const sql = `INSERT INTO blocks (workout_id, name, type, prepare_time, rest_exercise, rest_group, position) VALUES (?, ?, ?, ?, ?, ?, ?);`;
+    const sql = `INSERT INTO blocks (workout_id, name, type, prepare_time, rest_group, position) VALUES (?, ?, ?, ?, ?, ?);`;
     const result = await runQuery(sql, [
       workout_id,
       name,
       type,
       prepare_time,
-      rest_exercise,
       rest_group,
       position,
     ]);
@@ -58,13 +56,12 @@ export const block = {
     name,
     type,
     prepare_time,
-    rest_exercise,
     rest_group,
     position,
   }: UpdateBlockPayload): Promise<any> => {
     const sql = `
       UPDATE blocks 
-      SET workout_id = ?, name = ?, type = ?, prepare_time = ?, rest_exercise = ?, rest_group = ?, position = ? 
+      SET workout_id = ?, name = ?, type = ?, prepare_time = ?, rest_group = ?, position = ? 
       WHERE id = ?;
     `;
     const result = await runQuery(sql, [
@@ -72,7 +69,6 @@ export const block = {
       name,
       type,
       prepare_time,
-      rest_exercise,
       rest_group,
       position,
       id,

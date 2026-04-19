@@ -142,8 +142,8 @@ export default function Homepage() {
         />
 
         <Button
-          variant="outline"
           onPress={handleCreateWorkout}
+          variant={"secondary"}
           className="absolute flex-row items-center justify-center shadow-lg bottom-6 right-6"
         >
           <Icon as={Plus} size={20} />

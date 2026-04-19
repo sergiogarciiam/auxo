@@ -40,7 +40,6 @@ export function transformBlockToUI(
     name: block.name,
     type: block.type,
     prepare_time: (block as any).prepare_time ?? 0,
-    rest_exercise: block.rest_exercise,
     rest_group: block.rest_group ?? 0,
     position: block.position,
     localStatus: LOCAL_STATUS_UNCHANGED,
