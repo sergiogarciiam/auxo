@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Text } from "@/components/ui/text";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { Plus, Save, Trash } from "lucide-react-native";
+import { Info, Plus, Save, Trash } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import {
   Keyboard,
@@ -26,6 +26,7 @@ import {
 } from "react-native";
 import { CustomAlertDialog } from "../components/alert-dialog";
 import { ExercisesBlock } from "../components/exercises-block";
+import { InfoDialog } from "../components/info-dialog";
 import { TimeInput } from "../components/time-input";
 import {
   BLOCK_TYPE_LABELS,
@@ -47,6 +48,7 @@ export default function BlockForm() {
   const params = useLocalSearchParams();
   const colors = useTheme();
 
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const [isExerciseAlert, setExerciseAlert] = useState(false);
   const [exerciseToDeleteId, setExerciseToDeleteId] = useState<
@@ -198,8 +200,16 @@ export default function BlockForm() {
 
                 {/* BLOCK TYPE */}
                 <View>
-                  <Label>Block type</Label>
-
+                  <View className="flex-row">
+                    <Label>Block type</Label>
+                    <Button
+                      onPress={() => setIsInfoOpen(true)}
+                      size={"sm"}
+                      variant={"ghost"}
+                    >
+                      <Icon as={Info} />
+                    </Button>
+                  </View>
                   <Select
                     value={selectedBlockType}
                     onValueChange={(option) =>
@@ -213,7 +223,6 @@ export default function BlockForm() {
                     <SelectContent className="w-full">
                       <SelectGroup>
                         <SelectLabel>Block Types</SelectLabel>
-
                         {BLOCK_TYPE_OPTIONS.map((opt) => (
                           <SelectItem
                             key={opt.value}
@@ -285,22 +294,25 @@ export default function BlockForm() {
             </View>
           </ScrollView>
         </TouchableWithoutFeedback>
-
-        {/* ALERTS */}
-        <CustomAlertDialog
-          open={open}
-          message="Are you sure you want to remove this block?"
-          cancel={() => setOpen(false)}
-          confirm={doDeleteBlock}
-        />
-
-        <CustomAlertDialog
-          open={isExerciseAlert}
-          message="Are you sure you want to remove this exercise?"
-          cancel={() => setExerciseAlert(false)}
-          confirm={doDeleteExercise}
-        />
       </KeyboardAvoidingView>
+      {/* ALERTS */}
+      <CustomAlertDialog
+        open={open}
+        message="Are you sure you want to remove this block?"
+        cancel={() => setOpen(false)}
+        confirm={doDeleteBlock}
+      />
+
+      <CustomAlertDialog
+        open={isExerciseAlert}
+        message="Are you sure you want to remove this exercise?"
+        cancel={() => setExerciseAlert(false)}
+        confirm={doDeleteExercise}
+      />
+      <InfoDialog
+        open={isInfoOpen}
+        onOpenChange={(open) => setIsInfoOpen(false)}
+      />
     </>
   );
 }
