@@ -138,7 +138,6 @@ export default function BlockForm() {
       const validationError = validateBlock(currentBlock as UIBlock);
       if (validationError) throw new Error(validationError);
       router.back();
-      showSuccessMessage("Block saved");
     } catch (error) {
       handleAndShowError(error);
     }

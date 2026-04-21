@@ -1,23 +1,11 @@
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { AlertCircleIcon, CheckCircle2Icon } from "lucide-react-native";
 import React, { useEffect, useRef } from "react";
-import {
-  AccessibilityInfo,
-  Animated,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-} from "react-native";
+import { AccessibilityInfo, Animated } from "react-native";
 import { Sizes } from "../constants/theme";
-import { useTheme } from "../hooks/useTheme";
 import { useSnackbarStore } from "../stores/useSnackbarStore";
 
 export function Snackbar() {
-  const colors = useTheme();
-  const variantBg: Record<string, string> = {
-    success: colors.SUCCESS,
-    error: colors.DESTRUCTIVE,
-    warning: colors.WARNING,
-  };
-  const styles = createStyles(colors);
   const messages = useSnackbarStore((s: any) => s.messages);
   const hide = useSnackbarStore((s: any) => s.hide);
 
@@ -56,44 +44,23 @@ export function Snackbar() {
     <Animated.View
       pointerEvents="box-none"
       style={[
-        styles.container,
         {
+          position: "absolute",
+          left: Sizes.PADDING_LARGE,
+          right: Sizes.PADDING_LARGE,
+          bottom: 24,
+          zIndex: 9999,
           transform: [{ translateY }],
           opacity: opacity,
         },
       ]}
     >
-      <TouchableOpacity
-        activeOpacity={0.9}
-        onPress={() => hide(msg.id)}
-        style={[styles.snackbar, { backgroundColor: variantBg[msg.variant] }]}
+      <Alert
+        icon={msg.variant === "success" ? CheckCircle2Icon : AlertCircleIcon}
+        variant={msg.variant}
       >
-        <Text style={styles.text}>{msg.text}</Text>
-      </TouchableOpacity>
+        <AlertTitle>{msg.text}</AlertTitle>
+      </Alert>
     </Animated.View>
   );
 }
-
-const createStyles = (colors: ReturnType<typeof useTheme>) =>
-  StyleSheet.create({
-    container: {
-      position: "absolute",
-      left: Sizes.PADDING_LARGE,
-      right: Sizes.PADDING_LARGE,
-      bottom: 24,
-      zIndex: 9999,
-    },
-    snackbar: {
-      padding: 12,
-      borderRadius: Sizes.BORDER_RADIUS,
-      elevation: 4,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.2,
-      shadowRadius: 4,
-    },
-    text: {
-      color: "white",
-      fontWeight: "600",
-    },
-  });
