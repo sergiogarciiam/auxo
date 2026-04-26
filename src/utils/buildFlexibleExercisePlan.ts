@@ -1,4 +1,7 @@
-export function buildFlexibleExercisePlan(exercise, blockId) {
+export function buildFlexibleExercisePlan(
+  exercise: any,
+  blockId: string | number,
+) {
   const plan = [];
 
   for (let s = 0; s < (exercise.sets || 1); s++) {
@@ -7,7 +10,9 @@ export function buildFlexibleExercisePlan(exercise, blockId) {
       blockId,
       exerciseId: exercise.id,
       name: exercise.name,
-      reps: exercise.reps,
+      last_reps: exercise.last_reps,
+      min_reps: exercise.min_reps,
+      max_reps: exercise.max_reps,
       time_seconds: exercise.exercise_time,
       set: s + 1,
     });

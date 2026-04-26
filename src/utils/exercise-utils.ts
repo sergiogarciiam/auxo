@@ -3,7 +3,9 @@
  */
 
 export interface ExerciseSetData {
-  reps: number;
+  last_reps: number;
+  min_reps: number;
+  max_reps: number;
   time_seconds: number;
   weight: number;
   rest_time: number;
@@ -15,13 +17,17 @@ export interface ExerciseSetData {
  */
 export const initializeSetsData = (
   numSets: number,
-  reps: number,
+  last_reps: number,
+  min_reps: number,
+  max_reps: number,
   exerciseTime: number,
   weight: number,
   restTime: number,
 ): ExerciseSetData[] => {
   return Array.from({ length: numSets }, () => ({
-    reps,
+    last_reps: last_reps,
+    min_reps: min_reps,
+    max_reps: max_reps,
     time_seconds: exerciseTime,
     weight,
     rest_time: restTime,

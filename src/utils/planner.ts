@@ -17,7 +17,9 @@ function getExerciseMetricsForSet(exercise: UIExercise, setIndex: number) {
   if (exercise.config_type === "complex" && exercise.sets_data?.[setIndex]) {
     const setData = exercise.sets_data[setIndex];
     return {
-      reps: setData.reps,
+      last_reps: setData.last_reps,
+      min_reps: setData.min_reps,
+      max_reps: setData.max_reps,
       time_seconds: setData.time_seconds,
       weight: setData.weight,
       rest_time: setData.rest_time,
@@ -26,7 +28,9 @@ function getExerciseMetricsForSet(exercise: UIExercise, setIndex: number) {
 
   // SIMPLE mode: use base values
   return {
-    reps: exercise.reps,
+    last_reps: exercise.last_reps,
+    min_reps: exercise.min_reps,
+    max_reps: exercise.max_reps,
     time_seconds: exercise.exercise_time,
     weight: exercise.weight,
     rest_time: exercise.rest_time,
@@ -88,7 +92,6 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
       let first = 0;
       let second = exercises.length > 1 ? 1 : 0;
       let nextExercise = true;
-      let lastRestTime = 0;
 
       while (queue.some((ex) => ex.remainingSets > 0)) {
         let activeExercise = nextExercise ? first : second;
@@ -115,13 +118,13 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
           blockId: block.id,
           exerciseId: exercise.id,
           name: exercise.name,
-          reps: metrics.reps,
+          last_reps: metrics.last_reps,
+          min_reps: metrics.min_reps,
+          max_reps: metrics.max_reps,
           time_seconds: metrics.time_seconds,
           weight: metrics.weight,
           set: setIndex + 1,
         });
-
-        lastRestTime = metrics.rest_time;
 
         if (activeExercise % 2 === 0 && metrics.rest_time > 0) {
           plan.push({
@@ -161,7 +164,9 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
               blockId: block.id,
               exerciseId: ex.id,
               name: ex.name,
-              reps: metrics.reps,
+              last_reps: metrics.last_reps,
+              min_reps: metrics.min_reps,
+              max_reps: metrics.max_reps,
               time_seconds: metrics.time_seconds,
               weight: metrics.weight,
               set: round + 1,
@@ -203,7 +208,9 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
             blockId: block.id,
             exerciseId: ex.id,
             name: ex.name,
-            reps: metrics.reps,
+            last_reps: metrics.last_reps,
+            min_reps: metrics.min_reps,
+            max_reps: metrics.max_reps,
             time_seconds: metrics.time_seconds,
             weight: metrics.weight,
             set: s + 1,

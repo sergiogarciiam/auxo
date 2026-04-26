@@ -18,6 +18,7 @@ import { ArrowLeft, ArrowRight, Trash } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
 import { Platform, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 import { Sizes, Spacing, Typography } from "../constants/theme";
 import { useSettingsContext } from "../context/useSettingsContext";
 import { useTheme } from "../hooks/useTheme";
@@ -28,7 +29,7 @@ import { TimeInput } from "./time-input";
 interface ExerciseCardProps {
   exercise: UIExercise;
   exerciseId: string;
-  setExercise: (index: string, exercise: Partial<UIExercise>) => void;
+  setExercise: (id: string, exercise: Partial<UIExercise>) => void;
   onRemoveExercise: () => void;
   index?: number;
   handleMovePrev?: (index: number) => void;
@@ -53,12 +54,15 @@ export function ExerciseCard({
   const { weightUnit } = useSettingsContext();
   const insets = useSafeAreaInsets();
 
-  const [exerciseType, setExerciseType] = useState(
-    exercise.exercise_type || "reps",
-  );
-  const [configType, setConfigType] = useState(
-    exercise.config_type || "simple",
-  );
+  // 🔥 SIN useState local desincronizado
+  const exerciseType = exercise.exercise_type ?? "reps";
+  const configType = exercise.config_type ?? "simple";
+
+  const [activeTab, setActiveTab] = useState("set-0");
+
+  useEffect(() => {
+    setActiveTab("set-0");
+  }, [exercise.sets, configType]);
 
   const handleInputChange = useCallback(
     (field: keyof UIExercise, value: any) => {
@@ -69,8 +73,7 @@ export function ExerciseCard({
 
   const handleExerciseTypeChange = useCallback(
     (option: any) => {
-      const value = option?.value ?? option; // fallback por si cambia la lib
-      setExerciseType(value);
+      const value = option?.value ?? option;
       handleInputChange("exercise_type", value);
     },
     [handleInputChange],
@@ -79,22 +82,25 @@ export function ExerciseCard({
   const handleConfigTypeChange = useCallback(
     (option: any) => {
       const value = option?.value ?? option;
-      setConfigType(value);
+
       handleInputChange("config_type", value);
 
-      // Initialize sets_data when switching to complex
-      if (value === "complex" && !exercise.sets_data) {
-        const newSetsData = Array.from({ length: exercise.sets || 1 }, () => ({
-          reps: exercise.reps,
-          time_seconds: exercise.exercise_time,
-          weight: exercise.weight,
-          rest_time: exercise.rest_time,
+      if (value === "complex") {
+        const sets = exercise.sets || 1;
+
+        const setsData = Array.from({ length: sets }, () => ({
+          min_reps: exercise.min_reps ?? 0,
+          max_reps: exercise.max_reps ?? 0,
+          last_reps: exercise.last_reps ?? 0,
+          time_seconds: exercise.exercise_time ?? 0,
+          weight: exercise.weight ?? 0,
+          rest_time: exercise.rest_time ?? 0,
         }));
-        handleInputChange("sets_data", newSetsData);
+
+        handleInputChange("sets_data", setsData);
       }
 
-      // Clear sets_data when switching to simple
-      if (value === "simple" && exercise.sets_data) {
+      if (value === "simple") {
         handleInputChange("sets_data", undefined);
       }
     },
@@ -102,44 +108,24 @@ export function ExerciseCard({
   );
 
   useEffect(() => {
-    if (exercise.exercise_type == null) {
+    if (!exercise.exercise_type) {
       handleInputChange("exercise_type", "reps");
     }
-    if (exercise.config_type == null) {
+
+    if (!exercise.config_type) {
       handleInputChange("config_type", "simple");
     }
   }, []);
 
-  // Actualizar estados locales cuando cambia el ejercicio
-  useEffect(() => {
-    setExerciseType(exercise.exercise_type || "reps");
-    setConfigType(exercise.config_type || "simple");
-  }, [exercise.id]);
-
-  const handleNumericChange = (field: keyof UIExercise, value: string) => {
-    const numValue =
-      value === ""
-        ? 0
-        : value === "0" && field === "sets"
-          ? 1
-          : parseInt(value, 10);
-
-    handleInputChange(field, numValue);
-  };
-
   const handleSetChange = useCallback(
-    (
-      setIndex: number,
-      field: "reps" | "time_seconds" | "weight" | "rest_time",
-      value: number,
-    ) => {
-      if (!exercise.sets_data) return;
+    (setIndex: number, field: string, value: number) => {
+      const current = exercise.sets_data || [];
 
-      const newSetsData = exercise.sets_data.map((set, idx) =>
-        idx === setIndex ? { ...set, [field]: value } : set,
+      const updated = current.map((set, i) =>
+        i === setIndex ? { ...set, [field]: value } : set,
       );
 
-      handleInputChange("sets_data", newSetsData);
+      handleInputChange("sets_data", updated);
     },
     [exercise.sets_data, handleInputChange],
   );
@@ -148,29 +134,29 @@ export function ExerciseCard({
     (newSets: number) => {
       handleInputChange("sets", newSets);
 
-      // If in complex mode, update sets_data accordingly
-      if (configType === "complex") {
-        const currentData = exercise.sets_data || [];
-        let newSetsData;
+      if (configType !== "complex") return;
 
-        if (newSets > currentData.length) {
-          // Add new sets with default values
-          newSetsData = [
-            ...currentData,
-            ...Array.from({ length: newSets - currentData.length }, () => ({
-              reps: exercise.reps,
-              time_seconds: exercise.exercise_time,
-              weight: exercise.weight,
-              rest_time: exercise.rest_time,
-            })),
-          ];
-        } else {
-          // Remove extra sets
-          newSetsData = currentData.slice(0, newSets);
-        }
+      const current = exercise.sets_data || [];
 
-        handleInputChange("sets_data", newSetsData);
+      let updated = [...current];
+
+      if (newSets > current.length) {
+        updated = [
+          ...current,
+          ...Array.from({ length: newSets - current.length }, () => ({
+            min_reps: exercise.min_reps ?? 0,
+            max_reps: exercise.max_reps ?? 0,
+            last_reps: exercise.last_reps ?? 0,
+            time_seconds: exercise.exercise_time ?? 0,
+            weight: exercise.weight ?? 0,
+            rest_time: exercise.rest_time ?? 0,
+          })),
+        ];
+      } else {
+        updated = current.slice(0, newSets);
       }
+
+      handleInputChange("sets_data", updated);
     },
     [configType, exercise, handleInputChange],
   );
@@ -196,14 +182,10 @@ export function ExerciseCard({
   };
 
   const selectedExerciseType = EXERCISE_OPTIONS.find(
-    (opt) => opt.value === exerciseType,
+    (x) => x.value === exerciseType,
   );
 
-  const selectedConfigType = CONFIG_OPTIONS.find(
-    (opt) => opt.value === configType,
-  );
-
-  const [activeTab, setActiveTab] = useState("set-0");
+  const selectedConfigType = CONFIG_OPTIONS.find((x) => x.value === configType);
 
   return (
     <Card className="relative w-[320px]">
@@ -215,8 +197,7 @@ export function ExerciseCard({
         <Icon as={Trash} />
       </Button>
 
-      <CardContent className="gap-2 mt-2">
-        {/* NAME */}
+      <CardContent className="flex-1 gap-3 mt-2">
         <View>
           <Label>Exercise name</Label>
           <Input
@@ -226,7 +207,6 @@ export function ExerciseCard({
           />
         </View>
 
-        {/* EXERCISE TYPE */}
         <View>
           <Label>Exercise type</Label>
 
@@ -235,7 +215,7 @@ export function ExerciseCard({
             onValueChange={handleExerciseTypeChange}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select exercise type" />
+              <SelectValue placeholder="Select type" />
             </SelectTrigger>
 
             <SelectContent insets={contentInsets}>
@@ -256,18 +236,17 @@ export function ExerciseCard({
           </Select>
         </View>
 
-        {/* SETS */}
         <View>
           <Label>Sets</Label>
+
           <NumberInput
             value={exercise.sets}
             step={1}
             min={1}
-            onChange={(v) => handleSetsChange(v)}
+            onChange={handleSetsChange}
           />
         </View>
 
-        {/* CONFIG TYPE */}
         <View>
           <Label>Config type</Label>
 
@@ -276,7 +255,7 @@ export function ExerciseCard({
             onValueChange={handleConfigTypeChange}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select config type" />
+              <SelectValue placeholder="Select config" />
             </SelectTrigger>
 
             <SelectContent insets={contentInsets}>
@@ -297,27 +276,14 @@ export function ExerciseCard({
           </Select>
         </View>
 
-        {/* complexD */}
-        {configType === "complex" && (exercise.sets || 0) > 0 ? (
-          <Tabs
-            value={activeTab}
-            onValueChange={(value) => setActiveTab(value)}
-          >
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              nestedScrollEnabled
-            >
+        {/* COMPLEX */}
+        {configType === "complex" ? (
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <TabsList>
                 {Array.from({ length: exercise.sets || 0 }, (_, i) => (
-                  <TabsTrigger key={`set-${i}`} value={`set-${i}`}>
-                    <Text
-                      style={{
-                        color: activeTab === `set-${i}` ? "white" : "gray",
-                      }}
-                    >
-                      Set {i + 1}
-                    </Text>
+                  <TabsTrigger key={i} value={`set-${i}`}>
+                    <Text>Set {i + 1}</Text>
                   </TabsTrigger>
                 ))}
               </TabsList>
@@ -325,32 +291,47 @@ export function ExerciseCard({
 
             {Array.from({ length: exercise.sets || 0 }, (_, i) => {
               const setData = exercise.sets_data?.[i];
-              const reps = setData?.reps ?? exercise.reps;
-              const exerciseTs =
-                setData?.time_seconds ?? exercise.exercise_time;
-              const weight = setData?.weight ?? exercise.weight;
-              const restTime = setData?.rest_time ?? exercise.rest_time;
 
               return (
-                <TabsContent key={i} value={`set-${i}`} className="">
+                <TabsContent key={i} value={`set-${i}`} className="gap-3">
                   {exerciseType === "reps" ? (
-                    <View>
-                      <Label>Reps</Label>
-                      <NumberInput
-                        value={reps}
-                        step={1}
-                        min={0}
-                        onChange={(v) => handleSetChange(i, "reps", v)}
-                      />
-                    </View>
+                    <>
+                      <View className="flex-row gap-4">
+                        <View className="flex-1">
+                          <Label>Min Reps</Label>
+                          <NumberInput
+                            value={setData?.min_reps ?? 0}
+                            step={1}
+                            min={0}
+                            onChange={(v) => handleSetChange(i, "min_reps", v)}
+                          />
+                        </View>
+                        <View className="flex-1">
+                          <Label>Max Reps</Label>
+                          <NumberInput
+                            value={setData?.max_reps ?? 0}
+                            step={1}
+                            min={0}
+                            onChange={(v) => handleSetChange(i, "max_reps", v)}
+                          />
+                        </View>
+                      </View>
+                      <View>
+                        <Label>Last Reps</Label>
+                        <NumberInput
+                          value={setData?.last_reps ?? 0}
+                          step={1}
+                          min={0}
+                          onChange={(v) => handleSetChange(i, "last_reps", v)}
+                        />
+                      </View>
+                    </>
                   ) : (
                     <View>
                       <Label>Exercise time</Label>
                       <TimeInput
-                        value={exerciseTs}
-                        onChange={(seconds) =>
-                          handleSetChange(i, "time_seconds", seconds)
-                        }
+                        value={setData?.time_seconds ?? 0}
+                        onChange={(v) => handleSetChange(i, "time_seconds", v)}
                       />
                     </View>
                   )}
@@ -358,20 +339,17 @@ export function ExerciseCard({
                   <View>
                     <Label>Weight</Label>
                     <NumberInput
-                      value={weight}
+                      value={setData?.weight ?? 0}
                       step={1}
                       min={0}
                       onChange={(v) => handleSetChange(i, "weight", v)}
                     />
                   </View>
-
                   <View>
                     <Label>Rest time</Label>
                     <TimeInput
-                      value={restTime}
-                      onChange={(seconds) =>
-                        handleSetChange(i, "rest_time", seconds)
-                      }
+                      value={setData?.rest_time ?? 0}
+                      onChange={(v) => handleSetChange(i, "rest_time", v)}
                     />
                   </View>
                 </TabsContent>
@@ -380,76 +358,81 @@ export function ExerciseCard({
           </Tabs>
         ) : (
           <View>
-            {/* REPS vs TIME */}
             {exerciseType === "reps" ? (
-              <View>
-                <Label>Reps</Label>
+              <>
+                <View className="flex-row gap-4">
+                  <View className="flex-1">
+                    <Label>Min Reps</Label>
+                    <NumberInput
+                      value={exercise.min_reps ?? 0}
+                      step={1}
+                      min={0}
+                      onChange={(v) => handleInputChange("min_reps", v)}
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Label>Max Reps</Label>
+                    <NumberInput
+                      value={exercise.max_reps ?? 0}
+                      step={1}
+                      min={0}
+                      onChange={(v) => handleInputChange("max_reps", v)}
+                    />
+                  </View>
+                </View>
+                <Label>Last Reps</Label>
                 <NumberInput
-                  value={exercise.reps}
+                  value={exercise.last_reps ?? 0}
                   step={1}
                   min={0}
-                  onChange={(v) => handleInputChange("reps", v)}
+                  onChange={(v) => handleInputChange("last_reps", v)}
                 />
-              </View>
+              </>
             ) : (
-              <View>
+              <>
                 <Label>Exercise time</Label>
                 <TimeInput
                   value={exercise.exercise_time}
-                  onChange={(seconds) =>
-                    handleNumericChange("exercise_time", seconds.toString())
-                  }
+                  onChange={(v) => handleInputChange("exercise_time", v)}
                 />
-              </View>
+              </>
             )}
 
-            <View>
-              <Label>{`Weight (${weightUnit})`}</Label>
-              <NumberInput
-                value={exercise.weight}
-                step={1}
-                min={0}
-                onChange={(v) => handleInputChange("weight", v)}
-              />
-            </View>
+            <Label>{`Weight (${weightUnit})`}</Label>
+            <NumberInput
+              value={exercise.weight}
+              step={1}
+              min={0}
+              onChange={(v) => handleInputChange("weight", v)}
+            />
 
-            <View>
-              <Label>Rest time</Label>
-              <TimeInput
-                value={exercise.rest_time || 0}
-                onChange={(seconds) =>
-                  handleNumericChange("rest_time", seconds.toString())
-                }
-              />
-            </View>
+            <Label>Rest time</Label>
+            <TimeInput
+              value={exercise.rest_time ?? 0}
+              onChange={(v) => handleInputChange("rest_time", v)}
+            />
           </View>
         )}
       </CardContent>
 
-      <CardFooter>
+      <CardFooter className="mt-auto">
         <View style={styles.arrowsRow}>
           <Button
             variant="outline"
             style={styles.arrowButton}
             disabled={!handleMovePrev || isDisabledPrev}
-            onPress={() => {
-              if (!handleMovePrev || index === undefined) return;
-              handleMovePrev(index);
-            }}
+            onPress={() => index !== undefined && handleMovePrev?.(index)}
           >
             <Icon as={ArrowLeft} />
           </Button>
-          <Text className="text-xs">
-            Position: #{index !== undefined ? index + 1 : 0}
-          </Text>
+
+          <Text>#{index !== undefined ? index + 1 : 0}</Text>
+
           <Button
             variant="outline"
             style={styles.arrowButton}
             disabled={!handleMoveNext || isDisabledNext}
-            onPress={() => {
-              if (!handleMoveNext || index === undefined) return;
-              handleMoveNext(index);
-            }}
+            onPress={() => index !== undefined && handleMoveNext?.(index)}
           >
             <Icon as={ArrowRight} />
           </Button>

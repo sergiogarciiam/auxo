@@ -4,7 +4,9 @@ export interface UIExercise {
   id: number | string;
   block_id: number | string;
   name: string;
-  reps: number;
+  last_reps: number;
+  min_reps: number;
+  max_reps: number;
   exercise_time: number;
   exercise_type: string;
   config_type: string;
@@ -12,7 +14,9 @@ export interface UIExercise {
   weight: number;
   sets: number;
   sets_data?: {
-    reps: number;
+    min_reps: number;
+    max_reps: number;
+    last_reps: number;
     time_seconds: number;
     weight: number;
     rest_time: number;
@@ -59,7 +63,9 @@ export interface ExecutionStep {
   blockId: number | string;
   exerciseId?: number | string;
   name?: string;
-  reps?: number;
+  last_reps?: number;
+  min_reps?: number;
+  max_reps?: number;
   time_seconds?: number;
   set?: number;
   weight?: number;
@@ -69,5 +75,12 @@ export interface ExecutionStep {
   blockName?: string; // for flexible blocks - display block name
 }
 
+export interface SnackbarMessage {
+  id: string;
+  text: string;
+  variant: SnackbarVariant;
+}
+
 export type ThemeOption = "system" | "light" | "dark";
 export type WeightUnit = "kg" | "lb";
+export type SnackbarVariant = "success" | "error" | "warning";

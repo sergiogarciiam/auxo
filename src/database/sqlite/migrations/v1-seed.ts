@@ -1,7 +1,3 @@
-// Seed data for development (v1)
-// Sample workouts with exercises for testing
-// Includes: simple/complex exercises, different block types, varying rest configs
-
 export const v1Seed = `
   INSERT INTO workouts (name, position) VALUES
     ('Full Body Beginner', 0),
@@ -38,62 +34,120 @@ export const v1Seed = `
     (8, 'Pick Your Exercises', 'flexible', 10, 0, 0),
     (8, 'Cool Down', 'cooldown', 5, 0, 1);
 
-  INSERT INTO exercises (block_id, name, reps, time_seconds, weight, sets, rest_time, exercise_type, config_type, sets_data, position) VALUES
-    (1, 'Jumping Jacks', NULL, 30, NULL, 1, 0, 'duration', 'simple', NULL, 0),
-    (1, 'Arm Circles', NULL, 30, NULL, 1, 0, 'duration', 'simple', NULL, 1),
-    (2, 'Squats', 12, NULL, NULL, 3, 45, 'reps', 'simple', NULL, 0),
-    (2, 'Push Ups', 10, NULL, NULL, 3, 45, 'reps', 'simple', NULL, 1),
-    (2, 'Bent Over Row', 12, NULL, 8, 3, 50, 'reps', 'simple', NULL, 2),
-    (3, 'Stretch Hamstrings', NULL, 60, NULL, 1, 0, 'duration', 'simple', NULL, 0),
-    (3, 'Child Pose', NULL, 60, NULL, 1, 0, 'duration', 'simple', NULL, 1),
-    (4, 'Burpees', NULL, 45, NULL, 3, 25, 'duration', 'simple', NULL, 0),
-    (4, 'Mountain Climbers', NULL, 30, NULL, 3, 20, 'duration', 'simple', NULL, 1),
-    (4, 'Jump Lunges', NULL, 30, NULL, 3, 25, 'duration', 'simple', NULL, 2),
-    (4, 'Push-up to T', NULL, 40, NULL, 3, 30, 'duration', 'simple', NULL, 3),
-    (5, 'Forward Fold', NULL, 60, NULL, 1, 0, 'duration', 'simple', NULL, 0),
-    (5, 'Cat-Cow Stretch', NULL, 60, NULL, 1, 0, 'duration', 'simple', NULL, 1),
-    (6, 'Dumbbell Squats', 12, NULL, 10, 3, 40, 'reps', 'simple', NULL, 0),
-    (6, 'Push Ups', 10, NULL, NULL, 3, 35, 'reps', 'simple', NULL, 1),
-    (6, 'Lunges', 12, NULL, 8, 3, 40, 'reps', 'simple', NULL, 2),
-    (6, 'Plank Row', 10, NULL, 10, 3, 35, 'reps', 'simple', NULL, 3),
-    (7, 'Quad Stretch', NULL, 45, NULL, 1, 0, 'duration', 'simple', NULL, 0),
-    (7, 'Hip Circles', NULL, 45, NULL, 1, 0, 'duration', 'simple', NULL, 1),
-    (8, 'Dynamic Stretch', NULL, 30, NULL, 1, 0, 'duration', 'simple', NULL, 0),
-    (8, 'Jumping Jacks', NULL, 30, NULL, 1, 0, 'duration', 'simple', NULL, 1),
-    (9, 'High Knees', NULL, 30, NULL, 3, 15, 'duration', 'complex', '[{"reps":null,"time_seconds":30,"weight":null,"rest_time":15},{"reps":null,"time_seconds":30,"weight":null,"rest_time":15},{"reps":null,"time_seconds":30,"weight":null,"rest_time":15}]', 0),
-    (9, 'Jump Rope', NULL, 40, NULL, 3, 20, 'duration', 'complex', '[{"reps":null,"time_seconds":40,"weight":null,"rest_time":20},{"reps":null,"time_seconds":45,"weight":null,"rest_time":20},{"reps":null,"time_seconds":50,"weight":null,"rest_time":20}]', 1),
-    (10, 'Battle Ropes', NULL, 30, NULL, 3, 15, 'duration', 'complex', '[{"reps":null,"time_seconds":30,"weight":null,"rest_time":15},{"reps":null,"time_seconds":30,"weight":null,"rest_time":15},{"reps":null,"time_seconds":30,"weight":null,"rest_time":15}]', 0),
-    (10, 'Box Jumps', 5, NULL, NULL, 3, 25, 'reps', 'complex', '[{"reps":5,"time_seconds":null,"weight":null,"rest_time":25},{"reps":6,"time_seconds":null,"weight":null,"rest_time":25},{"reps":5,"time_seconds":null,"weight":null,"rest_time":25}]', 1),
-    (11, 'Deep Breathing', NULL, 60, NULL, 1, 0, 'duration', 'simple', NULL, 0),
-    (11, 'Lying Stretch', NULL, 60, NULL, 1, 0, 'duration', 'simple', NULL, 1),
-    (12, 'Arm Stretches', NULL, 30, NULL, 1, 0, 'duration', 'simple', NULL, 0),
-    (12, 'Leg Swings', NULL, 30, NULL, 1, 0, 'duration', 'simple', NULL, 1),
-    (13, 'Barbell Bench', 8, NULL, 20, 4, 60, 'reps', 'complex', '[{"reps":8,"time_seconds":null,"weight":20,"rest_time":60},{"reps":6,"time_seconds":null,"weight":22,"rest_time":60},{"reps":5,"time_seconds":null,"weight":24,"rest_time":60},{"reps":8,"time_seconds":null,"weight":20,"rest_time":60}]', 0),
-    (13, 'Lat Pulldown', 10, NULL, 15, 4, 50, 'reps', 'complex', '[{"reps":10,"time_seconds":null,"weight":15,"rest_time":50},{"reps":9,"time_seconds":null,"weight":17,"rest_time":50},{"reps":8,"time_seconds":null,"weight":18,"rest_time":50},{"reps":10,"time_seconds":null,"weight":15,"rest_time":50}]', 1),
-    (14, 'Goblet Squats', 12, NULL, 12, 3, 45, 'reps', 'simple', NULL, 0),
-    (14, 'Deadlift', 6, NULL, 30, 3, 90, 'reps', 'simple', NULL, 1),
-    (15, 'Full Body Stretch', NULL, 120, NULL, 1, 0, 'duration', 'simple', NULL, 0),
-    (16, 'Shoulder Rolls', NULL, 30, NULL, 1, 0, 'duration', 'simple', NULL, 0),
-    (16, 'Band Pull Aparts', NULL, 30, NULL, 1, 0, 'duration', 'simple', NULL, 1),
-    (17, 'Push-up Variation', 8, NULL, NULL, 4, 40, 'reps', 'complex', '[{"reps":8,"time_seconds":null,"weight":null,"rest_time":40},{"reps":8,"time_seconds":null,"weight":null,"rest_time":40},{"reps":6,"time_seconds":null,"weight":null,"rest_time":40},{"reps":6,"time_seconds":null,"weight":null,"rest_time":40}]', 0),
-    (17, 'Dumbell Overhead Press', 10, NULL, 8, 3, 45, 'reps', 'simple', NULL, 1),
-    (17, 'Face Pulls', 15, NULL, 5, 3, 35, 'reps', 'simple', NULL, 2),
-    (18, 'Pull-up', 6, NULL, NULL, 3, 60, 'reps', 'complex', '[{"reps":6,"time_seconds":null,"weight":null,"rest_time":60},{"reps":5,"time_seconds":null,"weight":null,"rest_time":60},{"reps":5,"time_seconds":null,"weight":null,"rest_time":60}]', 0),
-    (18, 'Barbell Curl', 10, NULL, 10, 3, 40, 'reps', 'simple', NULL, 1),
-    (19, 'Plank Hold', NULL, 60, NULL, 3, 30, 'duration', 'simple', NULL, 0),
-    (19, 'Arm Wrestling', NULL, 45, NULL, 1, 0, 'duration', 'simple', NULL, 1),
-    (20, 'Upper Body Stretch', NULL, 120, NULL, 1, 0, 'duration', 'simple', NULL, 0),
-    (21, 'Jumping Jacks', NULL, 20, NULL, 1, 0, 'duration', 'simple', NULL, 0),
-    (21, 'Arm Circles', NULL, 20, NULL, 1, 0, 'duration', 'simple', NULL, 1),
-    (21, 'Leg Swings', NULL, 20, NULL, 1, 0, 'duration', 'simple', NULL, 2),
-    (21, 'Jogging in Place', NULL, 30, NULL, 1, 0, 'duration', 'simple', NULL, 3),
-    (22, 'Dumbbell Bench Press', 8, NULL, 15, 3, 45, 'reps', 'simple', NULL, 0),
-    (22, 'Lat Pulldown Machine', 10, NULL, 20, 3, 50, 'reps', 'simple', NULL, 1),
-    (22, 'Cable Chest Fly', 12, NULL, 12, 3, 40, 'reps', 'simple', NULL, 2),
-    (22, 'Seated Row', 10, NULL, 18, 3, 45, 'reps', 'simple', NULL, 3),
-    (22, 'Incline Dumbbell Press', 10, NULL, 12, 3, 40, 'reps', 'complex', '[{"reps":10,"time_seconds":null,"weight":12,"rest_time":40},{"reps":10,"time_seconds":null,"weight":13,"rest_time":40},{"reps":8,"time_seconds":null,"weight":14,"rest_time":40}]', 4),
-    (22, 'Face Pulls Machine', 15, NULL, 10, 3, 35, 'reps', 'simple', NULL, 5),
-    (22, 'Bicep Curls', 12, NULL, 8, 3, 35, 'reps', 'simple', NULL, 6),
-    (22, 'Tricep Dips', 8, NULL, NULL, 3, 50, 'reps', 'simple', NULL, 7),
-    (23, 'Cool Down Stretch', NULL, 120, NULL, 1, 0, 'duration', 'simple', NULL, 0);
+  INSERT INTO exercises (
+    block_id,
+    name,
+    last_reps,
+    min_reps,
+    max_reps,
+    time_seconds,
+    weight,
+    sets,
+    rest_time,
+    exercise_type,
+    config_type,
+    sets_data,
+    position
+  ) VALUES
+
+    (1, 'Jumping Jacks', NULL, NULL, NULL, 30, NULL, 1, 0, 'time', 'simple', NULL, 0),
+    (1, 'Arm Circles', NULL, NULL, NULL, 30, NULL, 1, 0, 'time', 'simple', NULL, 1),
+
+    (2, 'Squats', 12, 10, 12, NULL, NULL, 3, 45, 'reps', 'simple', NULL, 0),
+    (2, 'Push Ups', 10, 8, 12, NULL, NULL, 3, 45, 'reps', 'simple', NULL, 1),
+    (2, 'Bent Over Row', 12, 10, 12, NULL, 8, 3, 50, 'reps', 'simple', NULL, 2),
+
+    (3, 'Stretch Hamstrings', NULL, NULL, NULL, 60, NULL, 1, 0, 'time', 'simple', NULL, 0),
+    (3, 'Child Pose', NULL, NULL, NULL, 60, NULL, 1, 0, 'time', 'simple', NULL, 1),
+
+    (4, 'Burpees', NULL, NULL, NULL, 45, NULL, 3, 25, 'time', 'simple', NULL, 0),
+    (4, 'Mountain Climbers', NULL, NULL, NULL, 30, NULL, 3, 20, 'time', 'simple', NULL, 1),
+    (4, 'Jump Lunges', NULL, NULL, NULL, 30, NULL, 3, 25, 'time', 'simple', NULL, 2),
+    (4, 'Push-up to T', NULL, NULL, NULL, 40, NULL, 3, 30, 'time', 'simple', NULL, 3),
+
+    (5, 'Forward Fold', NULL, NULL, NULL, 60, NULL, 1, 0, 'time', 'simple', NULL, 0),
+    (5, 'Cat-Cow Stretch', NULL, NULL, NULL, 60, NULL, 1, 0, 'time', 'simple', NULL, 1),
+
+    (6, 'Dumbbell Squats', 12, 10, 12, NULL, 10, 3, 40, 'reps', 'simple', NULL, 0),
+    (6, 'Push Ups', 10, 8, 12, NULL, NULL, 3, 35, 'reps', 'simple', NULL, 1),
+    (6, 'Lunges', 12, 10, 12, NULL, 8, 3, 40, 'reps', 'simple', NULL, 2),
+    (6, 'Plank Row', 10, 8, 12, NULL, 10, 3, 35, 'reps', 'simple', NULL, 3),
+
+    (7, 'Quad Stretch', NULL, NULL, NULL, 45, NULL, 1, 0, 'time', 'simple', NULL, 0),
+    (7, 'Hip Circles', NULL, NULL, NULL, 45, NULL, 1, 0, 'time', 'simple', NULL, 1),
+
+    (8, 'Dynamic Stretch', NULL, NULL, NULL, 30, NULL, 1, 0, 'time', 'simple', NULL, 0),
+    (8, 'Jumping Jacks', NULL, NULL, NULL, 30, NULL, 1, 0, 'time', 'simple', NULL, 1),
+
+    (9, 'High Knees', NULL, NULL, NULL, 30, NULL, 3, 15, 'time', 'complex',
+      '[{"last_reps":null,"min_reps":null,"max_reps":null,"time_seconds":30,"weight":null,"rest_time":15}]', 0),
+
+    (9, 'Jump Rope', NULL, NULL, NULL, 40, NULL, 3, 20, 'time', 'complex',
+      '[{"last_reps":null,"min_reps":null,"max_reps":null,"time_seconds":40,"weight":null,"rest_time":20}]', 1),
+
+    (10, 'Battle Ropes', NULL, NULL, NULL, 30, NULL, 3, 15, 'time', 'complex',
+      '[{"last_reps":null,"min_reps":null,"max_reps":null,"time_seconds":30,"weight":null,"rest_time":15}]', 0),
+
+    (10, 'Box Jumps', 5, 5, 8, NULL, NULL, 3, 25, 'reps', 'complex',
+      '[{"last_reps":5,"min_reps":5,"max_reps":8,"time_seconds":null,"weight":null,"rest_time":25}]', 1),
+
+    (11, 'Deep Breathing', NULL, NULL, NULL, 60, NULL, 1, 0, 'time', 'simple', NULL, 0),
+    (11, 'Lying Stretch', NULL, NULL, NULL, 60, NULL, 1, 0, 'time', 'simple', NULL, 1),
+
+    (12, 'Arm Stretches', NULL, NULL, NULL, 30, NULL, 1, 0, 'time', 'simple', NULL, 0),
+    (12, 'Leg Swings', NULL, NULL, NULL, 30, NULL, 1, 0, 'time', 'simple', NULL, 1),
+
+    (13, 'Barbell Bench', 8, 6, 8, NULL, 20, 4, 60, 'reps', 'complex',
+      '[{"last_reps":8,"min_reps":6,"max_reps":8,"weight":20,"rest_time":60},
+        {"last_reps":6,"min_reps":6,"max_reps":8,"weight":22,"rest_time":60}]', 0),
+
+    (13, 'Lat Pulldown', 10, 8, 10, NULL, 15, 4, 50, 'reps', 'complex',
+      '[{"last_reps":10,"min_reps":8,"max_reps":10,"weight":15,"rest_time":50}]', 1),
+
+    (14, 'Goblet Squats', 12, 10, 12, NULL, 12, 3, 45, 'reps', 'simple', NULL, 0),
+    (14, 'Deadlift', 6, 4, 6, NULL, 30, 3, 90, 'reps', 'simple', NULL, 1),
+
+    (15, 'Full Body Stretch', NULL, NULL, NULL, 120, NULL, 1, 0, 'time', 'simple', NULL, 0),
+    (16, 'Shoulder Rolls', NULL, NULL, NULL, 30, NULL, 1, 0, 'time', 'simple', NULL, 0),
+    (16, 'Band Pull Aparts', NULL, NULL, NULL, 30, NULL, 1, 0, 'time', 'simple', NULL, 1),
+
+    (17, 'Push-up Variation', 8, 6, 8, NULL, NULL, 4, 40, 'reps', 'complex',
+      '[{"last_reps":8,"min_reps":6,"max_reps":8,"rest_time":40}]', 0),
+
+    (17, 'Dumbbell Overhead Press', 10, 8, 12, NULL, 8, 3, 45, 'reps', 'simple', NULL, 1),
+
+    (17, 'Face Pulls', 15, 12, 15, NULL, 5, 3, 35, 'reps', 'simple', NULL, 2),
+
+    (18, 'Pull-up', 6, 4, 6, NULL, NULL, 3, 60, 'reps', 'complex',
+      '[{"last_reps":6,"min_reps":4,"max_reps":6,"rest_time":60}]', 0),
+
+    (18, 'Barbell Curl', 10, 8, 12, NULL, 10, 3, 40, 'reps', 'simple', NULL, 1),
+
+    (19, 'Plank Hold', NULL, NULL, NULL, 60, NULL, 3, 30, 'time', 'simple', NULL, 0),
+    (19, 'Arm Wrestling', NULL, NULL, NULL, 45, NULL, 1, 0, 'time', 'simple', NULL, 1),
+
+    (20, 'Upper Body Stretch', NULL, NULL, NULL, 120, NULL, 1, 0, 'time', 'simple', NULL, 0),
+
+    (21, 'Jumping Jacks', NULL, NULL, NULL, 20, NULL, 1, 0, 'time', 'simple', NULL, 0),
+    (21, 'Arm Circles', NULL, NULL, NULL, 20, NULL, 1, 0, 'time', 'simple', NULL, 1),
+    (21, 'Leg Swings', NULL, NULL, NULL, 20, NULL, 1, 0, 'time', 'simple', NULL, 2),
+    (21, 'Jogging in Place', NULL, NULL, NULL, 30, NULL, 1, 0, 'time', 'simple', NULL, 3),
+
+    (22, 'Dumbbell Bench Press', 8, 6, 10, NULL, 15, 3, 45, 'reps', 'simple', NULL, 0),
+    (22, 'Lat Pulldown Machine', 10, 8, 12, NULL, 20, 3, 50, 'reps', 'simple', NULL, 1),
+
+    (22, 'Cable Chest Fly', 12, 10, 15, NULL, 12, 3, 40, 'reps', 'simple', NULL, 2),
+
+    (22, 'Seated Row', 10, 8, 12, NULL, 18, 3, 45, 'reps', 'simple', NULL, 3),
+
+    (22, 'Incline Dumbbell Press', 10, 8, 12, NULL, 12, 3, 40, 'reps', 'complex',
+      '[{"last_reps":10,"min_reps":8,"max_reps":12,"weight":12,"rest_time":40}]', 4),
+
+    (22, 'Face Pulls Machine', 15, 12, 15, NULL, 10, 3, 35, 'reps', 'simple', NULL, 5),
+
+    (22, 'Bicep Curls', 12, 10, 12, NULL, 8, 3, 35, 'reps', 'simple', NULL, 6),
+
+    (22, 'Tricep Dips', 8, 6, 10, NULL, NULL, 3, 50, 'reps', 'simple', NULL, 7),
+
+    (23, 'Cool Down Stretch', NULL, NULL, NULL, 120, NULL, 1, 0, 'time', 'simple', NULL, 0);
 `;

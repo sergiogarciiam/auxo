@@ -11,13 +11,15 @@ export const exercise = {
   create: async (exerciseData: CreateExercisePayload): Promise<any> => {
     const sql = `
       INSERT INTO exercises 
-      (block_id, name, reps, time_seconds, weight, sets, rest_time, exercise_type, config_type, sets_data, position) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      (block_id, name, last_reps, min_reps, max_reps, time_seconds, weight, sets, rest_time, exercise_type, config_type, sets_data, position) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `;
     const {
       block_id,
       name,
-      reps,
+      last_reps,
+      min_reps,
+      max_reps,
       time_seconds,
       weight,
       sets,
@@ -30,7 +32,9 @@ export const exercise = {
     const result = await runQuery(sql, [
       block_id,
       name,
-      reps,
+      last_reps,
+      min_reps,
+      max_reps,
       time_seconds,
       weight,
       sets,
@@ -47,42 +51,25 @@ export const exercise = {
    * Updates an existing exercise
    */
   update: async (exerciseData: UpdateExercisePayload): Promise<any> => {
-    const sql = `
-      UPDATE exercises 
-      SET block_id = ?, name = ?, reps = ?, time_seconds = ?, weight = ?, sets = ?, rest_time = ?, exercise_type = ?, config_type = ?, sets_data = ?, position = ?
-      WHERE id = ?;
-    `;
-    const {
-      id,
-      block_id,
-      name,
-      reps,
-      time_seconds,
-      weight,
-      sets,
-      rest_time,
-      exercise_type,
-      config_type,
-      sets_data,
-      position,
-    } = exerciseData;
-    const result = await runQuery(sql, [
-      block_id,
-      name,
-      reps,
-      time_seconds,
-      weight,
-      sets,
-      rest_time,
-      exercise_type,
-      config_type,
-      sets_data ?? null,
-      position,
-      id,
-    ]);
-    return result;
-  },
+    const { id, ...fields } = exerciseData;
 
+    const keys = Object.keys(fields).filter(
+      (k) => fields[k as keyof typeof fields] !== undefined,
+    );
+
+    if (keys.length === 0) return;
+
+    const setClause = keys.map((k) => `${k} = ?`).join(", ");
+    const values = keys.map((k) => fields[k as keyof typeof fields]);
+
+    const sql = `
+    UPDATE exercises
+    SET ${setClause}
+    WHERE id = ?;
+  `;
+
+    return await runQuery(sql, [...values, id]);
+  },
   /**
    * Deletes an exercise
    */

@@ -18,8 +18,10 @@ import * as Haptics from "expo-haptics";
 import {
   ArrowLeft,
   ArrowRight,
+  Minus,
   Pause,
   Play,
+  Plus,
   SquareArrowRightExit,
 } from "lucide-react-native";
 
@@ -27,11 +29,14 @@ import ConfettiCannon from "react-native-confetti-cannon";
 
 import { CustomAlertDialog } from "../components/alert-dialog";
 import { useSettingsContext } from "../context/useSettingsContext";
+import { useExercises } from "../hooks/base/useExercises";
 import { usePauseTimer } from "../hooks/start/usePauseTimer";
 import { useStartTimer } from "../hooks/start/useStartTimer";
 import { useStartWorkoutStore } from "../stores/useStartWorkoutStore";
+import { UpdateExercisePayload } from "../types/exercise";
 import { buildFlexibleExercisePlan } from "../utils/buildFlexibleExercisePlan";
 import { formatTime } from "../utils/formatTime";
+import { handleAndShowError, showSuccessMessage } from "../utils/ui";
 
 const beep = require("../../assets/beep.wav");
 const doubleBeep = require("../../assets/double-beep.wav");
@@ -54,6 +59,7 @@ export default function StartWorkout() {
   const doubleBeepPlayer = useAudioPlayer(doubleBeep);
 
   const { weightUnit } = useSettingsContext();
+  const { updateExercise } = useExercises();
 
   const {
     workout,
@@ -70,12 +76,12 @@ export default function StartWorkout() {
   const [isFinished, setIsFinished] = useState(false);
   const [open, setOpen] = useState(false);
 
-  /**
-   * FLEXIBLE RUNTIME PLAN
-   */
   const [flexPlan, setFlexPlan] = useState<any[]>([]);
   const [flexIndex, setFlexIndex] = useState(0);
   const [selectedExercise, setSelectedExercise] = useState<any | null>(null);
+
+  const [liveReps, setLiveReps] = useState<number | null>(null);
+  const [liveWeight, setLiveWeight] = useState<number | null>(null);
 
   const timerRef = useRef<number | null>(null);
   const backgroundTimeRef = useRef<number | null>(null);
@@ -103,20 +109,17 @@ export default function StartWorkout() {
     return unsub;
   }, [navigation]);
 
-  /**
-   * ACTIVE STEP
-   */
   const mainStep = executionPlan[index];
-
   const step = flexPlan.length > 0 ? flexPlan[flexIndex] : mainStep;
 
   const isRunningFlexibleExercise = flexPlan.length > 0;
-
   const isLastMain = index >= executionPlan.length - 1;
 
-  /**
-   * TIMER
-   */
+  useEffect(() => {
+    setLiveReps(step?.last_reps ?? null);
+    setLiveWeight(step?.weight ?? null);
+  }, [step]);
+
   const clearTimer = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -156,9 +159,6 @@ export default function StartWorkout() {
     }, 1000) as unknown as number;
   };
 
-  /**
-   * AUTO START STEP TIMER
-   */
   useStartTimer(
     step,
     startTimer,
@@ -170,9 +170,6 @@ export default function StartWorkout() {
 
   usePauseTimer(isPaused, clearTimer, startTimer, remaining);
 
-  /**
-   * FLEXIBLE SELECT
-   */
   const handleSelectFlexible = (exercise: any) => {
     const plan = buildFlexibleExercisePlan(exercise, mainStep.blockId);
 
@@ -182,16 +179,37 @@ export default function StartWorkout() {
     setRemaining(null);
   };
 
-  /**
-   * NEXT
-   */
-  const handleNext = () => {
+  const persistChanges = async () => {
+    if (!step?.exerciseId) return;
+
+    const updates: UpdateExercisePayload = {
+      id: step.exerciseId,
+    };
+
+    if (liveReps !== null && liveReps !== step.last_reps) {
+      updates.last_reps = liveReps;
+    }
+
+    if (liveWeight !== null && liveWeight !== step.weight) {
+      updates.weight = liveWeight;
+    }
+
+    if (Object.keys(updates).length > 1) {
+      try {
+        await updateExercise(updates);
+        showSuccessMessage("Exercise saved");
+      } catch (error) {
+        handleAndShowError(error);
+      }
+    }
+  };
+
+  const handleNext = async () => {
+    await persistChanges();
+
     clearTimer();
     setRemaining(null);
 
-    /**
-     * RUNNING FLEXIBLE EXERCISE
-     */
     if (isRunningFlexibleExercise) {
       const isLastFlex = flexIndex >= flexPlan.length - 1;
 
@@ -200,22 +218,15 @@ export default function StartWorkout() {
         return;
       }
 
-      /**
-       * Finished selected exercise flow (siempre volver a selección)
-       */
       markFlexibleExerciseCompleted(mainStep.blockId, selectedExercise.id);
 
       setFlexPlan([]);
       setFlexIndex(0);
       setSelectedExercise(null);
       setRemaining(null);
-
-      // 👇 SIEMPRE volver a selección flexible
       return;
     }
-    /**
-     * NORMAL FLOW
-     */
+
     if (isLastMain) {
       setIsFinished(true);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -275,9 +286,6 @@ export default function StartWorkout() {
     router.replace("/");
   };
 
-  /**
-   * APP BACKGROUND
-   */
   useEffect(() => {
     isPausedRef.current = isPaused;
   }, [isPaused]);
@@ -337,7 +345,6 @@ export default function StartWorkout() {
   }, [remaining, step]);
 
   const { width, height } = useWindowDimensions();
-
   const isLandscape = width > height;
 
   const percent = isFinished
@@ -368,41 +375,51 @@ export default function StartWorkout() {
           ),
         }}
       />
-
-      {/* FLEXIBLE LIST */}
+      {isPaused && (
+        <View
+          pointerEvents="auto"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            zIndex: 20,
+          }}
+        />
+      )}
       {mainStep.type === "flexible-selection" &&
         !isRunningFlexibleExercise &&
         !isFinished && (
-          <View className="absolute inset-0 z-10 justify-center px-6 bg-black/60">
+          <View className="absolute inset-0 justify-center px-6 bg-black/60">
             <View className="gap-3">
-              {mainStep.availableExercises &&
-                mainStep.availableExercises.map((ex: any) => {
-                  const done = isFlexibleExerciseCompleted(
-                    mainStep.blockId,
-                    ex.id,
-                  );
+              {mainStep.availableExercises?.map((ex: any) => {
+                const done = isFlexibleExerciseCompleted(
+                  mainStep.blockId,
+                  ex.id,
+                );
 
-                  return (
-                    <Pressable
-                      key={ex.id}
-                      disabled={done}
-                      onPress={() => handleSelectFlexible(ex)}
-                      className={`p-4 rounded-xl ${
-                        done ? "bg-green-700" : "bg-neutral-800"
-                      }`}
-                    >
-                      <Text className="font-bold text-center text-white">
-                        {ex.name} {done ? "✓" : ""}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
+                return (
+                  <Pressable
+                    key={ex.id}
+                    disabled={done}
+                    onPress={() => handleSelectFlexible(ex)}
+                    className={`p-4 rounded-xl ${
+                      done ? "bg-green-700" : "bg-neutral-800"
+                    }`}
+                  >
+                    <Text className="font-bold text-center text-white">
+                      {ex.name} {done ? "✓" : ""}
+                    </Text>
+                  </Pressable>
+                );
+              })}
             </View>
           </View>
         )}
 
       <View className="flex-1 gap-6 p-6 bg-neutral-900">
-        {/* PROGRESS */}
         <View className="w-full h-5 overflow-hidden rounded-full bg-neutral-700">
           <View
             className="items-end justify-center h-full pr-3 bg-green-500"
@@ -411,7 +428,7 @@ export default function StartWorkout() {
             {percent > 5 && <Text className="font-bold">{percent}%</Text>}
           </View>
         </View>
-        {/* BODY */}
+
         <View className="items-center justify-center flex-1 gap-6">
           {isFinished ? (
             <>
@@ -444,28 +461,88 @@ export default function StartWorkout() {
                     ? formatTime(remaining)
                     : step.time_seconds
                       ? formatTime(step.time_seconds)
-                      : step.reps
-                        ? `${step.reps} reps`
+                      : step.min_reps && step.max_reps
+                        ? `${step.min_reps} - ${step.max_reps}`
                         : isIdleFlexibleSelection
                           ? ""
                           : "-"}
                 </Text>
               </View>
 
-              <View className="items-center justify-center h-6">
-                <Text className="text-lg font-bold">
-                  {step.set
-                    ? `Set ${step.set}${step.totalSets ? ` / ${step.totalSets}` : ""}`
-                    : ""}
-                  {step.weight ? ` · ${step.weight}${weightUnit}` : ""}
-                </Text>
+              <View className="gap-4">
+                {!step.time_seconds && liveReps !== null && (
+                  <View className="flex-row items-center gap-4">
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onPress={() =>
+                        setLiveReps((p) => Math.max(0, (p ?? 0) - 1))
+                      }
+                    >
+                      <Icon as={Minus} />
+                    </Button>
+
+                    <Text className="text-2xl font-bold text-center w-28">
+                      {liveReps} reps
+                    </Text>
+
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onPress={() => setLiveReps((p) => (p ?? 0) + 1)}
+                    >
+                      <Icon as={Plus} />
+                    </Button>
+                  </View>
+                )}
+
+                {step.weight !== undefined &&
+                  step.weight !== null &&
+                  step.weight !== 0 && (
+                    <View className="flex-row items-center gap-4">
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        onPress={() =>
+                          setLiveWeight((p) =>
+                            Math.max(0, Number(((p ?? 0) - 2.5).toFixed(1))),
+                          )
+                        }
+                      >
+                        <Icon as={Minus} />
+                      </Button>
+
+                      <Text className="text-2xl font-bold text-center w-28">
+                        {liveWeight} {weightUnit}
+                      </Text>
+
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        onPress={() =>
+                          setLiveWeight((p) =>
+                            Number(((p ?? 0) + 2.5).toFixed(1)),
+                          )
+                        }
+                      >
+                        <Icon as={Plus} />
+                      </Button>
+                    </View>
+                  )}
+
+                {step.set && (
+                  <Text className="text-lg font-bold text-center">
+                    Set {step.set}
+                    {step.totalSets ? ` / ${step.totalSets}` : ""}
+                  </Text>
+                )}
               </View>
             </>
           )}
         </View>
-        {/* CONTROLS */}
+
         {!isFinished && (
-          <View className="z-30 flex-row items-center justify-between gap-6">
+          <View className="flex-row items-center justify-between gap-6">
             <Button size="icon" onPress={handlePrev} disabled={index === 0}>
               <Icon as={ArrowLeft} />
             </Button>
@@ -474,6 +551,7 @@ export default function StartWorkout() {
               size="icon"
               onPress={() => setIsPaused((p) => !p)}
               disabled={remaining === null}
+              className="z-30"
             >
               {isPaused ? <Icon as={Play} /> : <Icon as={Pause} />}
             </Button>

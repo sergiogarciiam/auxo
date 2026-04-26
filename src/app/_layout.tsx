@@ -11,7 +11,7 @@ import "../global.css";
 
 export default function RootLayout() {
   return (
-    <ThemeProvider value={NAV_THEME["dark"]}>
+    <ThemeProvider value={NAV_THEME["light"]}>
       <SQLiteProvider
         databaseName="workout_timer.db"
         onInit={dbRepository.onInit}
