@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
+import { Sizes, Spacing } from "@/lib/theme";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { Plus, Settings } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
 import DraggableFlatList from "react-native-draggable-flatlist";
 import { WorkoutCard } from "../components/workout-card";
-import { Sizes, Spacing } from "../constants/theme";
 import { useWorkouts } from "../hooks/base/useWorkouts";
 import { useLoadWorkout } from "../hooks/other/useLoadWorkout";
 import { useTheme } from "../hooks/useTheme";

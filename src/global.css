@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    /* Base Colors (Native Reusables) */
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
     --card: 0 0% 100%;
@@ -23,14 +24,34 @@
     --input: 0 0% 89.8%;
     --ring: 0 0% 63%;
     --radius: 0.625rem;
+
+    /* Chart Colors */
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+
+    /* Additional Semantic Colors */
+    --primary-accent: 217 100% 54%;
+    --background-secondary: 0 0% 96%;
+    --menu-background: 0 0% 20%;
+    --picker-background: 0 0% 100%;
+    --light-background: 0 0% 98%;
+    --disabled-background: 0 0% 87%;
+    --disabled-text: 0 0% 60%;
+    --text-primary: 0 0% 0%;
+    --text-secondary: 0 0% 33%;
+    --indicator-inactive: 0 0% 80%;
+    --success: 142 71% 35%;
+    --warning: 32 100% 44%;
+    --primary-icon-color: 0 0% 100%;
+    --disable-icon-color: 0 0% 47%;
+    --shadow-color: 0 0% 0%;
   }
 
   .dark:root {
+    /* Base Colors (Native Reusables) */
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
     --card: 0 0% 3.9%;
@@ -49,10 +70,29 @@
     --border: 0 0% 14.9%;
     --input: 0 0% 14.9%;
     --ring: 300 0% 45%;
+
+    /* Chart Colors */
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+
+    /* Additional Semantic Colors */
+    --primary-accent: 217 100% 54%;
+    --background-secondary: 0 0% 12%;
+    --menu-background: 0 0% 12%;
+    --picker-background: 0 0% 12%;
+    --light-background: 0 0% 12%;
+    --disabled-background: 0 0% 17%;
+    --disabled-text: 0 0% 47%;
+    --text-primary: 0 0% 100%;
+    --text-secondary: 0 0% 73%;
+    --indicator-inactive: 0 0% 33%;
+    --success: 142 71% 35%;
+    --warning: 32 100% 44%;
+    --primary-icon-color: 0 0% 100%;
+    --disable-icon-color: 0 0% 33%;
+    --shadow-color: 0 0% 47%;
   }
 }

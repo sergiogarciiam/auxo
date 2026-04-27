@@ -1,10 +1,9 @@
 import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Sizes } from "@/lib/theme";
 import { AlertCircleIcon, CheckCircle2Icon } from "lucide-react-native";
 import React, { useEffect, useRef } from "react";
 import { AccessibilityInfo, Animated } from "react-native";
-import { Sizes } from "../constants/theme";
 import { SnackbarMessage, useSnackbarStore } from "../stores/useSnackbarStore";
-import { SnackbarVariant } from "../types/ui";
 
 export function Snackbar() {
   const messages = useSnackbarStore((s: any) => s.messages);
@@ -14,12 +13,6 @@ export function Snackbar() {
 
   const translateY = useRef(new Animated.Value(40)).current;
   const opacity = useRef(new Animated.Value(0)).current;
-
-  const COLORS: Record<SnackbarVariant, string> = {
-    success: "#15803d",
-    error: "#b91c1c",
-    warning: "#f59e0b",
-  };
 
   useEffect(() => {
     if (!msg) return;
@@ -68,7 +61,6 @@ export function Snackbar() {
       <Alert
         icon={msg.variant === "success" ? CheckCircle2Icon : AlertCircleIcon}
         variant={msg.variant === "success" ? "default" : "destructive"}
-        style={{ backgroundColor: COLORS[msg.variant] }}
       >
         <AlertTitle>{msg.text}</AlertTitle>
       </Alert>

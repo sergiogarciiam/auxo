@@ -19,7 +19,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Platform, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Sizes, Spacing, Typography } from "../constants/theme";
+import { Sizes, Spacing, Typography } from "@/lib/theme";
 import { useSettingsContext } from "../context/useSettingsContext";
 import { useTheme } from "../hooks/useTheme";
 import { UIExercise } from "../types/ui";
@@ -201,7 +201,6 @@ export function ExerciseCard({
         <View>
           <Label>Exercise name</Label>
           <Input
-            style={styles.input}
             value={exercise.name}
             onChangeText={(text) => handleInputChange("name", text)}
           />

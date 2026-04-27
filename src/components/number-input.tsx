@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
+import { Sizes, Typography } from "@/lib/theme";
 import { Minus, Plus } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { Sizes, Typography } from "../constants/theme";
 import { useTheme } from "../hooks/useTheme";
 
 type Props = {

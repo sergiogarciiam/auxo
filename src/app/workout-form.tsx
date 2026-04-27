@@ -26,7 +26,7 @@ import DraggableFlatList from "react-native-draggable-flatlist";
 import { CustomAlertDialog } from "../components/alert-dialog";
 import { BlockCard } from "../components/block-card";
 
-import { Sizes, Spacing } from "../constants/theme";
+import { Sizes, Spacing } from "@/lib/theme";
 import { useBlocks } from "../hooks/base/useBlocks";
 import { useExercises } from "../hooks/base/useExercises";
 import { useSaveWorkout } from "../hooks/base/useSaveWorkout";
