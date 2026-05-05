@@ -1,30 +1,20 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Text } from "@/components/ui/text";
 import { ArrowLeft, ArrowRight, Trash } from "lucide-react-native";
-import { useCallback, useEffect, useState } from "react";
-import { Platform, ScrollView, StyleSheet, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Sizes, Spacing, Typography } from "@/lib/theme";
 import { useSettingsContext } from "../context/useSettingsContext";
+import { useExerciseHandlers } from "../hooks/handlers/useExerciseHandlers";
 import { useTheme } from "../hooks/useTheme";
 import { UIExercise } from "../types/ui";
-import { NumberInput } from "./number-input";
-import { TimeInput } from "./time-input";
+import { ExerciseBasicFields } from "./exercise-card/ExerciseBasicFields";
+import { ExerciseComplexConfig } from "./exercise-card/ExerciseComplexConfig";
+import { ExerciseSimpleConfig } from "./exercise-card/ExerciseSimpleConfig";
+import { createExerciseCardStyles } from "./exercise-card/styles";
 
 interface ExerciseCardProps {
   exercise: UIExercise;
@@ -50,142 +40,55 @@ export function ExerciseCard({
   isDisabledNext,
 }: ExerciseCardProps) {
   const colors = useTheme();
-  const styles = createStyles(colors);
+  const styles = createExerciseCardStyles(colors);
   const { weightUnit } = useSettingsContext();
   const insets = useSafeAreaInsets();
 
-  // 🔥 SIN useState local desincronizado
   const exerciseType = exercise.exercise_type ?? "reps";
   const configType = exercise.config_type ?? "simple";
 
   const [activeTab, setActiveTab] = useState("set-0");
 
+  const {
+    handleInputChange,
+    handleExerciseTypeChange,
+    handleConfigTypeChange,
+    handleSetChange,
+    handleSetsChange,
+  } = useExerciseHandlers({
+    exercise,
+    exerciseId,
+    configType,
+    setExercise,
+  });
+
+  // Initialize exercise defaults if not set
   useEffect(() => {
     setActiveTab("set-0");
   }, [exercise.sets, configType]);
-
-  const handleInputChange = useCallback(
-    (field: keyof UIExercise, value: any) => {
-      setExercise(exerciseId, { [field]: value });
-    },
-    [exerciseId, setExercise],
-  );
-
-  const handleExerciseTypeChange = useCallback(
-    (option: any) => {
-      const value = option?.value ?? option;
-      handleInputChange("exercise_type", value);
-    },
-    [handleInputChange],
-  );
-
-  const handleConfigTypeChange = useCallback(
-    (option: any) => {
-      const value = option?.value ?? option;
-
-      handleInputChange("config_type", value);
-
-      if (value === "complex") {
-        const sets = exercise.sets || 1;
-
-        const setsData = Array.from({ length: sets }, () => ({
-          min_reps: exercise.min_reps ?? 0,
-          max_reps: exercise.max_reps ?? 0,
-          last_reps: exercise.last_reps ?? 0,
-          time_seconds: exercise.exercise_time ?? 0,
-          weight: exercise.weight ?? 0,
-          rest_time: exercise.rest_time ?? 0,
-        }));
-
-        handleInputChange("sets_data", setsData);
-      }
-
-      if (value === "simple") {
-        handleInputChange("sets_data", undefined);
-      }
-    },
-    [exercise, handleInputChange],
-  );
 
   useEffect(() => {
     if (!exercise.exercise_type) {
       handleInputChange("exercise_type", "reps");
     }
-
     if (!exercise.config_type) {
       handleInputChange("config_type", "simple");
     }
   }, []);
 
-  const handleSetChange = useCallback(
-    (setIndex: number, field: string, value: number) => {
-      const current = exercise.sets_data || [];
-
-      const updated = current.map((set, i) =>
-        i === setIndex ? { ...set, [field]: value } : set,
-      );
-
-      handleInputChange("sets_data", updated);
-    },
-    [exercise.sets_data, handleInputChange],
-  );
-
-  const handleSetsChange = useCallback(
-    (newSets: number) => {
-      handleInputChange("sets", newSets);
-
-      if (configType !== "complex") return;
-
-      const current = exercise.sets_data || [];
-
-      let updated = [...current];
-
-      if (newSets > current.length) {
-        updated = [
-          ...current,
-          ...Array.from({ length: newSets - current.length }, () => ({
-            min_reps: exercise.min_reps ?? 0,
-            max_reps: exercise.max_reps ?? 0,
-            last_reps: exercise.last_reps ?? 0,
-            time_seconds: exercise.exercise_time ?? 0,
-            weight: exercise.weight ?? 0,
-            rest_time: exercise.rest_time ?? 0,
-          })),
-        ];
-      } else {
-        updated = current.slice(0, newSets);
-      }
-
-      handleInputChange("sets_data", updated);
-    },
-    [configType, exercise, handleInputChange],
-  );
-
-  const EXERCISE_OPTIONS = [
-    { label: "By reps", value: "reps" },
-    { label: "By time", value: "time" },
-  ];
-
-  const CONFIG_OPTIONS = [
-    { label: "Simple", value: "simple" },
-    { label: "Complex", value: "complex" },
-  ];
-
   const contentInsets = {
     top: insets.top,
-    bottom: Platform.select({
-      ios: insets.bottom,
-      android: insets.bottom + 24,
-    }),
+    bottom:
+      Platform.select({
+        ios: insets.bottom,
+        android: insets.bottom + 24,
+        default: insets.bottom,
+      }) ?? insets.bottom,
     left: 12,
     right: 12,
   };
 
-  const selectedExerciseType = EXERCISE_OPTIONS.find(
-    (x) => x.value === exerciseType,
-  );
-
-  const selectedConfigType = CONFIG_OPTIONS.find((x) => x.value === configType);
+  const showComplexConfig = configType === "complex";
 
   return (
     <Card className="relative w-[320px]">
@@ -198,219 +101,32 @@ export function ExerciseCard({
       </Button>
 
       <CardContent className="flex-1 gap-3 mt-2">
-        <View>
-          <Label>Exercise name</Label>
-          <Input
-            value={exercise.name}
-            onChangeText={(text) => handleInputChange("name", text)}
+        <ExerciseBasicFields
+          exercise={exercise}
+          exerciseType={exerciseType}
+          configType={configType}
+          contentInsets={contentInsets}
+          onExerciseNameChange={(text) => handleInputChange("name", text)}
+          onExerciseTypeChange={handleExerciseTypeChange}
+          onSetsChange={handleSetsChange}
+          onConfigTypeChange={handleConfigTypeChange}
+        />
+
+        {showComplexConfig ? (
+          <ExerciseComplexConfig
+            exercise={exercise}
+            exerciseType={exerciseType}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            onSetChange={handleSetChange}
           />
-        </View>
-
-        <View>
-          <Label>Exercise type</Label>
-
-          <Select
-            value={selectedExerciseType}
-            onValueChange={handleExerciseTypeChange}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select type" />
-            </SelectTrigger>
-
-            <SelectContent insets={contentInsets}>
-              <SelectGroup>
-                <SelectLabel>Exercise type</SelectLabel>
-
-                {EXERCISE_OPTIONS.map((opt) => (
-                  <SelectItem
-                    key={opt.value}
-                    label={opt.label}
-                    value={opt.value}
-                  >
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </View>
-
-        <View>
-          <Label>Sets</Label>
-
-          <NumberInput
-            value={exercise.sets}
-            step={1}
-            min={1}
-            onChange={handleSetsChange}
-          />
-        </View>
-
-        <View>
-          <Label>Config type</Label>
-
-          <Select
-            value={selectedConfigType}
-            onValueChange={handleConfigTypeChange}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select config" />
-            </SelectTrigger>
-
-            <SelectContent insets={contentInsets}>
-              <SelectGroup>
-                <SelectLabel>Config type</SelectLabel>
-
-                {CONFIG_OPTIONS.map((opt) => (
-                  <SelectItem
-                    key={opt.value}
-                    label={opt.label}
-                    value={opt.value}
-                  >
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </View>
-
-        {/* COMPLEX */}
-        {configType === "complex" ? (
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <TabsList>
-                {Array.from({ length: exercise.sets || 0 }, (_, i) => (
-                  <TabsTrigger key={i} value={`set-${i}`}>
-                    <Text>Set {i + 1}</Text>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </ScrollView>
-
-            {Array.from({ length: exercise.sets || 0 }, (_, i) => {
-              const setData = exercise.sets_data?.[i];
-
-              return (
-                <TabsContent key={i} value={`set-${i}`} className="gap-3">
-                  {exerciseType === "reps" ? (
-                    <>
-                      <View className="flex-row gap-4">
-                        <View className="flex-1">
-                          <Label>Min Reps</Label>
-                          <NumberInput
-                            value={setData?.min_reps ?? 0}
-                            step={1}
-                            min={0}
-                            onChange={(v) => handleSetChange(i, "min_reps", v)}
-                          />
-                        </View>
-                        <View className="flex-1">
-                          <Label>Max Reps</Label>
-                          <NumberInput
-                            value={setData?.max_reps ?? 0}
-                            step={1}
-                            min={0}
-                            onChange={(v) => handleSetChange(i, "max_reps", v)}
-                          />
-                        </View>
-                      </View>
-                      <View>
-                        <Label>Last Reps</Label>
-                        <NumberInput
-                          value={setData?.last_reps ?? 0}
-                          step={1}
-                          min={0}
-                          onChange={(v) => handleSetChange(i, "last_reps", v)}
-                        />
-                      </View>
-                    </>
-                  ) : (
-                    <View>
-                      <Label>Exercise time</Label>
-                      <TimeInput
-                        value={setData?.time_seconds ?? 0}
-                        onChange={(v) => handleSetChange(i, "time_seconds", v)}
-                      />
-                    </View>
-                  )}
-
-                  <View>
-                    <Label>Weight</Label>
-                    <NumberInput
-                      value={setData?.weight ?? 0}
-                      step={1}
-                      min={0}
-                      onChange={(v) => handleSetChange(i, "weight", v)}
-                    />
-                  </View>
-                  <View>
-                    <Label>Rest time</Label>
-                    <TimeInput
-                      value={setData?.rest_time ?? 0}
-                      onChange={(v) => handleSetChange(i, "rest_time", v)}
-                    />
-                  </View>
-                </TabsContent>
-              );
-            })}
-          </Tabs>
         ) : (
-          <View>
-            {exerciseType === "reps" ? (
-              <>
-                <View className="flex-row gap-4">
-                  <View className="flex-1">
-                    <Label>Min Reps</Label>
-                    <NumberInput
-                      value={exercise.min_reps ?? 0}
-                      step={1}
-                      min={0}
-                      onChange={(v) => handleInputChange("min_reps", v)}
-                    />
-                  </View>
-                  <View className="flex-1">
-                    <Label>Max Reps</Label>
-                    <NumberInput
-                      value={exercise.max_reps ?? 0}
-                      step={1}
-                      min={0}
-                      onChange={(v) => handleInputChange("max_reps", v)}
-                    />
-                  </View>
-                </View>
-                <Label>Last Reps</Label>
-                <NumberInput
-                  value={exercise.last_reps ?? 0}
-                  step={1}
-                  min={0}
-                  onChange={(v) => handleInputChange("last_reps", v)}
-                />
-              </>
-            ) : (
-              <>
-                <Label>Exercise time</Label>
-                <TimeInput
-                  value={exercise.exercise_time}
-                  onChange={(v) => handleInputChange("exercise_time", v)}
-                />
-              </>
-            )}
-
-            <Label>{`Weight (${weightUnit})`}</Label>
-            <NumberInput
-              value={exercise.weight}
-              step={1}
-              min={0}
-              onChange={(v) => handleInputChange("weight", v)}
-            />
-
-            <Label>Rest time</Label>
-            <TimeInput
-              value={exercise.rest_time ?? 0}
-              onChange={(v) => handleInputChange("rest_time", v)}
-            />
-          </View>
+          <ExerciseSimpleConfig
+            exercise={exercise}
+            exerciseType={exerciseType}
+            weightUnit={weightUnit}
+            onFieldChange={handleInputChange}
+          />
         )}
       </CardContent>
 
@@ -440,34 +156,3 @@ export function ExerciseCard({
     </Card>
   );
 }
-
-const createStyles = (colors: ReturnType<typeof useTheme>) =>
-  StyleSheet.create({
-    input: {
-      borderWidth: Sizes.BORDER_WIDTH,
-      borderColor: colors.BORDER,
-      backgroundColor: colors.LIGHT_BACKGROUND,
-      borderRadius: Sizes.BORDER_RADIUS,
-      padding: Sizes.PADDING,
-      fontSize: Typography.FONT_SIZE_DEFAULT,
-      color: colors.TEXT_PRIMARY,
-    },
-    arrowsRow: {
-      width: "100%",
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      gap: Spacing.MEDIUM,
-    },
-    arrowButton: {
-      flex: 1,
-      borderRadius: Sizes.BORDER_RADIUS,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    removeButton: {
-      position: "absolute",
-      top: 6,
-      right: 6,
-    },
-  });

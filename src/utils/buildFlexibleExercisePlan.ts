@@ -13,6 +13,7 @@ export function buildFlexibleExercisePlan(
       last_reps: exercise.last_reps,
       min_reps: exercise.min_reps,
       max_reps: exercise.max_reps,
+      weight: exercise.weight,
       time_seconds: exercise.exercise_time,
       set: s + 1,
     });

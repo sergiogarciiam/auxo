@@ -8,7 +8,7 @@ import { ExecutionStep, FlexibleBlockSelection, UIWorkout } from "../types/ui";
  * Persists when navigating between blocks in same workout
  */
 interface FlexibleBlockState {
-  completedExercises: Set<string>;
+  completedExercises: string[]; // Array instead of Set for Zustand reactivity
   lastExerciseRestTime: Record<string, number>; // blockId -> rest_time
   currentSelection: FlexibleBlockSelection | null; // currently executing exercise in flexible block
 }
@@ -36,7 +36,7 @@ export const useStartWorkoutStore = create<StartWorkoutStore>((set, get) => ({
   workout: null,
   executionPlan: [],
   flexibleBlockState: {
-    completedExercises: new Set(),
+    completedExercises: [],
     lastExerciseRestTime: {},
     currentSelection: null,
   },
@@ -49,7 +49,7 @@ export const useStartWorkoutStore = create<StartWorkoutStore>((set, get) => ({
       workout: null,
       executionPlan: [],
       flexibleBlockState: {
-        completedExercises: new Set(),
+        completedExercises: [],
         lastExerciseRestTime: {},
         currentSelection: null,
       },
@@ -60,22 +60,28 @@ export const useStartWorkoutStore = create<StartWorkoutStore>((set, get) => ({
     exerciseId: string | number,
   ) {
     const key = `${blockId}:${exerciseId}`;
-    set((state) => ({
-      flexibleBlockState: {
-        ...state.flexibleBlockState,
-        completedExercises: new Set([
-          ...state.flexibleBlockState.completedExercises,
-          key,
-        ]),
-      },
-    }));
+    set((state) => {
+      if (state.flexibleBlockState.completedExercises.includes(key)) {
+        return state; // Already marked, no change needed
+      }
+      return {
+        flexibleBlockState: {
+          ...state.flexibleBlockState,
+          completedExercises: [
+            ,
+            ...state.flexibleBlockState.completedExercises,
+            key,
+          ],
+        },
+      };
+    });
   },
   isFlexibleExerciseCompleted(
     blockId: string | number,
     exerciseId: string | number,
   ) {
     const key = `${blockId}:${exerciseId}`;
-    return get().flexibleBlockState.completedExercises.has(key);
+    return get().flexibleBlockState.completedExercises.includes(key);
   },
   setLastExerciseRestTime(blockId: string | number, restTime: number) {
     set((state) => ({

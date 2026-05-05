@@ -1,42 +1,32 @@
 import { setAudioModeAsync, useAudioPlayer } from "expo-audio";
 import * as Notifications from "expo-notifications";
-import { Stack, useNavigation, useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
-import {
-  AppState,
-  AppStateStatus,
-  Pressable,
-  View,
-  useWindowDimensions,
-} from "react-native";
+import { Stack } from "expo-router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { View, useWindowDimensions } from "react-native";
 
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
-import { Text } from "@/components/ui/text";
-
 import * as Haptics from "expo-haptics";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Minus,
-  Pause,
-  Play,
-  Plus,
-  SquareArrowRightExit,
-} from "lucide-react-native";
-
-import ConfettiCannon from "react-native-confetti-cannon";
+import { SquareArrowRightExit } from "lucide-react-native";
 
 import { CustomAlertDialog } from "../components/alert-dialog";
 import { useSettingsContext } from "../context/useSettingsContext";
 import { useExercises } from "../hooks/base/useExercises";
+import { useAppStateListener } from "../hooks/start/useAppStateListener";
+import { useFlexibleExerciseSelection } from "../hooks/start/useFlexibleExerciseSelection";
+import { useNavigationExit } from "../hooks/start/useNavigationExit";
 import { usePauseTimer } from "../hooks/start/usePauseTimer";
 import { useStartTimer } from "../hooks/start/useStartTimer";
 import { useStartWorkoutStore } from "../stores/useStartWorkoutStore";
 import { UpdateExercisePayload } from "../types/exercise";
-import { buildFlexibleExercisePlan } from "../utils/buildFlexibleExercisePlan";
-import { formatTime } from "../utils/formatTime";
 import { handleAndShowError, showSuccessMessage } from "../utils/ui";
+
+import { FlexibleExerciseSelector } from "../components/start/FlexibleExerciseSelector";
+import { RepsWeightAdjustment } from "../components/start/RepsWeightAdjustment";
+import { WorkoutControls } from "../components/start/WorkoutControls";
+import { WorkoutDisplay } from "../components/start/WorkoutDisplay";
+import { WorkoutFinished } from "../components/start/WorkoutFinished";
+import { WorkoutProgressBar } from "../components/start/WorkoutProgressBar";
 
 const beep = require("../../assets/beep.wav");
 const doubleBeep = require("../../assets/double-beep.wav");
@@ -52,14 +42,12 @@ Notifications.setNotificationHandler({
 });
 
 export default function StartWorkout() {
-  const router = useRouter();
-  const navigation = useNavigation();
-
   const beepPlayer = useAudioPlayer(beep);
   const doubleBeepPlayer = useAudioPlayer(doubleBeep);
 
   const { weightUnit } = useSettingsContext();
   const { updateExercise } = useExercises();
+  const { width, height } = useWindowDimensions();
 
   const {
     workout,
@@ -69,26 +57,40 @@ export default function StartWorkout() {
     isFlexibleExerciseCompleted,
   } = useStartWorkoutStore();
 
-  const [index, setIndex] = useState(0);
+  // Subscribe to completed exercises for reactivity
+  const completedExercises = useStartWorkoutStore(
+    (state) => state.flexibleBlockState.completedExercises,
+  );
 
+  // Main navigation state
+  const [index, setIndex] = useState(0);
   const [remaining, setRemaining] = useState<number | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [exitDialogOpen, setExitDialogOpen] = useState(false);
 
-  const [flexPlan, setFlexPlan] = useState<any[]>([]);
-  const [flexIndex, setFlexIndex] = useState(0);
-  const [selectedExercise, setSelectedExercise] = useState<any | null>(null);
-
+  // Live tracking state
   const [liveReps, setLiveReps] = useState<number | null>(null);
   const [liveWeight, setLiveWeight] = useState<number | null>(null);
 
+  // Refs
   const timerRef = useRef<number | null>(null);
-  const backgroundTimeRef = useRef<number | null>(null);
-  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
   const isPausedRef = useRef(false);
-  const allowExitRef = useRef(false);
 
+  // Flexible exercise management
+  const {
+    flexPlan,
+    flexIndex,
+    selectedExercise,
+    isRunningFlexibleExercise,
+    isLastFlexIndex,
+    handleSelectFlexible,
+    resetFlexPlan,
+    nextFlexIndex,
+    prevFlexIndex,
+  } = useFlexibleExerciseSelection();
+
+  // Audio setup
   useEffect(() => {
     setAudioModeAsync({
       playsInSilentMode: true,
@@ -97,29 +99,19 @@ export default function StartWorkout() {
     });
   }, []);
 
-  useEffect(() => {
-    const unsub = navigation.addListener("beforeRemove", (e) => {
-      if (allowExitRef.current) return;
-
-      e.preventDefault();
-      setIsPaused(true);
-      setOpen(true);
-    });
-
-    return unsub;
-  }, [navigation]);
-
+  // Current step logic
   const mainStep = executionPlan[index];
-  const step = flexPlan.length > 0 ? flexPlan[flexIndex] : mainStep;
-
-  const isRunningFlexibleExercise = flexPlan.length > 0;
+  const step = isRunningFlexibleExercise ? flexPlan[flexIndex] : mainStep;
   const isLastMain = index >= executionPlan.length - 1;
+  const isLandscape = width > height;
 
+  // Update live reps/weight when step changes
   useEffect(() => {
     setLiveReps(step?.last_reps ?? null);
     setLiveWeight(step?.weight ?? null);
   }, [step]);
 
+  // Timer management
   const clearTimer = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -129,7 +121,6 @@ export default function StartWorkout() {
 
   const startTimer = (seconds: number) => {
     clearTimer();
-
     setRemaining(seconds);
 
     timerRef.current = setInterval(() => {
@@ -144,13 +135,10 @@ export default function StartWorkout() {
         if (prev <= 1) {
           doubleBeepPlayer.seekTo(0);
           doubleBeepPlayer.play();
-
           clearTimer();
-
           setTimeout(() => {
             handleNext();
           }, 150);
-
           return 0;
         }
 
@@ -159,26 +147,15 @@ export default function StartWorkout() {
     }, 1000) as unknown as number;
   };
 
-  useStartTimer(
-    step,
-    startTimer,
-    setRemaining,
-    isPaused,
+  // Navigation exit handler
+  const { confirmExit, handleGoHome } = useNavigationExit({
+    onPauseWorkout: () => setIsPaused(true),
+    onOpenExitDialog: () => setExitDialogOpen(true),
+    onStopWorkout: stopWorkout,
     clearTimer,
-    flexPlan.length > 0 ? flexIndex : index,
-  );
+  });
 
-  usePauseTimer(isPaused, clearTimer, startTimer, remaining);
-
-  const handleSelectFlexible = (exercise: any) => {
-    const plan = buildFlexibleExercisePlan(exercise, mainStep.blockId);
-
-    setSelectedExercise(exercise);
-    setFlexPlan(plan);
-    setFlexIndex(0);
-    setRemaining(null);
-  };
-
+  // Persist exercise changes to database
   const persistChanges = async () => {
     if (!step?.exerciseId) return;
 
@@ -204,25 +181,23 @@ export default function StartWorkout() {
     }
   };
 
+  // Navigation handlers
   const handleNext = async () => {
     await persistChanges();
-
     clearTimer();
     setRemaining(null);
 
     if (isRunningFlexibleExercise) {
-      const isLastFlex = flexIndex >= flexPlan.length - 1;
-
-      if (!isLastFlex) {
-        setFlexIndex((p) => p + 1);
+      if (!isLastFlexIndex) {
+        nextFlexIndex();
         return;
       }
 
-      markFlexibleExerciseCompleted(mainStep.blockId, selectedExercise.id);
-
-      setFlexPlan([]);
-      setFlexIndex(0);
-      setSelectedExercise(null);
+      markFlexibleExerciseCompleted(
+        mainStep.blockId as string,
+        String(selectedExercise.id),
+      );
+      resetFlexPlan();
       setRemaining(null);
       return;
     }
@@ -235,19 +210,42 @@ export default function StartWorkout() {
     }
   };
 
+  // Timer hooks
+  useStartTimer(
+    step,
+    startTimer,
+    setRemaining,
+    isPaused,
+    clearTimer,
+    isRunningFlexibleExercise ? flexIndex : index,
+  );
+
+  usePauseTimer(isPaused, clearTimer, startTimer, remaining);
+
+  // App state listener for background/foreground
+  useAppStateListener({
+    remaining,
+    isPaused,
+    step,
+    onTimeElapsed: handleNext,
+    onSetRemaining: setRemaining,
+  });
+
+  useEffect(() => {
+    isPausedRef.current = isPaused;
+  }, [isPaused]);
+
   const handlePrev = () => {
     clearTimer();
     setRemaining(null);
 
     if (isRunningFlexibleExercise) {
       if (flexIndex > 0) {
-        setFlexIndex((p) => p - 1);
+        prevFlexIndex();
         return;
       }
 
-      setFlexPlan([]);
-      setFlexIndex(0);
-      setSelectedExercise(null);
+      resetFlexPlan();
       return;
     }
 
@@ -257,108 +255,82 @@ export default function StartWorkout() {
   };
 
   const handleExit = () => {
-    setOpen(true);
+    setExitDialogOpen(true);
     setIsPaused(true);
   };
 
-  const cancelExit = () => {
-    setOpen(false);
-    setIsPaused(false);
-  };
+  const completedFlexIds = useMemo(() => {
+    if (!mainStep?.blockId) return [];
+    return (
+      mainStep.availableExercises
+        ?.filter((ex: any) => {
+          const key = `${mainStep.blockId}:${String(ex.id)}`;
+          return completedExercises.includes(key);
+        })
+        ?.map((ex: any) => String(ex.id)) ?? []
+    );
+  }, [mainStep?.blockId, mainStep?.availableExercises, completedExercises]);
 
-  const confirmExit = async () => {
-    allowExitRef.current = true;
+  const percent = useMemo(() => {
+    if (isFinished) return 100;
 
-    clearTimer();
-    stopWorkout();
+    // Get unique block IDs in order
+    const uniqueBlockIds = Array.from(
+      new Set(executionPlan.map((step) => step.blockId)),
+    );
+    const totalBlocks = uniqueBlockIds.length;
 
-    try {
-      await Notifications.cancelAllScheduledNotificationsAsync();
-    } catch {}
+    // Calculate progress for each block
+    let totalProgress = 0;
 
-    router.replace("/");
-  };
+    uniqueBlockIds.forEach((blockId) => {
+      const blockSteps = executionPlan.filter((s) => s.blockId === blockId);
+      if (blockSteps.length === 0) return;
 
-  const handleGoHome = async () => {
-    allowExitRef.current = true;
+      const firstBlockStepIndex = executionPlan.findIndex(
+        (s) => s.blockId === blockId,
+      );
+      const lastBlockStepIndex = firstBlockStepIndex + blockSteps.length - 1;
 
-    stopWorkout();
-    router.replace("/");
-  };
+      // Block is fully completed
+      if (index > lastBlockStepIndex) {
+        totalProgress += 1;
+        return;
+      }
 
-  useEffect(() => {
-    isPausedRef.current = isPaused;
-  }, [isPaused]);
-
-  useEffect(() => {
-    const sub = AppState.addEventListener("change", async (nextAppState) => {
-      if (
-        appStateRef.current.match(/inactive|background/) &&
-        nextAppState === "active"
-      ) {
-        try {
-          await Notifications.cancelAllScheduledNotificationsAsync();
-        } catch {}
-
-        if (backgroundTimeRef.current && remaining && !isPausedRef.current) {
-          const elapsed = Math.floor(
-            (Date.now() - backgroundTimeRef.current) / 1000,
-          );
-
-          const newRemaining = Math.max(0, remaining - elapsed);
-
-          if (newRemaining <= 0) {
-            handleNext();
-          } else {
-            setRemaining(newRemaining);
-          }
+      // Block is current or future block, calculate partial progress
+      if (blockId === mainStep?.blockId) {
+        if (mainStep?.type === "flexible-selection") {
+          // Flexible: based on completed exercises
+          const totalExercises = mainStep.availableExercises?.length || 1;
+          const completedCount = completedFlexIds.length;
+          totalProgress += completedCount / totalExercises;
+        } else {
+          // Regular: based on steps completed in this block
+          const stepsInBlockBeforeCurrent = index - firstBlockStepIndex;
+          totalProgress +=
+            Math.max(0, stepsInBlockBeforeCurrent) / blockSteps.length;
         }
       }
-
-      if (
-        nextAppState.match(/inactive|background/) &&
-        remaining &&
-        remaining > 0 &&
-        !isPausedRef.current
-      ) {
-        backgroundTimeRef.current = Date.now();
-
-        try {
-          await Notifications.scheduleNotificationAsync({
-            content: {
-              title: "Workout Timer",
-              body: `${step.name} finished!`,
-              sound: true,
-            },
-            trigger: {
-              seconds: remaining,
-              type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-            },
-          });
-        } catch {}
-      }
-
-      appStateRef.current = nextAppState;
     });
 
-    return () => sub.remove();
-  }, [remaining, step]);
+    return Math.round((totalProgress / totalBlocks) * 100);
+  }, [
+    isFinished,
+    mainStep?.blockId,
+    mainStep?.type,
+    mainStep?.availableExercises?.length,
+    completedFlexIds.length,
+    index,
+    executionPlan,
+  ]);
 
-  const { width, height } = useWindowDimensions();
-  const isLandscape = width > height;
-
-  const percent = isFinished
-    ? 100
-    : Math.round(((index + 1) / executionPlan.length) * 100);
-
+  // Error state
   if (!workout || !executionPlan?.length || !mainStep) {
-    return (
-      <View className="items-center justify-center flex-1">
-        <Text>No workout loaded</Text>
-      </View>
-    );
+    return;
   }
 
+  // UI calculations
   const isIdleFlexibleSelection =
     mainStep.type === "flexible-selection" && !isRunningFlexibleExercise;
 
@@ -375,6 +347,8 @@ export default function StartWorkout() {
           ),
         }}
       />
+
+      {/* Pause overlay */}
       {isPaused && (
         <View
           pointerEvents="auto"
@@ -389,185 +363,72 @@ export default function StartWorkout() {
           }}
         />
       )}
-      {mainStep.type === "flexible-selection" &&
-        !isRunningFlexibleExercise &&
-        !isFinished && (
-          <View className="absolute inset-0 justify-center px-6 bg-black/60">
-            <View className="gap-3">
-              {mainStep.availableExercises?.map((ex: any) => {
-                const done = isFlexibleExerciseCompleted(
-                  mainStep.blockId,
-                  ex.id,
-                );
 
-                return (
-                  <Pressable
-                    key={ex.id}
-                    disabled={done}
-                    onPress={() => handleSelectFlexible(ex)}
-                    className={`p-4 rounded-xl ${
-                      done ? "bg-green-700" : "bg-neutral-800"
-                    }`}
-                  >
-                    <Text className="font-bold text-center text-white">
-                      {ex.name} {done ? "✓" : ""}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
-        )}
-
+      {/* Main content */}
       <View className="flex-1 gap-6 p-6 bg-neutral-900">
-        <View className="w-full h-5 overflow-hidden rounded-full bg-neutral-700">
-          <View
-            className="items-end justify-center h-full pr-3 bg-green-500"
-            style={{ width: `${percent}%` }}
-          >
-            {percent > 5 && <Text className="font-bold">{percent}%</Text>}
-          </View>
-        </View>
+        {/* Flexible exercise selector */}
+        {mainStep.type === "flexible-selection" &&
+          !isRunningFlexibleExercise &&
+          !isFinished && (
+            <FlexibleExerciseSelector
+              availableExercises={mainStep.availableExercises || []}
+              completedExerciseIds={completedFlexIds}
+              onSelectExercise={(ex) =>
+                handleSelectFlexible(ex, mainStep.blockId as string)
+              }
+            />
+          )}
+        <WorkoutProgressBar percent={percent} />
 
         <View className="items-center justify-center flex-1 gap-6">
           {isFinished ? (
-            <>
-              <ConfettiCannon count={80} origin={{ x: -10, y: 0 }} fadeOut />
-              <ConfettiCannon
-                count={80}
-                origin={{ x: width + 10, y: 0 }}
-                fadeOut
-              />
-
-              <Text className="text-2xl font-bold">Workout Completed 🎉</Text>
-
-              <Button onPress={handleGoHome}>
-                <Text>Go Home</Text>
-              </Button>
-            </>
+            <WorkoutFinished onGoHome={handleGoHome} />
           ) : (
             <>
-              <Text className="text-3xl font-bold text-center">
-                {step.name}
-              </Text>
+              <WorkoutDisplay
+                step={step}
+                remaining={remaining}
+                isLandscape={isLandscape}
+                isIdleFlexibleSelection={isIdleFlexibleSelection}
+              />
 
-              <View className="h-[140px] items-center justify-center">
-                <Text
-                  className={`font-bold text-center ${
-                    isLandscape ? "text-[110px]" : "text-[96px]"
-                  }`}
-                >
-                  {remaining !== null
-                    ? formatTime(remaining)
-                    : step.time_seconds
-                      ? formatTime(step.time_seconds)
-                      : step.min_reps && step.max_reps
-                        ? `${step.min_reps} - ${step.max_reps}`
-                        : isIdleFlexibleSelection
-                          ? ""
-                          : "-"}
-                </Text>
-              </View>
-
-              <View className="gap-4">
-                {!step.time_seconds && liveReps !== null && (
-                  <View className="flex-row items-center gap-4">
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      onPress={() =>
-                        setLiveReps((p) => Math.max(0, (p ?? 0) - 1))
-                      }
-                    >
-                      <Icon as={Minus} />
-                    </Button>
-
-                    <Text className="text-2xl font-bold text-center w-28">
-                      {liveReps} reps
-                    </Text>
-
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      onPress={() => setLiveReps((p) => (p ?? 0) + 1)}
-                    >
-                      <Icon as={Plus} />
-                    </Button>
-                  </View>
-                )}
-
-                {step.weight !== undefined &&
+              <RepsWeightAdjustment
+                liveReps={liveReps}
+                liveWeight={liveWeight}
+                weightUnit={weightUnit}
+                showReps={!step.time_seconds && liveReps !== null}
+                showWeight={
+                  step.weight !== undefined &&
                   step.weight !== null &&
-                  step.weight !== 0 && (
-                    <View className="flex-row items-center gap-4">
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        onPress={() =>
-                          setLiveWeight((p) =>
-                            Math.max(0, Number(((p ?? 0) - 2.5).toFixed(1))),
-                          )
-                        }
-                      >
-                        <Icon as={Minus} />
-                      </Button>
-
-                      <Text className="text-2xl font-bold text-center w-28">
-                        {liveWeight} {weightUnit}
-                      </Text>
-
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        onPress={() =>
-                          setLiveWeight((p) =>
-                            Number(((p ?? 0) + 2.5).toFixed(1)),
-                          )
-                        }
-                      >
-                        <Icon as={Plus} />
-                      </Button>
-                    </View>
-                  )}
-
-                {step.set && (
-                  <Text className="text-lg font-bold text-center">
-                    Set {step.set}
-                    {step.totalSets ? ` / ${step.totalSets}` : ""}
-                  </Text>
-                )}
-              </View>
+                  step.weight !== 0
+                }
+                onRepsChange={setLiveReps}
+                onWeightChange={setLiveWeight}
+              />
             </>
           )}
         </View>
 
-        {!isFinished && (
-          <View className="flex-row items-center justify-between gap-6">
-            <Button size="icon" onPress={handlePrev} disabled={index === 0}>
-              <Icon as={ArrowLeft} />
-            </Button>
-
-            <Button
-              size="icon"
-              onPress={() => setIsPaused((p) => !p)}
-              disabled={remaining === null}
-              className="z-30"
-            >
-              {isPaused ? <Icon as={Play} /> : <Icon as={Pause} />}
-            </Button>
-
-            <Button size="icon" onPress={handleNext}>
-              <Icon as={ArrowRight} />
-            </Button>
-          </View>
-        )}
+        <WorkoutControls
+          isPaused={isPaused}
+          remaining={remaining}
+          isFirstExercise={index === 0 && !isRunningFlexibleExercise}
+          isFinished={isFinished}
+          onPrev={handlePrev}
+          onTogglePause={() => setIsPaused((p) => !p)}
+          onNext={handleNext}
+        />
       </View>
 
+      {/* Exit dialog */}
       <CustomAlertDialog
-        open={open}
+        open={exitDialogOpen}
         message="Are you sure you want to exit workout?"
         confirm={confirmExit}
-        cancel={cancelExit}
+        cancel={() => {
+          setExitDialogOpen(false);
+          setIsPaused(false);
+        }}
       />
     </>
   );
