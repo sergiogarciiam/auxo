@@ -1,36 +1,71 @@
+/**
+ * Generic numeric input component with increment/decrement buttons
+ * Replaces duplicated TimeInput and NumberInput implementations
+ *
+ * Supports:
+ * - Custom increment/decrement step size
+ * - Min/max clamping
+ * - Custom format/parse functions
+ * - Keyboard input (optional)
+ * - Disabled state
+ */
+
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
-import { Sizes, Typography } from "@/lib/theme";
+import { Sizes } from "@/lib/theme";
 import { Minus, Plus } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useTheme } from "../hooks/other/useTheme";
 
-type Props = {
+export interface NumericInputBaseProps {
+  /** Current numeric value */
   value: number;
+  /** Callback when value changes */
   onChange: (value: number) => void;
+  /** Step size for increment/decrement buttons */
   step?: number;
+  /** Minimum allowed value */
   min?: number;
+  /** Maximum allowed value */
   max?: number;
+  /** Allow direct keyboard input */
   allowKeyboard?: boolean;
-};
+  /** Disable all interactions */
+  disabled?: boolean;
+  /** Convert numeric value to display string */
+  format?: (value: number) => string;
+  /** Convert input string back to numeric value */
+  parse?: (text: string) => number | null;
+  /** Custom button increment/decrement values (overrides step) */
+  buttonIncrement?: number;
+  buttonDecrement?: number;
+  /** Helper text shown beside input */
+  suffix?: string;
+}
 
-export function NumberInput({
+export function NumericInputBase({
   value,
   onChange,
   step = 1,
   min = 0,
   max,
   allowKeyboard = true,
-}: Props) {
+  disabled = false,
+  format = String,
+  parse,
+  buttonIncrement = step,
+  buttonDecrement = step,
+  suffix,
+}: NumericInputBaseProps) {
   const colors = useTheme();
   const styles = createStyles(colors);
-  const [text, setText] = useState(value.toString());
+  const [text, setText] = useState(format(value));
 
   useEffect(() => {
-    setText(value.toString());
-  }, [value]);
+    setText(format(value));
+  }, [value, format]);
 
   const clamp = (v: number) => {
     if (v < min) return min;
@@ -44,11 +79,11 @@ export function NumberInput({
   };
 
   const handleTextChange = (t: string) => {
-    const clean = t.replace(/[^0-9]/g, "");
-    setText(clean);
-
-    const num = Number(clean);
-    if (!Number.isNaN(num)) onChange(clamp(num));
+    setText(t);
+    const parsed = parse ? parse(t) : parseFloat(t);
+    if (parsed !== null && !Number.isNaN(parsed)) {
+      onChange(clamp(parsed));
+    }
   };
 
   return (
@@ -56,8 +91,9 @@ export function NumberInput({
       <Button
         size="icon"
         variant="outline"
-        onPress={() => update(-step)}
+        onPress={() => update(-buttonDecrement)}
         style={styles.button}
+        disabled={disabled}
       >
         <Icon as={Minus} />
       </Button>
@@ -65,19 +101,21 @@ export function NumberInput({
       <View style={styles.inputWrapper}>
         <Input
           value={text}
-          keyboardType="numeric"
-          editable={allowKeyboard}
+          keyboardType="decimal-pad"
+          editable={!disabled && allowKeyboard}
           selectTextOnFocus
           onChangeText={handleTextChange}
           style={styles.input}
         />
+        {suffix && <View style={styles.suffix}>{suffix}</View>}
       </View>
 
       <Button
         size="icon"
         variant="outline"
-        onPress={() => update(step)}
+        onPress={() => update(buttonIncrement)}
         style={styles.button}
+        disabled={disabled}
       >
         <Icon as={Plus} />
       </Button>
@@ -98,29 +136,18 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
     },
     button: {
       paddingHorizontal: Sizes.PADDING,
-      paddingVertical: Sizes.PADDING,
-      justifyContent: "center",
-      alignItems: "center",
-      borderRadius: 0,
     },
     inputWrapper: {
       flex: 1,
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "center",
+      paddingHorizontal: Sizes.PADDING,
     },
     input: {
-      fontSize: Typography.FONT_SIZE_DEFAULT,
-      color: colors.TEXT_PRIMARY,
+      flex: 1,
       textAlign: "center",
-      minWidth: 50,
-      paddingVertical: Sizes.PADDING / 2,
-      borderRadius: 0,
-      borderWidth: 0,
     },
-    unit: {
-      marginLeft: 4,
-      color: colors.TEXT_SECONDARY,
-      fontSize: Typography.FONT_SIZE_SMALL,
+    suffix: {
+      marginLeft: Sizes.PADDING,
     },
   });

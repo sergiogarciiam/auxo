@@ -2,10 +2,12 @@ import * as Notifications from "expo-notifications";
 import { useEffect, useRef } from "react";
 import { AppState, AppStateStatus } from "react-native";
 
+import { ExecutionStep } from "../../types/ui";
+
 interface UseAppStateListenerProps {
   remaining: number | null;
   isPaused: boolean;
-  step: any;
+  step: ExecutionStep | null | undefined;
   onTimeElapsed: () => void;
   onSetRemaining: (value: number) => void;
 }
@@ -63,7 +65,7 @@ export function useAppStateListener({
           await Notifications.scheduleNotificationAsync({
             content: {
               title: "Workout Timer",
-              body: `${step.name} finished!`,
+              body: `${step?.name ?? "Exercise"} finished!`,
               sound: true,
             },
             trigger: {

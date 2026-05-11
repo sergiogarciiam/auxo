@@ -24,14 +24,14 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSettingsContext } from "../context/useSettingsContext";
-import { useTheme } from "../hooks/useTheme";
+import { useTheme } from "../hooks/other/useTheme";
 import { ThemeOption, WeightUnit } from "../types/ui";
 
 export default function SettingsScreen() {
   const { theme, weightUnit, setTheme, setWeightUnit } = useSettingsContext();
   const colors = useTheme();
 
-  const weightRef = React.useRef<TriggerRef>(null);
+  const weightRef = React.useRef<TriggerRef>(null!);
 
   const insets = useSafeAreaInsets();
   const [notificationsEnabled, setNotificationsEnabled] =

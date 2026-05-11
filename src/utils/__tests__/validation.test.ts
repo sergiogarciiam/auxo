@@ -3,13 +3,35 @@ import {
   LOCAL_STATUS_DELETED,
   LOCAL_STATUS_UNCHANGED,
 } from "../../constants/constants";
-import { UIBlock, UIWorkout } from "../../types/ui";
+import { UIBlock, UIExercise, UIWorkout } from "../../types/ui";
 import {
   isNonEmptyString,
   isPositiveNumber,
   validateBlock,
+  validateExercise,
   validateWorkout,
 } from "../validation";
+
+// Helper to create mock exercises
+const createMockExercise = (
+  overrides: Partial<UIExercise> = {},
+): UIExercise => ({
+  id: "ex-1",
+  block_id: "block-1",
+  name: "Exercise",
+  last_reps: 10,
+  min_reps: 8,
+  max_reps: 12,
+  exercise_time: 0,
+  exercise_type: "reps",
+  config_type: "simple",
+  weight: 0,
+  sets: 3,
+  rest_time: 30,
+  position: 0,
+  localStatus: LOCAL_STATUS_UNCHANGED,
+  ...overrides,
+});
 
 describe("validation utilities", () => {
   // ============= isNonEmptyString TESTS =============
@@ -62,8 +84,83 @@ describe("validation utilities", () => {
     });
 
     it("should handle string numbers by converting", () => {
-      expect(isPositiveNumber("5")).toBe(true); // string '5' converts to number 5
-      expect(isPositiveNumber("-5")).toBe(false); // string '-5' converts to negative
+      expect(isPositiveNumber("5")).toBe(true);
+      expect(isPositiveNumber("-5")).toBe(false);
+    });
+  });
+
+  // ============= validateExercise TESTS =============
+  describe("validateExercise", () => {
+    it("should return null for valid exercise", () => {
+      const ex = createMockExercise();
+      expect(validateExercise(ex)).toBeNull();
+    });
+
+    it("should return error if exercise name is empty", () => {
+      const ex = createMockExercise({ name: "" });
+      expect(validateExercise(ex)).toBe("Exercise name is required");
+    });
+
+    it("should return error if exercise name is whitespace", () => {
+      const ex = createMockExercise({ name: "   " });
+      expect(validateExercise(ex)).toBe("Exercise name is required");
+    });
+
+    it("should return error if sets is null", () => {
+      const ex = createMockExercise({ sets: null as any });
+      expect(validateExercise(ex)).toBe("Exercise sets is required");
+    });
+
+    it("should return error if sets is undefined", () => {
+      const ex = createMockExercise({ sets: undefined as any });
+      expect(validateExercise(ex)).toBe("Exercise sets is required");
+    });
+
+    it("should accept 0 sets", () => {
+      const ex = createMockExercise({ sets: 0 });
+      expect(validateExercise(ex)).toBeNull();
+    });
+
+    it("should accept rest exercise without reps or time", () => {
+      const ex = createMockExercise({
+        name: "Rest",
+        min_reps: undefined as any,
+        last_reps: undefined as any,
+        exercise_time: 0,
+      });
+      expect(validateExercise(ex)).toBeNull();
+    });
+
+    it("should return error if exercise_type is reps without reps", () => {
+      const ex = createMockExercise({
+        min_reps: undefined as any,
+        last_reps: undefined as any,
+        exercise_time: 0,
+        exercise_type: "reps",
+      });
+      expect(validateExercise(ex)).toBe(
+        "Exercise requiere min_reps or last_reps",
+      );
+    });
+
+    it("should return error if exercise_type is time without exercise_time", () => {
+      const ex = createMockExercise({
+        exercise_time: 0,
+        exercise_type: "time",
+        min_reps: undefined as any,
+        last_reps: undefined as any,
+      });
+      expect(validateExercise(ex)).toBe("Exercise requiere exercise_time");
+    });
+
+    it("should accept exercise_type time with valid exercise_time", () => {
+      const ex = createMockExercise({
+        exercise_time: 30,
+        exercise_type: "time",
+        min_reps: undefined as any,
+        last_reps: undefined as any,
+      });
+      expect(validateExercise(ex)).toBeNull();
     });
   });
 
@@ -78,23 +175,10 @@ describe("validation utilities", () => {
         name: "Test Block",
         type: "standard",
         prepare_time: 0,
-        rest_exercise: 30,
         rest_group: 60,
         position: 0,
         localStatus: LOCAL_STATUS_UNCHANGED,
-        exercises: [
-          {
-            id: "ex-1",
-            block_id: "block-1",
-            name: "Exercise 1",
-            reps: 10,
-            time_seconds: 0,
-            weight: 0,
-            sets: 3,
-            position: 0,
-            localStatus: LOCAL_STATUS_UNCHANGED,
-          },
-        ],
+        exercises: [createMockExercise()],
       };
     });
 
@@ -164,23 +248,14 @@ describe("validation utilities", () => {
       });
     });
 
-    describe("rest_exercise validation", () => {
-      it("should return error if rest_exercise is not a number", () => {
-        mockBlock.rest_exercise = null as any;
-        expect(validateBlock(mockBlock)).toBe(
-          "Rest between exercises is requiered",
-        );
+    describe("rest_group validation", () => {
+      it("should accept 0 as valid rest_group", () => {
+        mockBlock.rest_group = 0;
+        expect(validateBlock(mockBlock)).toBeNull();
       });
 
-      it("should return error if rest_exercise is NaN", () => {
-        mockBlock.rest_exercise = NaN;
-        expect(validateBlock(mockBlock)).toBe(
-          "Rest between exercises is requiered",
-        );
-      });
-
-      it("should accept 0 as valid rest_exercise", () => {
-        mockBlock.rest_exercise = 0;
+      it("should accept positive rest_group", () => {
+        mockBlock.rest_group = 60;
         expect(validateBlock(mockBlock)).toBeNull();
       });
     });
@@ -188,17 +263,9 @@ describe("validation utilities", () => {
     describe("exercises validation", () => {
       it("should return error if no exercises (all deleted)", () => {
         mockBlock.exercises = [
-          {
-            id: "ex-1",
-            block_id: "block-1",
-            name: "Deleted Ex",
-            reps: 10,
-            time_seconds: 0,
-            weight: 0,
-            sets: 3,
-            position: 0,
+          createMockExercise({
             localStatus: LOCAL_STATUS_DELETED,
-          },
+          }),
         ];
         expect(validateBlock(mockBlock)).toBe(
           "Block requiere at least one exercise",
@@ -214,28 +281,12 @@ describe("validation utilities", () => {
 
       it("should ignore deleted exercises", () => {
         mockBlock.exercises = [
-          {
-            id: "ex-1",
-            block_id: "block-1",
-            name: "Valid Ex",
-            reps: 10,
-            time_seconds: 0,
-            weight: 0,
-            sets: 3,
-            position: 0,
-            localStatus: LOCAL_STATUS_UNCHANGED,
-          },
-          {
+          createMockExercise({ name: "Valid Ex" }),
+          createMockExercise({
             id: "ex-2",
-            block_id: "block-1",
             name: "Deleted Ex",
-            reps: 10,
-            time_seconds: 0,
-            weight: 0,
-            sets: 3,
-            position: 1,
             localStatus: LOCAL_STATUS_DELETED,
-          },
+          }),
         ];
         expect(validateBlock(mockBlock)).toBeNull();
       });
@@ -243,59 +294,45 @@ describe("validation utilities", () => {
 
     describe("exercise validation", () => {
       it("should return error if exercise name is empty", () => {
-        mockBlock.exercises[0].name = "";
+        mockBlock.exercises = [createMockExercise({ name: "" })];
         expect(validateBlock(mockBlock)).toBe("Exercise name is required");
       });
 
-      it("should return error if exercise has neither reps nor time", () => {
-        mockBlock.exercises[0].reps = null as any;
-        mockBlock.exercises[0].time_seconds = null as any;
-        expect(validateBlock(mockBlock)).toBe(
-          "Exercise reps or time is required",
-        );
-      });
-
-      it("should accept exercise with reps", () => {
-        mockBlock.exercises[0].reps = 10;
-        mockBlock.exercises[0].time_seconds = 0;
-        expect(validateBlock(mockBlock)).toBeNull();
-      });
-
-      it("should accept exercise with time_seconds", () => {
-        mockBlock.exercises[0].reps = 0;
-        mockBlock.exercises[0].time_seconds = 30;
+      it("should accept exercise with valid min_reps", () => {
+        mockBlock.exercises = [createMockExercise({ min_reps: 10 })];
         expect(validateBlock(mockBlock)).toBeNull();
       });
 
       it("should accept exercise with both reps and time", () => {
-        mockBlock.exercises[0].reps = 10;
-        mockBlock.exercises[0].time_seconds = 45;
+        mockBlock.exercises = [
+          createMockExercise({
+            min_reps: 10,
+            exercise_time: 45,
+          }),
+        ];
         expect(validateBlock(mockBlock)).toBeNull();
       });
 
       it("should return error if exercise sets is not defined", () => {
-        mockBlock.exercises[0].sets = null as any;
+        mockBlock.exercises = [
+          createMockExercise({
+            sets: null as any,
+          }),
+        ];
         expect(validateBlock(mockBlock)).toBe("Exercise sets is required");
       });
 
       it("should accept 0 sets (edge case)", () => {
-        mockBlock.exercises[0].sets = 0;
+        mockBlock.exercises = [createMockExercise({ sets: 0 })];
         expect(validateBlock(mockBlock)).toBeNull();
       });
 
       it("should skip validation for deleted exercises", () => {
         mockBlock.exercises = [
-          {
-            id: "ex-1",
-            block_id: "block-1",
+          createMockExercise({
             name: "", // invalid but deleted
-            reps: 0,
-            time_seconds: 0,
-            weight: 0,
-            sets: 0,
-            position: 0,
             localStatus: LOCAL_STATUS_DELETED,
-          },
+          }),
         ];
         expect(validateBlock(mockBlock)).toBe(
           "Block requiere at least one exercise",
@@ -304,28 +341,58 @@ describe("validation utilities", () => {
 
       it("should validate multiple exercises", () => {
         mockBlock.exercises = [
-          {
+          createMockExercise({
             id: "ex-1",
-            block_id: "block-1",
             name: "Exercise 1",
-            reps: 10,
-            time_seconds: 0,
-            weight: 0,
-            sets: 3,
-            position: 0,
-            localStatus: LOCAL_STATUS_UNCHANGED,
-          },
-          {
+            min_reps: 10,
+          }),
+          createMockExercise({
             id: "ex-2",
-            block_id: "block-1",
             name: "Exercise 2",
-            reps: 15,
-            time_seconds: 0,
+            min_reps: 15,
             weight: 50,
             sets: 4,
-            position: 1,
-            localStatus: LOCAL_STATUS_UNCHANGED,
-          },
+          }),
+        ];
+        expect(validateBlock(mockBlock)).toBeNull();
+      });
+
+      it("should return error if exercise_type is reps without min_reps or last_reps", () => {
+        mockBlock.exercises = [
+          createMockExercise({
+            min_reps: undefined as any,
+            last_reps: undefined as any,
+            exercise_time: 0,
+            exercise_type: "reps",
+          }),
+        ];
+        expect(validateBlock(mockBlock)).toBe(
+          "Exercise requiere min_reps or last_reps",
+        );
+      });
+
+      it("should return error if exercise_type is time without exercise_time", () => {
+        mockBlock.exercises = [
+          createMockExercise({
+            min_reps: undefined as any,
+            last_reps: undefined as any,
+            exercise_time: 0,
+            exercise_type: "time",
+          }),
+        ];
+        expect(validateBlock(mockBlock)).toBe(
+          "Exercise requiere exercise_time",
+        );
+      });
+
+      it("should accept rest exercise without reps or time", () => {
+        mockBlock.exercises = [
+          createMockExercise({
+            name: "Rest",
+            min_reps: undefined as any,
+            last_reps: undefined as any,
+            exercise_time: 0,
+          }),
         ];
         expect(validateBlock(mockBlock)).toBeNull();
       });
@@ -348,23 +415,10 @@ describe("validation utilities", () => {
             name: "Block 1",
             type: "standard",
             prepare_time: 0,
-            rest_exercise: 30,
             rest_group: 60,
             position: 0,
             localStatus: LOCAL_STATUS_UNCHANGED,
-            exercises: [
-              {
-                id: "ex-1",
-                block_id: "block-1",
-                name: "Exercise 1",
-                reps: 10,
-                time_seconds: 0,
-                weight: 0,
-                sets: 3,
-                position: 0,
-                localStatus: LOCAL_STATUS_UNCHANGED,
-              },
-            ],
+            exercises: [createMockExercise()],
           },
         ],
         localStatus: LOCAL_STATUS_UNCHANGED,
@@ -401,7 +455,6 @@ describe("validation utilities", () => {
             name: "Block 1",
             type: "standard",
             prepare_time: 0,
-            rest_exercise: 30,
             rest_group: 60,
             position: 0,
             localStatus: LOCAL_STATUS_DELETED,
@@ -428,23 +481,10 @@ describe("validation utilities", () => {
             name: "Valid Block",
             type: "standard",
             prepare_time: 0,
-            rest_exercise: 30,
             rest_group: 60,
             position: 0,
             localStatus: LOCAL_STATUS_UNCHANGED,
-            exercises: [
-              {
-                id: "ex-1",
-                block_id: "block-1",
-                name: "Exercise 1",
-                reps: 10,
-                time_seconds: 0,
-                weight: 0,
-                sets: 3,
-                position: 0,
-                localStatus: LOCAL_STATUS_UNCHANGED,
-              },
-            ],
+            exercises: [createMockExercise()],
           },
           {
             id: "block-2",
@@ -452,7 +492,6 @@ describe("validation utilities", () => {
             name: "Deleted Block",
             type: "standard",
             prepare_time: 0,
-            rest_exercise: 30,
             rest_group: 60,
             position: 1,
             localStatus: LOCAL_STATUS_DELETED,
@@ -470,23 +509,10 @@ describe("validation utilities", () => {
             name: "Block 1",
             type: "standard",
             prepare_time: 0,
-            rest_exercise: 30,
             rest_group: 60,
             position: 0,
             localStatus: LOCAL_STATUS_UNCHANGED,
-            exercises: [
-              {
-                id: "ex-1",
-                block_id: "block-1",
-                name: "Exercise 1",
-                reps: 10,
-                time_seconds: 0,
-                weight: 0,
-                sets: 3,
-                position: 0,
-                localStatus: LOCAL_STATUS_UNCHANGED,
-              },
-            ],
+            exercises: [createMockExercise()],
           },
           {
             id: "block-2",
@@ -494,26 +520,53 @@ describe("validation utilities", () => {
             name: "Block 2",
             type: "circuit",
             prepare_time: 0,
-            rest_exercise: 20,
             rest_group: 90,
             position: 1,
             localStatus: LOCAL_STATUS_UNCHANGED,
-            exercises: [
-              {
-                id: "ex-2",
-                block_id: "block-2",
-                name: "Exercise 2",
-                reps: 15,
-                time_seconds: 0,
-                weight: 50,
-                sets: 4,
-                position: 0,
-                localStatus: LOCAL_STATUS_UNCHANGED,
-              },
-            ],
+            exercises: [createMockExercise()],
           },
         ];
         expect(validateWorkout(mockWorkout)).toBeNull();
+      });
+
+      describe("block exercise validation", () => {
+        it("should fail if a block has an exercise with empty name", () => {
+          mockWorkout.blocks = [
+            {
+              id: "block-1",
+              workout_id: "workout-1",
+              name: "Block 1",
+              type: "standard",
+              prepare_time: 0,
+              rest_group: 60,
+              position: 0,
+              localStatus: LOCAL_STATUS_UNCHANGED,
+              exercises: [createMockExercise({ name: "" })],
+            },
+          ];
+          expect(validateWorkout(mockWorkout)).toBe(
+            "Exercise name is required",
+          );
+        });
+
+        it("should fail if a block has an exercise without sets", () => {
+          mockWorkout.blocks = [
+            {
+              id: "block-1",
+              workout_id: "workout-1",
+              name: "Block 1",
+              type: "standard",
+              prepare_time: 0,
+              rest_group: 60,
+              position: 0,
+              localStatus: LOCAL_STATUS_UNCHANGED,
+              exercises: [createMockExercise({ sets: null as any })],
+            },
+          ];
+          expect(validateWorkout(mockWorkout)).toBe(
+            "Exercise sets is required",
+          );
+        });
       });
     });
   });

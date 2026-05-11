@@ -10,7 +10,7 @@ import DraggableFlatList from "react-native-draggable-flatlist";
 import { WorkoutCard } from "../components/workout-card";
 import { useWorkouts } from "../hooks/base/useWorkouts";
 import { useLoadWorkout } from "../hooks/other/useLoadWorkout";
-import { useTheme } from "../hooks/useTheme";
+import { useTheme } from "../hooks/other/useTheme";
 import { useStartWorkoutStore } from "../stores/useStartWorkoutStore";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
 import { UIWorkout } from "../types/ui";
@@ -49,10 +49,10 @@ export default function Homepage() {
   }, [reset, router]);
 
   const handleEditWorkout = useCallback(
-    async (id: number) => {
+    async (id: number | string) => {
       try {
         reset();
-        const workout = await loadWorkoutWithData(id);
+        const workout = await loadWorkoutWithData(Number(id));
         loadWorkout(workout);
         router.push("/workout-form");
       } catch (error) {
@@ -82,9 +82,9 @@ export default function Homepage() {
   );
 
   const handleStartWorkout = useCallback(
-    async (id: number) => {
+    async (id: number | string) => {
       try {
-        const workout = await loadWorkoutWithData(id);
+        const workout = await loadWorkoutWithData(Number(id));
         const plan = buildExecutionPlan(workout);
         startWorkout(workout, plan);
         router.push("/start");

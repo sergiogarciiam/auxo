@@ -68,6 +68,7 @@ export interface ExecutionStep {
   max_reps?: number;
   time_seconds?: number;
   set?: number;
+  totalSets?: number;
   weight?: number;
   duration_seconds?: number; // for rest steps
   availableExercises?: UIExercise[]; // for flexible-selection steps
@@ -75,12 +76,5 @@ export interface ExecutionStep {
   blockName?: string; // for flexible blocks - display block name
 }
 
-export interface SnackbarMessage {
-  id: string;
-  text: string;
-  variant: SnackbarVariant;
-}
-
 export type ThemeOption = "system" | "light" | "dark";
 export type WeightUnit = "kg" | "lb";
-export type SnackbarVariant = "success" | "error" | "warning";

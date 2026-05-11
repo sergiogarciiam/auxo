@@ -1,5 +1,5 @@
 import { LOCAL_STATUS_DELETED } from "../constants/constants";
-import { UIBlock, UIWorkout } from "../types/ui";
+import { UIBlock, UIExercise, UIWorkout } from "../types/ui";
 
 export const ValidationErrors = {
   EMPTY_STRING: "This field is required",
@@ -18,6 +18,38 @@ function isNumberDefined(value: unknown): boolean {
 export function isPositiveNumber(value: unknown): boolean {
   const num = Number(value);
   return Number.isFinite(num) && num >= 0;
+}
+
+export function validateExercise(exercise: UIExercise): string | null {
+  if (!isNonEmptyString(exercise.name)) {
+    return "Exercise name is required";
+  }
+
+  if (
+    exercise.sets == null ||
+    (typeof exercise.sets !== "number" && typeof exercise.sets !== "string")
+  ) {
+    return "Exercise sets is required";
+  }
+
+  if (exercise.name.trim().toLowerCase() === "rest") {
+    return null;
+  }
+
+  const hasReps =
+    isNumberDefined(exercise.min_reps) || isNumberDefined(exercise.last_reps);
+  const hasTime =
+    isNumberDefined(exercise.exercise_time) && exercise.exercise_time > 0;
+
+  if (exercise.exercise_type === "reps" && !hasReps) {
+    return "Exercise requiere min_reps or last_reps";
+  }
+
+  if (exercise.exercise_type === "time" && !hasTime) {
+    return "Exercise requiere exercise_time";
+  }
+
+  return null;
 }
 
 export function validateBlock(block: UIBlock): string | null {
@@ -40,6 +72,18 @@ export function validateBlock(block: UIBlock): string | null {
   ) {
     return "Block requiere at least one exercise";
   }
+
+  for (const exercise of block.exercises) {
+    if (exercise.localStatus === LOCAL_STATUS_DELETED) {
+      continue;
+    }
+    const error = validateExercise(exercise);
+    if (error) {
+      return error;
+    }
+  }
+
+  return null;
 }
 
 export function validateWorkout(workout: UIWorkout): string | null {
@@ -47,11 +91,19 @@ export function validateWorkout(workout: UIWorkout): string | null {
     return "Workout name is required";
   }
 
-  if (
-    workout.blocks.filter((block) => block.localStatus !== LOCAL_STATUS_DELETED)
-      .length === 0
-  ) {
+  const nonDeletedBlocks = workout.blocks.filter(
+    (block) => block.localStatus !== LOCAL_STATUS_DELETED,
+  );
+
+  if (nonDeletedBlocks.length === 0) {
     return "Workout requiere at least one block";
+  }
+
+  for (const block of nonDeletedBlocks) {
+    const error = validateBlock(block);
+    if (error) {
+      return error;
+    }
   }
 
   return null;

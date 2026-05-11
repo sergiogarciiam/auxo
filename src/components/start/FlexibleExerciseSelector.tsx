@@ -1,10 +1,12 @@
 import { Text } from "@/components/ui/text";
+import { type UIExercise } from "@/src/types/ui";
 import { Pressable, View } from "react-native";
+import { idIncludes, normalizeID } from "../../utils/idUtils";
 
 interface FlexibleExerciseSelectorProps {
-  availableExercises: any[];
+  availableExercises: UIExercise[];
   completedExerciseIds: string[];
-  onSelectExercise: (exercise: any) => void;
+  onSelectExercise: (exercise: UIExercise) => void;
 }
 
 export function FlexibleExerciseSelector({
@@ -15,12 +17,15 @@ export function FlexibleExerciseSelector({
   return (
     <View className="absolute inset-0 justify-center px-6 bg-black/60">
       <View className="gap-3">
-        {availableExercises?.map((ex: any) => {
-          const isDone = completedExerciseIds.includes(String(ex.id));
+        {availableExercises?.map((ex) => {
+          const isDone = idIncludes(
+            ex.id,
+            completedExerciseIds.map((id) => Number(id)),
+          );
 
           return (
             <Pressable
-              key={ex.id}
+              key={normalizeID(ex.id)}
               disabled={isDone}
               onPress={() => onSelectExercise(ex)}
               className={`p-4 rounded-xl ${

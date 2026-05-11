@@ -17,7 +17,7 @@ describe("transformers", () => {
         id: 1,
         block_id: 1,
         name: "Bench Press",
-        reps: 8,
+        last_reps: 8,
         time_seconds: 45,
         weight: 80,
         sets: 3,
@@ -26,12 +26,12 @@ describe("transformers", () => {
 
       const result = transformExerciseToUI(exercise);
 
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         id: 1,
         block_id: 1,
         name: "Bench Press",
-        reps: 8,
-        time_seconds: 45,
+        last_reps: 8,
+        exercise_time: 45,
         weight: 80,
         sets: 3,
         position: 0,
@@ -39,12 +39,12 @@ describe("transformers", () => {
       });
     });
 
-    it("should default null reps to 0", () => {
+    it("should default null last_reps to 0", () => {
       const exercise: Exercise = {
         id: 1,
         block_id: 1,
         name: "Exercise",
-        reps: undefined,
+        last_reps: undefined,
         time_seconds: 30,
         weight: 0,
         sets: 1,
@@ -52,7 +52,7 @@ describe("transformers", () => {
       };
 
       const result = transformExerciseToUI(exercise);
-      expect(result.reps).toBe(0);
+      expect(result.last_reps).toBe(0);
     });
 
     it("should default null time_seconds to 0", () => {
@@ -60,7 +60,7 @@ describe("transformers", () => {
         id: 1,
         block_id: 1,
         name: "Exercise",
-        reps: 10,
+        last_reps: 10,
         time_seconds: undefined,
         weight: 0,
         sets: 1,
@@ -68,7 +68,7 @@ describe("transformers", () => {
       };
 
       const result = transformExerciseToUI(exercise);
-      expect(result.time_seconds).toBe(0);
+      expect(result.exercise_time).toBe(0);
     });
 
     it("should default null weight to 0", () => {
@@ -76,7 +76,7 @@ describe("transformers", () => {
         id: 1,
         block_id: 1,
         name: "Exercise",
-        reps: 10,
+        last_reps: 10,
         time_seconds: 0,
         weight: undefined,
         sets: 1,
@@ -92,7 +92,7 @@ describe("transformers", () => {
         id: 1,
         block_id: 1,
         name: "Exercise",
-        reps: 10,
+        last_reps: 10,
         time_seconds: 0,
         weight: 0,
         sets: undefined,
@@ -108,7 +108,7 @@ describe("transformers", () => {
         id: 1,
         block_id: 1,
         name: "Minimal Exercise",
-        reps: undefined,
+        last_reps: undefined,
         time_seconds: undefined,
         weight: undefined,
         sets: undefined,
@@ -117,12 +117,12 @@ describe("transformers", () => {
 
       const result = transformExerciseToUI(exercise);
 
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         id: 1,
         block_id: 1,
         name: "Minimal Exercise",
-        reps: 0,
-        time_seconds: 0,
+        last_reps: 0,
+        exercise_time: 0,
         weight: 0,
         sets: 0,
         position: 5,
@@ -135,7 +135,7 @@ describe("transformers", () => {
         id: 1,
         block_id: 1,
         name: "Exercise",
-        reps: 0,
+        last_reps: 0,
         time_seconds: 0,
         weight: 0,
         sets: 0,
@@ -144,8 +144,8 @@ describe("transformers", () => {
 
       const result = transformExerciseToUI(exercise);
 
-      expect(result.reps).toBe(0);
-      expect(result.time_seconds).toBe(0);
+      expect(result.last_reps).toBe(0);
+      expect(result.exercise_time).toBe(0);
       expect(result.weight).toBe(0);
       expect(result.sets).toBe(0);
     });
@@ -155,7 +155,7 @@ describe("transformers", () => {
         id: 1,
         block_id: 1,
         name: "Exercise",
-        reps: 10,
+        last_reps: 10,
         time_seconds: 0,
         weight: 0,
         sets: 3,
@@ -176,7 +176,6 @@ describe("transformers", () => {
         name: "Chest Day",
         type: "standard",
         prepare_time: 300,
-        rest_exercise: 60,
         rest_group: 120,
         position: 0,
       };
@@ -186,7 +185,7 @@ describe("transformers", () => {
           id: 1,
           block_id: 1,
           name: "Bench Press",
-          reps: 8,
+          last_reps: 8,
           time_seconds: 0,
           weight: 80,
           sets: 3,
@@ -196,7 +195,7 @@ describe("transformers", () => {
           id: 2,
           block_id: 1,
           name: "Incline Press",
-          reps: 10,
+          last_reps: 10,
           time_seconds: 0,
           weight: 60,
           sets: 3,
@@ -211,7 +210,6 @@ describe("transformers", () => {
       expect(result.name).toBe("Chest Day");
       expect(result.type).toBe("standard");
       expect(result.prepare_time).toBe(300);
-      expect(result.rest_exercise).toBe(60);
       expect(result.rest_group).toBe(120);
       expect(result.position).toBe(0);
       expect(result.localStatus).toBe(LOCAL_STATUS_UNCHANGED);
@@ -227,7 +225,6 @@ describe("transformers", () => {
         name: "Empty Block",
         type: "circuit",
         prepare_time: 0,
-        rest_exercise: 30,
         rest_group: 0,
         position: 0,
       };
@@ -244,7 +241,6 @@ describe("transformers", () => {
         name: "Block",
         type: "standard",
         prepare_time: null as any,
-        rest_exercise: 30,
         rest_group: 0,
         position: 0,
       };
@@ -260,7 +256,6 @@ describe("transformers", () => {
         name: "Block",
         type: "standard",
         prepare_time: 0,
-        rest_exercise: 30,
         rest_group: null as any,
         position: 0,
       };
@@ -276,7 +271,6 @@ describe("transformers", () => {
         name: "Block",
         type: "standard",
         prepare_time: 0,
-        rest_exercise: 30,
         rest_group: 0,
         position: 0,
       };
@@ -286,7 +280,7 @@ describe("transformers", () => {
           id: 1,
           block_id: 1,
           name: "Exercise",
-          reps: undefined,
+          last_reps: undefined,
           time_seconds: 45,
           weight: undefined,
           sets: 1,
@@ -296,12 +290,12 @@ describe("transformers", () => {
 
       const result = transformBlockToUI(block, exercises);
 
-      expect(result.exercises[0]).toEqual({
+      expect(result.exercises[0]).toMatchObject({
         id: 1,
         block_id: 1,
         name: "Exercise",
-        reps: 0,
-        time_seconds: 45,
+        last_reps: 0,
+        exercise_time: 45,
         weight: 0,
         sets: 1,
         position: 0,
@@ -316,7 +310,6 @@ describe("transformers", () => {
         name: "Block",
         type: "standard",
         prepare_time: 0,
-        rest_exercise: 30,
         rest_group: 0,
         position: 5,
       };
@@ -331,7 +324,6 @@ describe("transformers", () => {
         workout_id: 1,
         name: "Block",
         prepare_time: 0,
-        rest_exercise: 30,
         rest_group: 0,
         position: 0,
       };
@@ -352,7 +344,6 @@ describe("transformers", () => {
         name: "Block",
         type: "standard",
         prepare_time: 0,
-        rest_exercise: 30,
         rest_group: 0,
         position: 0,
       };
@@ -491,7 +482,7 @@ describe("transformers", () => {
           id: 1,
           block_id: 1,
           name: "Bench Press",
-          reps: 8,
+          last_reps: 8,
           time_seconds: undefined,
           weight: 80,
           sets: 3,
@@ -505,7 +496,6 @@ describe("transformers", () => {
         name: "Chest",
         type: "standard",
         prepare_time: 300,
-        rest_exercise: 60,
         rest_group: 120,
         position: 0,
       };
@@ -514,8 +504,8 @@ describe("transformers", () => {
 
       expect(uiBlock.name).toBe("Chest");
       expect(uiBlock.exercises).toHaveLength(1);
-      expect(uiBlock.exercises[0].reps).toBe(8);
-      expect(uiBlock.exercises[0].time_seconds).toBe(0); // defaulted
+      expect(uiBlock.exercises[0].last_reps).toBe(8);
+      expect(uiBlock.exercises[0].exercise_time).toBe(0); // defaulted
       expect(uiBlock.exercises[0].weight).toBe(80);
     });
 

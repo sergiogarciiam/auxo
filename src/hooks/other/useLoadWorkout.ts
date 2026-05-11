@@ -9,6 +9,7 @@ export const useLoadWorkout = () => {
 
   return async (id: number) => {
     const workout = await getWorkoutById(id);
+    if (!workout) throw new Error("Workout not found");
     const blocks = await getAllBlocksByWorkoutId(id);
 
     const blocksWithExercises = await Promise.all(

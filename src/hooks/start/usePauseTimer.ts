@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export const usePauseTimer = (
   isPaused: boolean,
@@ -6,12 +6,17 @@ export const usePauseTimer = (
   startTimer: (seconds: number) => void,
   remaining: number | null,
 ) => {
+  const clearTimerRef = useRef(clearTimer);
+  const startTimerRef = useRef(startTimer);
+
+  clearTimerRef.current = clearTimer;
+  startTimerRef.current = startTimer;
+
   useEffect(() => {
     if (isPaused) {
-      clearTimer();
+      clearTimerRef.current();
     } else if (remaining && remaining > 0) {
-      startTimer(remaining);
+      startTimerRef.current(remaining);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPaused]);
+  }, [isPaused, remaining]);
 };

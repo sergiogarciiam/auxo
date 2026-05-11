@@ -1,47 +1,31 @@
-import { useCallback } from "react";
 import { exerciseRepository } from "../../repositories/exerciseRepository";
 import {
   CreateExercisePayload,
+  Exercise,
   UpdateExercisePayload,
 } from "../../types/exercise";
+import { createCRUDHook } from "./createCRUDHook";
 
+const useCRUD = createCRUDHook<
+  Exercise,
+  CreateExercisePayload,
+  UpdateExercisePayload
+>(exerciseRepository, { entityName: "Exercise" });
+
+/**
+ * Hook for exercise CRUD operations
+ * Note: Exercise operations don't auto-fetch since they're typically part of block operations
+ */
 export const useExercises = () => {
-  const createExercise = useCallback(
-    async (exerciseData: CreateExercisePayload) => {
-      try {
-        await exerciseRepository.create(exerciseData);
-      } catch (error) {
-        console.error("Failed to create exercise:", error);
-        throw error;
-      }
-    },
-    [],
-  );
-
-  const updateExercise = useCallback(
-    async (exerciseData: UpdateExercisePayload) => {
-      try {
-        await exerciseRepository.update(exerciseData);
-      } catch (error) {
-        console.error("Failed to update exercise:", error);
-        throw error;
-      }
-    },
-    [],
-  );
-
-  const deleteExercise = useCallback(async (id: number) => {
-    try {
-      await exerciseRepository.delete({ id });
-    } catch (error) {
-      console.error("Failed to delete exercise:", error);
-      throw error;
-    }
-  }, []);
+  const crud = useCRUD();
 
   return {
-    createExercise,
-    updateExercise,
-    deleteExercise,
+    exercises: crud.items,
+    fetchExercises: crud.fetchItems,
+    getExerciseById: crud.getItemById,
+    createExercise: crud.createItem,
+    updateExercise: crud.updateItem,
+    deleteExercise: crud.deleteItem,
+    isLoading: crud.isLoading,
   };
 };

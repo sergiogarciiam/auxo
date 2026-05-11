@@ -13,9 +13,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Text } from "@/components/ui/text";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { Info, Plus, Save, Trash } from "lucide-react-native";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -36,7 +36,7 @@ import {
 } from "../constants/constants";
 import { useBlockLifecycle } from "../hooks/other/useBlockLifecycle";
 import { useOrderedExercises } from "../hooks/other/useOrdererExercises";
-import { useTheme } from "../hooks/useTheme";
+import { useTheme } from "../hooks/other/useTheme";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
 import { UIBlock } from "../types/ui";
 import { swapItems } from "../utils/reorder";
@@ -45,6 +45,7 @@ import { validateBlock } from "../utils/validation";
 
 export default function BlockForm() {
   const router = useRouter();
+  const navigation = useNavigation();
   const params = useLocalSearchParams();
   const colors = useTheme();
 
@@ -54,6 +55,10 @@ export default function BlockForm() {
   const [exerciseToDeleteId, setExerciseToDeleteId] = useState<
     string | number | null
   >(null);
+  const [isDiscardDialogOpen, setIsDiscardDialogOpen] = useState(false);
+
+  const isLeavingRef = useRef(false);
+  const initialBlockRef = useRef<string | null>(null);
 
   const {
     updateBlock,
@@ -104,7 +109,7 @@ export default function BlockForm() {
   }, [exerciseToDeleteId, blockId, removeExercise]);
 
   const handleUpdateBlock = useCallback(
-    (data: any) => {
+    (data: Partial<UIBlock>) => {
       try {
         if (!blockId) return;
         updateBlock(blockId.toString(), data);
@@ -141,6 +146,56 @@ export default function BlockForm() {
     } catch (error) {
       handleAndShowError(error);
     }
+  }, [router]);
+
+  useEffect(() => {
+    if (block) {
+      initialBlockRef.current = JSON.stringify(block);
+    }
+  }, [block?.id]);
+
+  useEffect(() => {
+    const unsub = navigation.addListener("beforeRemove", (e: any) => {
+      if (isLeavingRef.current) return;
+
+      const currentBlock = useWorkoutStore.getState().block;
+      if (!currentBlock) return;
+
+      const validationError = validateBlock(currentBlock);
+      if (!validationError) return;
+
+      if (!initialBlockRef.current) return;
+      if (JSON.stringify(currentBlock) === initialBlockRef.current) return;
+
+      e.preventDefault();
+      setIsDiscardDialogOpen(true);
+    });
+
+    return unsub;
+  }, [navigation]);
+
+  const handleDiscardBlock = useCallback(() => {
+    isLeavingRef.current = true;
+    setIsDiscardDialogOpen(false);
+    removeBlock(blockId as string);
+    router.back();
+  }, [blockId, removeBlock, router]);
+
+  const handleCancelLeave = useCallback(() => {
+    setIsDiscardDialogOpen(false);
+  }, []);
+
+  const handleSaveAndLeave = useCallback(() => {
+    Keyboard.dismiss();
+    const currentBlock = useWorkoutStore.getState().block;
+    const validationError = validateBlock(currentBlock as UIBlock);
+    if (validationError) {
+      handleAndShowError(validationError);
+      return;
+    }
+    isLeavingRef.current = true;
+    setIsDiscardDialogOpen(false);
+    router.back();
   }, [router]);
 
   if (!block) return null;
@@ -211,9 +266,11 @@ export default function BlockForm() {
                   </View>
                   <Select
                     value={selectedBlockType}
-                    onValueChange={(option) =>
-                      handleUpdateBlock({ type: option?.value ?? option })
-                    }
+                    onValueChange={(option: any) => {
+                      if (option?.value) {
+                        handleUpdateBlock({ type: option.value });
+                      }
+                    }}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select Type" />
@@ -311,6 +368,14 @@ export default function BlockForm() {
       <InfoDialog
         open={isInfoOpen}
         onOpenChange={(open) => setIsInfoOpen(false)}
+      />
+
+      <CustomAlertDialog
+        open={isDiscardDialogOpen}
+        message="The block has incomplete data. Discard changes?"
+        confirm={handleDiscardBlock}
+        cancel={handleCancelLeave}
+        confirmText="Discard"
       />
     </>
   );

@@ -20,7 +20,7 @@ export const block = {
    */
   getById: async ({ id }: { id: number }): Promise<Block> => {
     const sql = `SELECT * FROM blocks WHERE id = ?;`;
-    const result = await runQuery(sql, [id]);
+    const result: Block = await runQuery(sql, [id]);
     return result;
   },
 

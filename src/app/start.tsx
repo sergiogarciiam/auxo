@@ -1,7 +1,7 @@
 import { setAudioModeAsync, useAudioPlayer } from "expo-audio";
 import * as Notifications from "expo-notifications";
 import { Stack } from "expo-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View, useWindowDimensions } from "react-native";
 
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { SquareArrowRightExit } from "lucide-react-native";
 import { CustomAlertDialog } from "../components/alert-dialog";
 import { useSettingsContext } from "../context/useSettingsContext";
 import { useExercises } from "../hooks/base/useExercises";
+import { useTheme } from "../hooks/other/useTheme";
 import { useAppStateListener } from "../hooks/start/useAppStateListener";
 import { useFlexibleExerciseSelection } from "../hooks/start/useFlexibleExerciseSelection";
 import { useNavigationExit } from "../hooks/start/useNavigationExit";
@@ -48,14 +49,10 @@ export default function StartWorkout() {
   const { weightUnit } = useSettingsContext();
   const { updateExercise } = useExercises();
   const { width, height } = useWindowDimensions();
+  const colors = useTheme();
 
-  const {
-    workout,
-    executionPlan,
-    stopWorkout,
-    markFlexibleExerciseCompleted,
-    isFlexibleExerciseCompleted,
-  } = useStartWorkoutStore();
+  const { workout, executionPlan, stopWorkout, markFlexibleExerciseCompleted } =
+    useStartWorkoutStore();
 
   // Subscribe to completed exercises for reactivity
   const completedExercises = useStartWorkoutStore(
@@ -112,55 +109,51 @@ export default function StartWorkout() {
   }, [step]);
 
   // Timer management
-  const clearTimer = () => {
+  const clearTimer = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-  };
+  }, []);
 
-  const startTimer = (seconds: number) => {
-    clearTimer();
-    setRemaining(seconds);
+  const handleNextRef = useRef<() => void>(() => {});
+  const startTimer = useCallback(
+    (seconds: number) => {
+      clearTimer();
+      setRemaining(seconds);
 
-    timerRef.current = setInterval(() => {
-      setRemaining((prev) => {
-        if (prev === null) return prev;
+      timerRef.current = setInterval(() => {
+        setRemaining((prev) => {
+          if (prev === null) return prev;
 
-        if (prev <= 4 && prev > 1) {
-          beepPlayer.seekTo(0);
-          beepPlayer.play();
-        }
+          if (prev <= 4 && prev > 1) {
+            beepPlayer.seekTo(0);
+            beepPlayer.play();
+          }
 
-        if (prev <= 1) {
-          doubleBeepPlayer.seekTo(0);
-          doubleBeepPlayer.play();
-          clearTimer();
-          setTimeout(() => {
-            handleNext();
-          }, 150);
-          return 0;
-        }
+          if (prev <= 1) {
+            doubleBeepPlayer.seekTo(0);
+            doubleBeepPlayer.play();
+            clearTimer();
+            setTimeout(() => {
+              handleNextRef.current();
+            }, 150);
+            return 0;
+          }
 
-        return prev - 1;
-      });
-    }, 1000) as unknown as number;
-  };
-
-  // Navigation exit handler
-  const { confirmExit, handleGoHome } = useNavigationExit({
-    onPauseWorkout: () => setIsPaused(true),
-    onOpenExitDialog: () => setExitDialogOpen(true),
-    onStopWorkout: stopWorkout,
-    clearTimer,
-  });
+          return prev - 1;
+        });
+      }, 1000) as unknown as number;
+    },
+    [clearTimer, beepPlayer, doubleBeepPlayer],
+  );
 
   // Persist exercise changes to database
   const persistChanges = async () => {
     if (!step?.exerciseId) return;
 
     const updates: UpdateExercisePayload = {
-      id: step.exerciseId,
+      id: step.exerciseId as number,
     };
 
     if (liveReps !== null && liveReps !== step.last_reps) {
@@ -195,7 +188,7 @@ export default function StartWorkout() {
 
       markFlexibleExerciseCompleted(
         mainStep.blockId as string,
-        String(selectedExercise.id),
+        String(selectedExercise!.id),
       );
       resetFlexPlan();
       setRemaining(null);
@@ -209,6 +202,16 @@ export default function StartWorkout() {
       setIndex((p) => p + 1);
     }
   };
+
+  handleNextRef.current = handleNext;
+
+  // Navigation exit handler
+  const { confirmExit, handleGoHome } = useNavigationExit({
+    onPauseWorkout: () => setIsPaused(true),
+    onOpenExitDialog: () => setExitDialogOpen(true),
+    onStopWorkout: stopWorkout,
+    clearTimer,
+  });
 
   // Timer hooks
   useStartTimer(
@@ -365,7 +368,10 @@ export default function StartWorkout() {
       )}
 
       {/* Main content */}
-      <View className="flex-1 gap-6 p-6 bg-neutral-900">
+      <View
+        className="flex-1 gap-6 p-6"
+        style={{ backgroundColor: colors.BACKGROUND_SECONDARY }}
+      >
         {/* Flexible exercise selector */}
         {mainStep.type === "flexible-selection" &&
           !isRunningFlexibleExercise &&

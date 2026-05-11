@@ -21,7 +21,7 @@ export function useNavigationExit({
 
   // Handle navigation back attempts
   useEffect(() => {
-    const unsub = navigation.addListener("beforeRemove", (e) => {
+    const unsub = navigation.addListener("beforeRemove", (e: any) => {
       if (allowExitRef.current) return;
 
       e.preventDefault();

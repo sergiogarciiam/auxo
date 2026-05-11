@@ -60,7 +60,8 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     });
   },
 
-  loadWorkout: (workoutFromDb) =>
+  loadWorkout: (workoutFromDb) => {
+    if (!workoutFromDb) return set({ workout: null, block: null });
     set({
       workout: {
         ...workoutFromDb,
@@ -74,11 +75,9 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         })),
         localStatus: LOCAL_STATUS_UPDATED,
       },
-    }),
+    });
+  },
 
-  /**
-   * Updates the workout name
-   */
   setName: (name) =>
     set((state) => ({
       workout: state.workout
@@ -95,11 +94,10 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     // Ensure a workout exists before creating a block
     if (!state.workout) return;
 
-    const workout = get().workout!;
     const newBlock = createTempBlock(
       newBlockId,
-      workout.id,
-      workout.blocks.length,
+      state.workout.id,
+      state.workout.blocks.length,
     );
 
     set((state) => ({
@@ -129,8 +127,9 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
 
   updateBlock: (id, data) =>
     set((state) => {
+      if (!state.workout) return { workout: null, block: null };
       const idToFind = id?.toString();
-      const updatedBlocks: UIBlock[] = state.workout!.blocks.map((s) =>
+      const updatedBlocks: UIBlock[] = state.workout.blocks.map((s) =>
         s.id?.toString() === idToFind
           ? {
               ...s,
@@ -146,16 +145,17 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         updatedBlocks.find((s) => s.id?.toString() === idToFind) || null;
 
       return {
-        workout: { ...state.workout!, blocks: updatedBlocks },
+        workout: { ...state.workout, blocks: updatedBlocks },
         block: updatedBlock,
       };
     }),
 
   removeBlock: (id) =>
     set((state) => {
+      if (!state.workout) return { workout: null };
       const idToFind = id?.toString();
 
-      const block = state.workout!.blocks.find(
+      const block = state.workout.blocks.find(
         (s) => s.id?.toString() === idToFind,
       );
 
@@ -163,27 +163,28 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         block?.localStatus === LOCAL_STATUS_NEW ||
         block?.id?.toString().startsWith("temp-")
       ) {
-        const blocks = state.workout!.blocks.filter(
+        const blocks = state.workout.blocks.filter(
           (s) => s.id?.toString() !== idToFind,
         );
-        return { workout: { ...state.workout!, blocks } };
+        return { workout: { ...state.workout, blocks } };
       }
 
-      const blocks = state.workout!.blocks.map((block) =>
+      const blocks = state.workout.blocks.map((block) =>
         block.id?.toString() === idToFind
           ? { ...block, localStatus: LOCAL_STATUS_DELETED as LocalStatus }
           : block,
       );
 
-      return { workout: { ...state.workout!, blocks } };
+      return { workout: { ...state.workout, blocks } };
     }),
 
   addExercise: (blockId) =>
     set((state) => {
+      if (!state.workout) return { workout: null };
       const tmpId = `tmp-ex-${nanoid()}`;
       const blockIdStr = blockId?.toString();
 
-      const blocks = state.workout!.blocks.map((block) => {
+      const blocks = state.workout.blocks.map((block) => {
         if (block.id?.toString() !== blockIdStr) return block;
 
         const newExercise = createTempExercise(
@@ -202,17 +203,18 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         blocks.find((s) => s.id?.toString() === blockIdStr) || null;
 
       return {
-        workout: { ...state.workout!, blocks },
+        workout: { ...state.workout, blocks },
         block: updatedBlock,
       };
     }),
 
   updateExercise: (blockId, exerciseId, data) =>
     set((state) => {
+      if (!state.workout) return { workout: null, block: null };
       const blockIdStr = blockId?.toString();
       const exerciseIdStr = exerciseId?.toString();
 
-      const blocks: UIBlock[] = state.workout!.blocks.map((block) => {
+      const blocks: UIBlock[] = state.workout.blocks.map((block) => {
         if (block.id?.toString() !== blockIdStr) return block;
 
         const updatedExercises: UIExercise[] = block.exercises.map(
@@ -236,17 +238,18 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         blocks.find((s) => s.id?.toString() === blockIdStr) || null;
 
       return {
-        workout: { ...state.workout!, blocks },
+        workout: { ...state.workout, blocks },
         block: updatedBlock,
       };
     }),
 
   removeExercise: (blockId, exerciseId) =>
     set((state) => {
+      if (!state.workout) return { workout: null, block: null };
       const blockIdStr = blockId?.toString();
       const exerciseIdStr = exerciseId?.toString();
 
-      const blocks: UIBlock[] = state.workout!.blocks.map((block) => {
+      const blocks: UIBlock[] = state.workout.blocks.map((block) => {
         if (block.id?.toString() !== blockIdStr) return block;
 
         const exercises: UIExercise[] = block.exercises.map((exercise) =>
@@ -262,7 +265,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         blocks.find((s) => s.id?.toString() === blockIdStr) || null;
 
       return {
-        workout: { ...state.workout!, blocks },
+        workout: { ...state.workout, blocks },
         block: updatedBlock,
       };
     }),

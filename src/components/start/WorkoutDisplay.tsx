@@ -1,9 +1,10 @@
 import { Text } from "@/components/ui/text";
 import { View } from "react-native";
+import { ExecutionStep } from "../../types/ui";
 import { formatTime } from "../../utils/formatTime";
 
 interface WorkoutDisplayProps {
-  step: any;
+  step: ExecutionStep;
   remaining: number | null;
   isLandscape: boolean;
   isIdleFlexibleSelection: boolean;

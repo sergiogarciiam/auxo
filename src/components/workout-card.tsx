@@ -5,6 +5,7 @@ import { Text } from "@/components/ui/text";
 import { Play } from "lucide-react-native";
 import { memo, useState } from "react";
 import { Pressable } from "react-native";
+import { UIWorkout } from "../types/ui";
 
 export const WorkoutCard = memo(function WorkoutCard({
   workout,
@@ -13,11 +14,11 @@ export const WorkoutCard = memo(function WorkoutCard({
   handleEditWorkout,
   handleStartWorkout,
 }: {
-  workout: any;
+  workout: UIWorkout;
   drag: () => void;
   isActive: boolean;
-  handleEditWorkout: (id: number) => void;
-  handleStartWorkout: (id: number) => void;
+  handleEditWorkout: (id: number | string) => void;
+  handleStartWorkout: (id: number | string) => void;
 }) {
   const [dragging, setDragging] = useState(false);
 

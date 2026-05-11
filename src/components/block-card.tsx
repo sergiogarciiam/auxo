@@ -4,6 +4,7 @@ import { Text } from "@/components/ui/text";
 import { Edit } from "lucide-react-native";
 import { memo, useState } from "react";
 import { Pressable } from "react-native";
+import { UIBlock } from "../types/ui";
 
 export const BlockCard = memo(function BlockCard({
   block,
@@ -11,10 +12,10 @@ export const BlockCard = memo(function BlockCard({
   isActive,
   handleEditBlock,
 }: {
-  block: any;
+  block: UIBlock;
   drag: () => void;
   isActive: boolean;
-  handleEditBlock: (id: number) => void;
+  handleEditBlock: (id: number | string) => void;
 }) {
   const [dragging, setDragging] = useState(false);
 

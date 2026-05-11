@@ -1,97 +1,41 @@
-import { useCallback, useEffect, useState } from "react";
+import { Exercise } from "@/src/types/exercise";
+import { useEffect } from "react";
 import { blockRepository } from "../../repositories/blockRepository";
 import {
   Block,
   CreateBlockPayload,
   UpdateBlockPayload,
 } from "../../types/block";
+import { createCRUDHook } from "./createCRUDHook";
+
+const useCRUD = createCRUDHook<Block, CreateBlockPayload, UpdateBlockPayload>(
+  blockRepository,
+  { entityName: "Block" },
+);
 
 export const useBlocks = () => {
-  const [blocks, setBlocks] = useState<Block[]>([]);
+  const crud = useCRUD();
 
-  const fetchBlocks = useCallback(async () => {
-    try {
-      const data = await blockRepository.getAll();
-      setBlocks(data);
-    } catch (error) {
-      console.error("Failed to fetch blocks:", error);
-      throw error;
-    }
-  }, []);
-
-  const getBlockById = useCallback(async (id: number) => {
-    try {
-      const block = await blockRepository.getById({ id });
-      return block;
-    } catch (error) {
-      console.error("Failed to fetch block:", error);
-      throw error;
-    }
-  }, []);
-
-  const createBlock = useCallback(
-    async (blockData: CreateBlockPayload) => {
-      try {
-        const result = await blockRepository.create(blockData);
-        await fetchBlocks();
-        return result.lastInsertRowId;
-      } catch (error) {
-        console.error("Failed to create block:", error);
-        throw error;
-      }
-    },
-    [fetchBlocks],
-  );
-
-  const updateBlock = useCallback(
-    async (blockData: UpdateBlockPayload) => {
-      try {
-        await blockRepository.update(blockData);
-        await fetchBlocks();
-      } catch (error) {
-        console.error("Failed to update block:", error);
-        throw error;
-      }
-    },
-    [fetchBlocks],
-  );
-
-  const deleteBlock = useCallback(
-    async (id: number) => {
-      try {
-        await blockRepository.delete({ id });
-        await fetchBlocks();
-      } catch (error) {
-        console.error("Failed to delete block:", error);
-        throw error;
-      }
-    },
-    [fetchBlocks],
-  );
-
-  const getAllExercisesByBlockId = useCallback(async (block_id: number) => {
-    try {
-      const exercises = await blockRepository.getAllExercisesByBlockId({
-        block_id,
-      });
-      return exercises;
-    } catch (error) {
+  // Additional specialized methods beyond basic CRUD
+  const getAllExercisesByBlockId = (block_id: number): Promise<Exercise[]> =>
+    blockRepository.getAllExercisesByBlockId({ block_id }).catch((error) => {
       console.error("Failed to fetch exercises:", error);
       throw error;
-    }
+    });
+
+  // Auto-fetch on mount
+  useEffect(() => {
+    crud.fetchItems();
   }, []);
 
-  useEffect(() => {
-    fetchBlocks();
-  }, [fetchBlocks]);
-
   return {
-    blocks,
-    fetchBlocks,
-    getBlockById,
-    createBlock,
-    updateBlock,
-    deleteBlock,
+    blocks: crud.items,
+    fetchBlocks: crud.fetchItems,
+    getBlockById: crud.getItemById,
+    createBlock: crud.createItem,
+    updateBlock: crud.updateItem,
+    deleteBlock: crud.deleteItem,
     getAllExercisesByBlockId,
+    isLoading: crud.isLoading,
   };
 };

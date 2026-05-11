@@ -1,10 +1,10 @@
 import { getColors, type ThemeColors } from "@/lib/theme";
 import { useColorScheme } from "react-native";
-import { useSettingsContext } from "../context/useSettingsContext";
+import { useSettingsContext } from "../../context/useSettingsContext";
 
 /**
- * Hook que retorna los colores del tema actual.
- * Respeta la preferencia de tema del usuario (light/dark/system).
+ * Hook that returns the colors for the current theme.
+ * Respects the user's theme preference (light/dark/system).
  */
 export const useTheme = (): ThemeColors => {
   const { theme } = useSettingsContext();

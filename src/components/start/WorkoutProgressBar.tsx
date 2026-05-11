@@ -1,4 +1,5 @@
 import { Text } from "@/components/ui/text";
+import { useTheme } from "@/src/hooks/other/useTheme";
 import { View } from "react-native";
 
 interface WorkoutProgressBarProps {
@@ -6,13 +7,19 @@ interface WorkoutProgressBarProps {
 }
 
 export function WorkoutProgressBar({ percent }: WorkoutProgressBarProps) {
+  const theme = useTheme();
   return (
-    <View className="w-full h-5 overflow-hidden rounded-full bg-neutral-700">
+    <View
+      className="w-full h-5 overflow-hidden rounded-full"
+      style={{ backgroundColor: theme.BACKGROUND_SECONDARY }}
+    >
       <View
         className="items-end justify-center h-full pr-3 bg-green-500"
         style={{ width: `${percent}%` }}
       >
-        {percent > 5 && <Text className="font-bold">{percent}%</Text>}
+        {percent > 5 && (
+          <Text className="font-bold text-white">{percent}%</Text>
+        )}
       </View>
     </View>
   );

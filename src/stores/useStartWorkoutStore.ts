@@ -68,7 +68,6 @@ export const useStartWorkoutStore = create<StartWorkoutStore>((set, get) => ({
         flexibleBlockState: {
           ...state.flexibleBlockState,
           completedExercises: [
-            ,
             ...state.flexibleBlockState.completedExercises,
             key,
           ],

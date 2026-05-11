@@ -1,13 +1,14 @@
 import { useCallback, useState } from "react";
+import { ExecutionStep, UIExercise } from "../../types/ui";
 import { buildFlexibleExercisePlan } from "../../utils/buildFlexibleExercisePlan";
 
 export function useFlexibleExerciseSelection() {
-  const [flexPlan, setFlexPlan] = useState<any[]>([]);
+  const [flexPlan, setFlexPlan] = useState<ExecutionStep[]>([]);
   const [flexIndex, setFlexIndex] = useState(0);
-  const [selectedExercise, setSelectedExercise] = useState<any | null>(null);
+  const [selectedExercise, setSelectedExercise] = useState<UIExercise | null>();
 
   const handleSelectFlexible = useCallback(
-    (exercise: any, mainBlockId: string) => {
+    (exercise: UIExercise, mainBlockId: string) => {
       const plan = buildFlexibleExercisePlan(exercise, mainBlockId);
       setSelectedExercise(exercise);
       setFlexPlan(plan);

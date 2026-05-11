@@ -1,9 +1,4 @@
-import {
-  Stack,
-  useLocalSearchParams,
-  useNavigation,
-  useRouter,
-} from "expo-router";
+import { Stack, useNavigation, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Keyboard,
@@ -12,7 +7,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { useTheme } from "../hooks/useTheme";
+import { useTheme } from "../hooks/other/useTheme";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,14 +28,17 @@ import { useSaveWorkout } from "../hooks/base/useSaveWorkout";
 import { useWorkouts } from "../hooks/base/useWorkouts";
 import { useOrderedBlocks } from "../hooks/other/useOrderedBlocks";
 import { useWorkoutStore } from "../stores/useWorkoutStore";
-import { UIWorkout } from "../types/ui";
+import { UIBlock, UIWorkout } from "../types/ui";
 import { handleAndShowError, showSuccessMessage } from "../utils/ui";
 import { validateWorkout } from "../utils/validation";
+
+interface DragEndEvent {
+  data: UIBlock[];
+}
 
 export default function WorkoutForm() {
   const router = useRouter();
   const colors = useTheme();
-  const params = useLocalSearchParams();
   const navigation = useNavigation();
 
   const { deleteWorkout } = useWorkouts();
@@ -51,7 +49,7 @@ export default function WorkoutForm() {
   const { workout, block, startNewWorkout, setName, updateBlock, reset } =
     useWorkoutStore();
 
-  const initialWorkoutRef = useRef<any | null>(null);
+  const initialWorkoutRef = useRef<UIWorkout | null>(null);
   const blocks = useOrderedBlocks(workout);
 
   const [open, setOpen] = useState(false);
@@ -59,17 +57,17 @@ export default function WorkoutForm() {
 
   const isLeavingRef = useRef(false);
 
-  const hasChanges = () => {
+  const hasChanges = useCallback(() => {
     if (!initialWorkoutRef.current || !workout) return false;
 
     return (
       JSON.stringify(initialWorkoutRef.current) !== JSON.stringify(workout)
     );
-  };
+  }, [workout]);
 
   useEffect(() => {
     if (!workout) startNewWorkout();
-  }, [params.id, startNewWorkout, workout]);
+  }, [startNewWorkout, workout]);
 
   useEffect(() => {
     if (workout && !block?.id.toString().startsWith("temp-")) {
@@ -78,7 +76,7 @@ export default function WorkoutForm() {
   }, [workout, block?.id]);
 
   useEffect(() => {
-    const unsub = navigation.addListener("beforeRemove", (e) => {
+    const unsub = navigation.addListener("beforeRemove", (e: any) => {
       if (isLeavingRef.current) return;
 
       if (!hasChanges()) return;
@@ -88,7 +86,7 @@ export default function WorkoutForm() {
     });
 
     return unsub;
-  }, [navigation]);
+  }, [navigation, hasChanges]);
 
   const handleDone = useCallback(async () => {
     Keyboard.dismiss();
@@ -152,8 +150,8 @@ export default function WorkoutForm() {
   }, [router]);
 
   const handleDragEnd = useCallback(
-    ({ data }: any) => {
-      data.forEach((block: any, index: number) => {
+    ({ data }: DragEndEvent) => {
+      data.forEach((block, index) => {
         updateBlock(block.id.toString(), { position: index });
       });
     },
@@ -168,7 +166,6 @@ export default function WorkoutForm() {
   };
 
   const handleSaveAndExit = async () => {
-    isLeavingRef.current = true;
     setIsOpenDiscardDialog(false);
     await handleDone();
   };
@@ -232,7 +229,7 @@ export default function WorkoutForm() {
                 onDragEnd={handleDragEnd}
                 renderItem={({ item, drag, isActive }) => (
                   <BlockCard
-                    block={item}
+                    block={item as UIBlock}
                     drag={drag}
                     isActive={isActive}
                     handleEditBlock={() => handleEditBlock(item.id.toString())}

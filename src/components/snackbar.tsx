@@ -6,8 +6,8 @@ import { AccessibilityInfo, Animated } from "react-native";
 import { SnackbarMessage, useSnackbarStore } from "../stores/useSnackbarStore";
 
 export function Snackbar() {
-  const messages = useSnackbarStore((s: any) => s.messages);
-  const hide = useSnackbarStore((s: any) => s.hide);
+  const messages = useSnackbarStore((s) => s.messages);
+  const hide = useSnackbarStore((s) => s.hide);
 
   const msg: SnackbarMessage = messages[0] || null;
 

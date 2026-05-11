@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useSettingsContext } from "../context/useSettingsContext";
 import { useExerciseHandlers } from "../hooks/handlers/useExerciseHandlers";
-import { useTheme } from "../hooks/useTheme";
+import { useTheme } from "../hooks/other/useTheme";
 import { UIExercise } from "../types/ui";
 import { ExerciseBasicFields } from "./exercise-card/ExerciseBasicFields";
 import { ExerciseComplexConfig } from "./exercise-card/ExerciseComplexConfig";

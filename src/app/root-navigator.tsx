@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 import { Snackbar } from "../components/snackbar";
-import { useTheme } from "../hooks/useTheme";
+import { useTheme } from "../hooks/other/useTheme";
 
 export default function RootNavigator() {
   const colors = useTheme();
@@ -13,7 +13,7 @@ export default function RootNavigator() {
         screenOptions={{
           headerShadowVisible: false,
           headerStyle: {
-            backgroundColor: colors.BACKGROUND,
+            backgroundColor: colors.BACKGROUND_SECONDARY,
           },
           headerTitleStyle: {
             fontWeight: "600",

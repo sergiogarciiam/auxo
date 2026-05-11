@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect } from "react";
 import { workoutRepository } from "../../repositories/workoutRepository";
 import { Block } from "../../types/block";
 import {
@@ -6,96 +6,37 @@ import {
   UpdateWorkoutPayload,
   Workout,
 } from "../../types/workout";
+import { createCRUDHook } from "./createCRUDHook";
+
+const useCRUD = createCRUDHook<
+  Workout,
+  CreateWorkoutPayload,
+  UpdateWorkoutPayload
+>(workoutRepository, { entityName: "Workout" });
 
 export const useWorkouts = () => {
-  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const crud = useCRUD();
 
-  const fetchWorkouts = useCallback(async () => {
-    try {
-      const data = await workoutRepository.getAll();
-      setWorkouts(data);
-    } catch (error) {
-      console.error("Failed to fetch workouts:", error);
+  // Additional specialized methods beyond basic CRUD
+  const getAllBlocksByWorkoutId = (id: number): Promise<Block[]> =>
+    workoutRepository.getAllBlocksByWorkoutId({ id }).catch((error) => {
+      console.error("Failed to fetch blocks:", error);
       throw error;
-    }
-  }, []);
+    });
 
-  const getWorkoutById = useCallback(async (id: number) => {
-    try {
-      const workout = await workoutRepository.getById({ id });
-      return workout;
-    } catch (error) {
-      console.error("Failed to fetch workout:", error);
-      throw error;
-    }
-  }, []);
-
-  const createWorkout = useCallback(
-    async (workoutData: CreateWorkoutPayload) => {
-      try {
-        const result = await workoutRepository.create(workoutData);
-        await fetchWorkouts();
-        return result.lastInsertRowId;
-      } catch (error) {
-        console.error("Failed to create workout:", error);
-        throw error;
-      }
-    },
-    [fetchWorkouts],
-  );
-
-  const updateWorkout = useCallback(
-    async (workoutData: UpdateWorkoutPayload) => {
-      try {
-        await workoutRepository.update(workoutData);
-        await fetchWorkouts();
-      } catch (error) {
-        console.error("Failed to update workout:", error);
-        throw error;
-      }
-    },
-    [fetchWorkouts],
-  );
-
-  const deleteWorkout = useCallback(
-    async (id: number) => {
-      try {
-        await workoutRepository.delete({ id });
-        await fetchWorkouts();
-      } catch (error) {
-        console.error("Failed to delete workout:", error);
-        throw error;
-      }
-    },
-    [fetchWorkouts],
-  );
-
-  const getAllBlocksByWorkoutId = useCallback(
-    async (id: number): Promise<Block[]> => {
-      try {
-        const blocks = (await workoutRepository.getAllBlocksByWorkoutId({
-          id,
-        })) as Block[];
-        return blocks;
-      } catch (error) {
-        console.error("Failed to fetch blocks:", error);
-        throw error;
-      }
-    },
-    [],
-  );
-
+  // Auto-fetch on mount
   useEffect(() => {
-    fetchWorkouts();
-  }, [fetchWorkouts]);
+    crud.fetchItems();
+  }, []);
 
   return {
-    workouts,
-    fetchWorkouts,
-    getWorkoutById,
-    createWorkout,
-    updateWorkout,
-    deleteWorkout,
+    workouts: crud.items,
+    fetchWorkouts: crud.fetchItems,
+    getWorkoutById: crud.getItemById,
+    createWorkout: crud.createItem,
+    updateWorkout: crud.updateItem,
+    deleteWorkout: crud.deleteItem,
     getAllBlocksByWorkoutId,
+    isLoading: crud.isLoading,
   };
 };

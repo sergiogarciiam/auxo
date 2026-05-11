@@ -5,6 +5,7 @@ import {
   LOCAL_STATUS_UPDATED,
 } from "../../constants/constants";
 import { UIWorkout } from "../../types/ui";
+import { validateWorkout } from "../../utils/validation";
 import { serializeSetsData } from "../../utils/exercise-utils";
 import { useBlocks } from "./useBlocks";
 import { useExercises } from "./useExercises";
@@ -21,6 +22,11 @@ export const useSaveWorkout = () => {
    */
   const saveWorkout = useCallback(
     async (uiWorkout: UIWorkout): Promise<number | string> => {
+      const validationError = validateWorkout(uiWorkout);
+      if (validationError) {
+        throw new Error(validationError);
+      }
+
       let workoutId = uiWorkout.id;
 
       try {
