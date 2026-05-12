@@ -13,7 +13,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Text } from "@/components/ui/text";
-import { Stack, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import {
+  Stack,
+  useLocalSearchParams,
+  useNavigation,
+  useRouter,
+} from "expo-router";
 import { Info, Plus, Save, Trash } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {

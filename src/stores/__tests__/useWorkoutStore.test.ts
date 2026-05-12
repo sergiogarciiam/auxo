@@ -381,7 +381,10 @@ describe("useWorkoutStore", () => {
       getStore().startNewWorkout();
       getStore().setName("Full Body");
       getStore().startNewBlock("block-1");
-      getStore().updateBlock("block-1", { name: "Upper Body", type: "standard" });
+      getStore().updateBlock("block-1", {
+        name: "Upper Body",
+        type: "standard",
+      });
       getStore().addExercise("block-1");
       const exId = getStore().block!.exercises[0].id;
       getStore().updateExercise("block-1", exId, {
