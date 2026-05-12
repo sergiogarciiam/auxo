@@ -18,25 +18,21 @@ export function WorkoutDisplay({
 }: WorkoutDisplayProps) {
   return (
     <>
-      <Text className="text-3xl font-bold text-center">
+      <Text className="text-2xl font-bold text-center">
         {!isIdleFlexibleSelection && step.name}
       </Text>
 
       <View className="h-[140px] items-center justify-center">
-        <Text
-          className={`font-bold text-center ${
-            isLandscape ? "text-[110px]" : "text-[96px]"
-          }`}
-        >
+        <Text className="text-5xl font-bold text-center">
           {remaining !== null
             ? formatTime(remaining)
             : step.time_seconds
               ? formatTime(step.time_seconds)
               : step.min_reps && step.max_reps
-                ? `${step.min_reps} - ${step.max_reps}`
+                ? `${step.min_reps} - ${step.max_reps} reps`
                 : isIdleFlexibleSelection
                   ? ""
-                  : "-"}
+                  : ""}
         </Text>
       </View>
 

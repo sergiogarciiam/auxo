@@ -1,3 +1,4 @@
+import { Text } from "@/components/ui/text";
 import React, { useEffect, useRef } from "react";
 import { FlatList, View } from "react-native";
 import { UIExercise } from "../types/ui";
@@ -84,6 +85,9 @@ export function ExercisesBlock({
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={{ paddingVertical: 12 }}
       ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
+      ListEmptyComponent={
+        <Text className="mt-4 text-center text-gray-400">No exercises yet</Text>
+      }
       renderItem={({ item, index }) => (
         <ExerciseCard
           exercise={item}

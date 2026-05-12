@@ -87,7 +87,7 @@ export function validateBlock(block: UIBlock): string | null {
 }
 
 export function validateWorkout(workout: UIWorkout): string | null {
-  if (!isNonEmptyString(workout.name)) {
+  if (!isNonEmptyString(workout.name) || workout.name.trim() === "") {
     return "Workout name is required";
   }
 

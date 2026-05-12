@@ -55,7 +55,7 @@ export function NumberInput({
     <View style={styles.container}>
       <Button
         size="icon"
-        variant="outline"
+        variant="ghost"
         onPress={() => update(-step)}
         style={styles.button}
       >
@@ -75,7 +75,7 @@ export function NumberInput({
 
       <Button
         size="icon"
-        variant="outline"
+        variant="ghost"
         onPress={() => update(step)}
         style={styles.button}
       >
@@ -94,7 +94,6 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
       borderColor: colors.BORDER,
       borderRadius: Sizes.BORDER_RADIUS,
       overflow: "hidden",
-      backgroundColor: colors.LIGHT_BACKGROUND,
     },
     button: {
       paddingHorizontal: Sizes.PADDING,

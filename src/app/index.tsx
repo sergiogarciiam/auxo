@@ -138,7 +138,11 @@ export default function Homepage() {
               handleStartWorkout={handleStartWorkout}
             />
           )}
-          ListEmptyComponent={<Text>No workouts yet</Text>}
+          ListEmptyComponent={
+            <Text className="mt-4 text-center text-gray-400">
+              No workouts yet
+            </Text>
+          }
         />
 
         <Button

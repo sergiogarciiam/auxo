@@ -90,7 +90,7 @@ export function NumericInputBase({
     <View style={styles.container}>
       <Button
         size="icon"
-        variant="outline"
+        variant="ghost"
         onPress={() => update(-buttonDecrement)}
         style={styles.button}
         disabled={disabled}
@@ -112,7 +112,7 @@ export function NumericInputBase({
 
       <Button
         size="icon"
-        variant="outline"
+        variant="ghost"
         onPress={() => update(buttonIncrement)}
         style={styles.button}
         disabled={disabled}
@@ -132,7 +132,6 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
       borderColor: colors.BORDER,
       borderRadius: Sizes.BORDER_RADIUS,
       overflow: "hidden",
-      backgroundColor: colors.LIGHT_BACKGROUND,
     },
     button: {
       paddingHorizontal: Sizes.PADDING,
@@ -146,6 +145,7 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
     input: {
       flex: 1,
       textAlign: "center",
+      borderWidth: 0,
     },
     suffix: {
       marginLeft: Sizes.PADDING,

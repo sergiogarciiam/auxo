@@ -11,7 +11,7 @@ export function WorkoutProgressBar({ percent }: WorkoutProgressBarProps) {
   return (
     <View
       className="w-full h-5 overflow-hidden rounded-full"
-      style={{ backgroundColor: theme.BACKGROUND_SECONDARY }}
+      style={{ backgroundColor: theme.border }}
     >
       <View
         className="items-end justify-center h-full pr-3 bg-green-500"

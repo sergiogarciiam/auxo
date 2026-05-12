@@ -1,6 +1,7 @@
+import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { type UIExercise } from "@/src/types/ui";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { idIncludes, normalizeID } from "../../utils/idUtils";
 
 interface FlexibleExerciseSelectorProps {
@@ -15,7 +16,7 @@ export function FlexibleExerciseSelector({
   onSelectExercise,
 }: FlexibleExerciseSelectorProps) {
   return (
-    <View className="absolute inset-0 justify-center px-6 bg-black/60">
+    <View className="absolute inset-0 justify-center px-6">
       <View className="gap-3">
         {availableExercises?.map((ex) => {
           const isDone = idIncludes(
@@ -24,18 +25,17 @@ export function FlexibleExerciseSelector({
           );
 
           return (
-            <Pressable
+            <Button
+              variant={"outline"}
               key={normalizeID(ex.id)}
               disabled={isDone}
               onPress={() => onSelectExercise(ex)}
-              className={`p-4 rounded-xl ${
-                isDone ? "bg-green-700" : "bg-neutral-800"
-              }`}
+              className={`${isDone && "!bg-green-700"}`}
             >
-              <Text className="font-bold text-center text-white">
+              <Text>
                 {ex.name} {isDone ? "✓" : ""}
               </Text>
-            </Pressable>
+            </Button>
           );
         })}
       </View>

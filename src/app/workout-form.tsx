@@ -177,15 +177,16 @@ export default function WorkoutForm() {
       <Stack.Screen
         options={{
           title: "Workout",
-          headerRight: () => (
-            <Button
-              variant="destructive"
-              size="icon"
-              onPress={handleDeleteWorkout}
-            >
-              <Icon as={Trash} />
-            </Button>
-          ),
+          headerRight: () =>
+            !workout.id.toString().startsWith("temp-") && (
+              <Button
+                variant="destructive"
+                size="icon"
+                onPress={handleDeleteWorkout}
+              >
+                <Icon as={Trash} />
+              </Button>
+            ),
         }}
       />
 
@@ -247,7 +248,7 @@ export default function WorkoutForm() {
             <View className="absolute flex-col gap-2 bottom-6 right-6">
               <Button
                 variant="secondary"
-                className="flex-row items-center justify-center"
+                className="flex-row items-center justify-center shadow-lg"
                 onPress={handleAddBlock}
               >
                 <Icon as={Plus} size={20} />
