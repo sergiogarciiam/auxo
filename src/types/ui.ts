@@ -63,6 +63,7 @@ export interface ExecutionStep {
   blockId: number | string;
   exerciseId?: number | string;
   name?: string;
+  exercise_type?: string;
   last_reps?: number;
   min_reps?: number;
   max_reps?: number;
@@ -70,6 +71,14 @@ export interface ExecutionStep {
   set?: number;
   totalSets?: number;
   weight?: number;
+  sets_data?: {
+    min_reps: number;
+    max_reps: number;
+    last_reps: number;
+    time_seconds: number;
+    weight: number;
+    rest_time: number;
+  }[];
   duration_seconds?: number; // for rest steps
   availableExercises?: UIExercise[]; // for flexible-selection steps
   lastRestTime?: number; // for flexible blocks - rest after last completed exercise

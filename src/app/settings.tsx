@@ -196,6 +196,32 @@ export default function SettingsScreen() {
           </Text>
         </Text>
 
+        {/* REPORT ISSUE */}
+        <View className="mt-6">
+          <Label>Help</Label>
+          <Text
+            className="mt-1 text-sm text-blue-500"
+            onPress={() => {
+              const subject = encodeURIComponent("Auxo - Report an issue");
+              const body = encodeURIComponent(
+                [
+                  "Describe the issue:",
+                  "",
+                  `OS: ${Platform.OS} ${Platform.Version}`,
+                ].join("\n"),
+              );
+              Linking.openURL(
+                `mailto:sergiogarciiam@gmail.com?subject=${subject}&body=${body}`,
+              );
+            }}
+          >
+            Report an issue
+          </Text>
+          <Text className="mt-1 text-sm text-gray-400">
+            Opens your email client with an issue template.
+          </Text>
+        </View>
+
         {/* SOUND CREDITS */}
         <View className="mt-6">
           <Label>Sound Effects</Label>

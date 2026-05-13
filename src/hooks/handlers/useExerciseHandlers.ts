@@ -57,12 +57,34 @@ export function useExerciseHandlers({
   const handleSetChange = useCallback(
     (setIndex: number, field: string, value: number) => {
       const current = exercise.sets_data || [];
-      const updated = current.map((set, i) =>
+      const targetLength = Math.max(
+        current.length,
+        setIndex + 1,
+        exercise.sets || 1,
+      );
+      const padding = targetLength - current.length;
+
+      const padded =
+        padding > 0
+          ? [
+              ...current,
+              ...Array.from({ length: padding }, () => ({
+                min_reps: exercise.min_reps ?? 0,
+                max_reps: exercise.max_reps ?? 0,
+                last_reps: exercise.last_reps ?? 0,
+                time_seconds: exercise.exercise_time ?? 0,
+                weight: exercise.weight ?? 0,
+                rest_time: exercise.rest_time ?? 0,
+              })),
+            ]
+          : current;
+
+      const updated = padded.map((set, i) =>
         i === setIndex ? { ...set, [field]: value } : set,
       );
       handleInputChange("sets_data", updated);
     },
-    [exercise.sets_data, handleInputChange],
+    [exercise, handleInputChange],
   );
 
   const handleSetsChange = useCallback(

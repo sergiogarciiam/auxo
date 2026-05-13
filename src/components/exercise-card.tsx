@@ -7,6 +7,11 @@ import { useEffect, useState } from "react";
 import { Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import {
+  CONFIG_TYPES_COMPLEX,
+  CONFIG_TYPES_SIMPLE,
+  EXERCISE_TYPES_REPS,
+} from "../constants/constants";
 import { useSettingsContext } from "../context/useSettingsContext";
 import { useExerciseHandlers } from "../hooks/handlers/useExerciseHandlers";
 import { useTheme } from "../hooks/other/useTheme";
@@ -44,8 +49,8 @@ export function ExerciseCard({
   const { weightUnit } = useSettingsContext();
   const insets = useSafeAreaInsets();
 
-  const exerciseType = exercise.exercise_type ?? "reps";
-  const configType = exercise.config_type ?? "simple";
+  const exerciseType = exercise.exercise_type ?? EXERCISE_TYPES_REPS;
+  const configType = exercise.config_type ?? CONFIG_TYPES_SIMPLE;
 
   const [activeTab, setActiveTab] = useState("set-0");
 
@@ -69,10 +74,10 @@ export function ExerciseCard({
 
   useEffect(() => {
     if (!exercise.exercise_type) {
-      handleInputChange("exercise_type", "reps");
+      handleInputChange("exercise_type", EXERCISE_TYPES_REPS);
     }
     if (!exercise.config_type) {
-      handleInputChange("config_type", "simple");
+      handleInputChange("config_type", CONFIG_TYPES_SIMPLE);
     }
   }, []);
 
@@ -88,7 +93,7 @@ export function ExerciseCard({
     right: 12,
   };
 
-  const showComplexConfig = configType === "complex";
+  const showComplexConfig = configType === CONFIG_TYPES_COMPLEX;
 
   return (
     <Card className="relative w-[320px]">
@@ -119,6 +124,7 @@ export function ExerciseCard({
             activeTab={activeTab}
             onTabChange={setActiveTab}
             onSetChange={handleSetChange}
+            weightUnit={weightUnit}
           />
         ) : (
           <ExerciseSimpleConfig

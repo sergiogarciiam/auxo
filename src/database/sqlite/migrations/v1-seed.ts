@@ -80,16 +80,16 @@ export const v1Seed = `
     (8, 'Jumping Jacks', NULL, NULL, NULL, 30, NULL, 1, 0, 'time', 'simple', NULL, 1),
 
     (9, 'High Knees', NULL, NULL, NULL, 30, NULL, 3, 15, 'time', 'complex',
-      '[{"last_reps":null,"min_reps":null,"max_reps":null,"time_seconds":30,"weight":null,"rest_time":15}]', 0),
+      '[{"last_reps":null,"min_reps":null,"max_reps":null,"time_seconds":30,"weight":null,"rest_time":15},{"last_reps":null,"min_reps":null,"max_reps":null,"time_seconds":30,"weight":null,"rest_time":15},{"last_reps":null,"min_reps":null,"max_reps":null,"time_seconds":30,"weight":null,"rest_time":15}]', 0),
 
     (9, 'Jump Rope', NULL, NULL, NULL, 40, NULL, 3, 20, 'time', 'complex',
-      '[{"last_reps":null,"min_reps":null,"max_reps":null,"time_seconds":40,"weight":null,"rest_time":20}]', 1),
+      '[{"last_reps":null,"min_reps":null,"max_reps":null,"time_seconds":40,"weight":null,"rest_time":20},{"last_reps":null,"min_reps":null,"max_reps":null,"time_seconds":40,"weight":null,"rest_time":20},{"last_reps":null,"min_reps":null,"max_reps":null,"time_seconds":40,"weight":null,"rest_time":20}]', 1),
 
     (10, 'Battle Ropes', NULL, NULL, NULL, 30, NULL, 3, 15, 'time', 'complex',
-      '[{"last_reps":null,"min_reps":null,"max_reps":null,"time_seconds":30,"weight":null,"rest_time":15}]', 0),
+      '[{"last_reps":null,"min_reps":null,"max_reps":null,"time_seconds":30,"weight":null,"rest_time":15},{"last_reps":null,"min_reps":null,"max_reps":null,"time_seconds":30,"weight":null,"rest_time":15},{"last_reps":null,"min_reps":null,"max_reps":null,"time_seconds":30,"weight":null,"rest_time":15}]', 0),
 
     (10, 'Box Jumps', 5, 5, 8, NULL, NULL, 3, 25, 'reps', 'complex',
-      '[{"last_reps":5,"min_reps":5,"max_reps":8,"time_seconds":null,"weight":null,"rest_time":25}]', 1),
+      '[{"last_reps":5,"min_reps":5,"max_reps":8,"time_seconds":null,"weight":null,"rest_time":25},{"last_reps":5,"min_reps":5,"max_reps":8,"time_seconds":null,"weight":null,"rest_time":25},{"last_reps":5,"min_reps":5,"max_reps":8,"time_seconds":null,"weight":null,"rest_time":25}]', 1),
 
     (11, 'Deep Breathing', NULL, NULL, NULL, 60, NULL, 1, 0, 'time', 'simple', NULL, 0),
     (11, 'Lying Stretch', NULL, NULL, NULL, 60, NULL, 1, 0, 'time', 'simple', NULL, 1),
@@ -98,11 +98,10 @@ export const v1Seed = `
     (12, 'Leg Swings', NULL, NULL, NULL, 30, NULL, 1, 0, 'time', 'simple', NULL, 1),
 
     (13, 'Barbell Bench', 8, 6, 8, NULL, 20, 4, 60, 'reps', 'complex',
-      '[{"last_reps":8,"min_reps":6,"max_reps":8,"weight":20,"rest_time":60},
-        {"last_reps":6,"min_reps":6,"max_reps":8,"weight":22,"rest_time":60}]', 0),
+      '[{"last_reps":8,"min_reps":6,"max_reps":8,"time_seconds":null,"weight":20,"rest_time":60},{"last_reps":6,"min_reps":6,"max_reps":8,"time_seconds":null,"weight":22,"rest_time":60},{"last_reps":6,"min_reps":6,"max_reps":8,"time_seconds":null,"weight":22.5,"rest_time":60},{"last_reps":5,"min_reps":6,"max_reps":8,"time_seconds":null,"weight":25,"rest_time":60}]', 0),
 
     (13, 'Lat Pulldown', 10, 8, 10, NULL, 15, 4, 50, 'reps', 'complex',
-      '[{"last_reps":10,"min_reps":8,"max_reps":10,"weight":15,"rest_time":50}]', 1),
+      '[{"last_reps":10,"min_reps":8,"max_reps":10,"time_seconds":null,"weight":15,"rest_time":50},{"last_reps":10,"min_reps":8,"max_reps":10,"time_seconds":null,"weight":15,"rest_time":50},{"last_reps":8,"min_reps":8,"max_reps":10,"time_seconds":null,"weight":17.5,"rest_time":50},{"last_reps":8,"min_reps":8,"max_reps":10,"time_seconds":null,"weight":17.5,"rest_time":50}]', 1),
 
     (14, 'Goblet Squats', 12, 10, 12, NULL, 12, 3, 45, 'reps', 'simple', NULL, 0),
     (14, 'Deadlift', 6, 4, 6, NULL, 30, 3, 90, 'reps', 'simple', NULL, 1),
@@ -112,14 +111,14 @@ export const v1Seed = `
     (16, 'Band Pull Aparts', NULL, NULL, NULL, 30, NULL, 1, 0, 'time', 'simple', NULL, 1),
 
     (17, 'Push-up Variation', 8, 6, 8, NULL, NULL, 4, 40, 'reps', 'complex',
-      '[{"last_reps":8,"min_reps":6,"max_reps":8,"rest_time":40}]', 0),
+      '[{"last_reps":8,"min_reps":6,"max_reps":8,"time_seconds":null,"weight":null,"rest_time":40},{"last_reps":8,"min_reps":6,"max_reps":8,"time_seconds":null,"weight":null,"rest_time":40},{"last_reps":6,"min_reps":6,"max_reps":8,"time_seconds":null,"weight":null,"rest_time":40},{"last_reps":6,"min_reps":6,"max_reps":8,"time_seconds":null,"weight":null,"rest_time":40}]', 0),
 
     (17, 'Dumbbell Overhead Press', 10, 8, 12, NULL, 8, 3, 45, 'reps', 'simple', NULL, 1),
 
     (17, 'Face Pulls', 15, 12, 15, NULL, 5, 3, 35, 'reps', 'simple', NULL, 2),
 
     (18, 'Pull-up', 6, 4, 6, NULL, NULL, 3, 60, 'reps', 'complex',
-      '[{"last_reps":6,"min_reps":4,"max_reps":6,"rest_time":60}]', 0),
+      '[{"last_reps":6,"min_reps":4,"max_reps":6,"time_seconds":null,"weight":null,"rest_time":60},{"last_reps":5,"min_reps":4,"max_reps":6,"time_seconds":null,"weight":null,"rest_time":60},{"last_reps":4,"min_reps":4,"max_reps":6,"time_seconds":null,"weight":null,"rest_time":60}]', 0),
 
     (18, 'Barbell Curl', 10, 8, 12, NULL, 10, 3, 40, 'reps', 'simple', NULL, 1),
 
@@ -141,7 +140,7 @@ export const v1Seed = `
     (22, 'Seated Row', 10, 8, 12, NULL, 18, 3, 45, 'reps', 'simple', NULL, 3),
 
     (22, 'Incline Dumbbell Press', 10, 8, 12, NULL, 12, 3, 40, 'reps', 'complex',
-      '[{"last_reps":10,"min_reps":8,"max_reps":12,"weight":12,"rest_time":40}]', 4),
+      '[{"last_reps":10,"min_reps":8,"max_reps":12,"time_seconds":null,"weight":12,"rest_time":40},{"last_reps":8,"min_reps":8,"max_reps":12,"time_seconds":null,"weight":14,"rest_time":40},{"last_reps":8,"min_reps":8,"max_reps":12,"time_seconds":null,"weight":16,"rest_time":40}]', 4),
 
     (22, 'Face Pulls Machine', 15, 12, 15, NULL, 10, 3, 35, 'reps', 'simple', NULL, 5),
 

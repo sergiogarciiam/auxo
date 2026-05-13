@@ -41,13 +41,13 @@ export function useNavigationExit({
       await Notifications.cancelAllScheduledNotificationsAsync();
     } catch {}
 
-    router.replace("/");
+    router.back();
   };
 
   const handleGoHome = async () => {
     allowExitRef.current = true;
     onStopWorkout();
-    router.replace("/");
+    router.back();
   };
 
   return {

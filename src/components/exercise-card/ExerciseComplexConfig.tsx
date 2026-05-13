@@ -11,6 +11,7 @@ interface SetTabContentProps {
   exerciseType: string;
   setData: any;
   onSetChange: (setIndex: number, field: string, value: number) => void;
+  weightUnit: string;
 }
 
 function SetTabContent({
@@ -18,6 +19,7 @@ function SetTabContent({
   exerciseType,
   setData,
   onSetChange,
+  weightUnit,
 }: SetTabContentProps) {
   return (
     <View className="gap-3">
@@ -64,7 +66,7 @@ function SetTabContent({
       )}
 
       <View>
-        <Label>Weight</Label>
+        <Label>{`Weight (${weightUnit})`}</Label>
         <NumberInput
           value={setData?.weight ?? 0}
           step={2.5}
@@ -90,6 +92,7 @@ interface ExerciseComplexConfigProps {
   activeTab: string;
   onTabChange: (value: string) => void;
   onSetChange: (setIndex: number, field: string, value: number) => void;
+  weightUnit: string;
 }
 
 export function ExerciseComplexConfig({
@@ -98,6 +101,7 @@ export function ExerciseComplexConfig({
   activeTab,
   onTabChange,
   onSetChange,
+  weightUnit,
 }: ExerciseComplexConfigProps) {
   const numSets = exercise.sets || 0;
 
@@ -122,6 +126,7 @@ export function ExerciseComplexConfig({
               exerciseType={exerciseType}
               setData={setData}
               onSetChange={onSetChange}
+              weightUnit={weightUnit}
             />
           </TabsContent>
         );

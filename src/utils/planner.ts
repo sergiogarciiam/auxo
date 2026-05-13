@@ -17,6 +17,7 @@ function getExerciseMetricsForSet(exercise: UIExercise, setIndex: number) {
   if (exercise.config_type === "complex" && exercise.sets_data?.[setIndex]) {
     const setData = exercise.sets_data[setIndex];
     return {
+      exercise_type: exercise.exercise_type,
       last_reps: setData.last_reps,
       min_reps: setData.min_reps,
       max_reps: setData.max_reps,
@@ -28,6 +29,7 @@ function getExerciseMetricsForSet(exercise: UIExercise, setIndex: number) {
 
   // SIMPLE mode: use base values
   return {
+    exercise_type: exercise.exercise_type,
     last_reps: exercise.last_reps,
     min_reps: exercise.min_reps,
     max_reps: exercise.max_reps,
@@ -118,12 +120,15 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
           blockId: block.id,
           exerciseId: exercise.id,
           name: exercise.name,
+          exercise_type: exercise.exercise_type,
           last_reps: metrics.last_reps,
           min_reps: metrics.min_reps,
           max_reps: metrics.max_reps,
           time_seconds: metrics.time_seconds,
           weight: metrics.weight,
           set: setIndex + 1,
+          totalSets: exercise.sets || 0,
+          sets_data: exercise.sets_data,
         });
 
         if (activeExercise % 2 === 0 && metrics.rest_time > 0) {
@@ -164,12 +169,15 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
               blockId: block.id,
               exerciseId: ex.id,
               name: ex.name,
+              exercise_type: metrics.exercise_type,
               last_reps: metrics.last_reps,
               min_reps: metrics.min_reps,
               max_reps: metrics.max_reps,
               time_seconds: metrics.time_seconds,
               weight: metrics.weight,
               set: round + 1,
+              totalSets: ex.sets || 0,
+              sets_data: ex.sets_data,
             });
 
             // rest between exercises in circuit
@@ -208,12 +216,15 @@ export function buildExecutionPlan(workout: UIWorkout): ExecutionStep[] {
             blockId: block.id,
             exerciseId: ex.id,
             name: ex.name,
+            exercise_type: ex.exercise_type,
             last_reps: metrics.last_reps,
             min_reps: metrics.min_reps,
             max_reps: metrics.max_reps,
             time_seconds: metrics.time_seconds,
             weight: metrics.weight,
             set: s + 1,
+            totalSets: ex.sets || 0,
+            sets_data: ex.sets_data,
           });
 
           // rest between sets

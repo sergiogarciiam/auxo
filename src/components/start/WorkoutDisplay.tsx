@@ -1,4 +1,9 @@
 import { Text } from "@/components/ui/text";
+import {
+  EXERCISE_TYPES_REPS,
+  EXERCISE_TYPES_TIME,
+  REST_STEP_TYPE,
+} from "@/src/constants/constants";
 import { View } from "react-native";
 import { ExecutionStep } from "../../types/ui";
 import { formatTime } from "../../utils/formatTime";
@@ -23,17 +28,27 @@ export function WorkoutDisplay({
       </Text>
 
       <View className="h-[140px] items-center justify-center">
-        <Text className="text-5xl font-bold text-center">
-          {remaining !== null
-            ? formatTime(remaining)
-            : step.time_seconds
-              ? formatTime(step.time_seconds)
-              : step.min_reps && step.max_reps
-                ? `${step.min_reps} - ${step.max_reps} reps`
+        {(step.type === REST_STEP_TYPE ||
+          step.exercise_type === EXERCISE_TYPES_TIME) && (
+          <Text className="text-5xl font-bold text-center">
+            {remaining !== null
+              ? formatTime(remaining)
+              : step.time_seconds
+                ? formatTime(step.time_seconds)
                 : isIdleFlexibleSelection
                   ? ""
                   : ""}
-        </Text>
+          </Text>
+        )}
+        {step.exercise_type === EXERCISE_TYPES_REPS && (
+          <Text className="text-5xl font-bold text-center">
+            {step.min_reps && step.max_reps
+              ? `${step.min_reps} - ${step.max_reps} reps`
+              : isIdleFlexibleSelection
+                ? ""
+                : ""}
+          </Text>
+        )}
       </View>
 
       {step.set && (

@@ -28,6 +28,7 @@ import { WorkoutControls } from "../components/start/WorkoutControls";
 import { WorkoutDisplay } from "../components/start/WorkoutDisplay";
 import { WorkoutFinished } from "../components/start/WorkoutFinished";
 import { WorkoutProgressBar } from "../components/start/WorkoutProgressBar";
+import { EXERCISE_TYPES_REPS } from "../constants/constants";
 
 const beep = require("../../assets/beep.wav");
 const doubleBeep = require("../../assets/double-beep.wav");
@@ -73,6 +74,7 @@ export default function StartWorkout() {
   // Refs
   const timerRef = useRef<number | null>(null);
   const isPausedRef = useRef(false);
+  const latestSetsDataRef = useRef<Record<string | number, any[]>>({});
 
   // Flexible exercise management
   const {
@@ -104,6 +106,16 @@ export default function StartWorkout() {
 
   // Update live reps/weight when step changes
   useEffect(() => {
+    const exId = step?.exerciseId as number | undefined;
+    const setsData = exId ? latestSetsDataRef.current[exId] : undefined;
+    if (setsData && step?.set) {
+      const setData = setsData[step.set - 1];
+      if (setData) {
+        setLiveReps(setData.last_reps ?? null);
+        setLiveWeight(setData.weight ?? null);
+        return;
+      }
+    }
     setLiveReps(step?.last_reps ?? null);
     setLiveWeight(step?.weight ?? null);
   }, [step]);
@@ -151,22 +163,68 @@ export default function StartWorkout() {
   // Persist exercise changes to database
   const persistChanges = async () => {
     if (!step?.exerciseId) return;
+    const exerciseId = step.exerciseId as number;
 
     const updates: UpdateExercisePayload = {
-      id: step.exerciseId as number,
+      id: exerciseId,
     };
 
-    if (liveReps !== null && liveReps !== step.last_reps) {
-      updates.last_reps = liveReps;
-    }
+    if (step.sets_data && step.set) {
+      const setIndex = step.set - 1;
+      let baseSetsData =
+        latestSetsDataRef.current[exerciseId] ?? step.sets_data;
 
-    if (liveWeight !== null && liveWeight !== step.weight) {
-      updates.weight = liveWeight;
+      if (baseSetsData.length <= setIndex) {
+        baseSetsData = [
+          ...baseSetsData,
+          ...Array.from({ length: setIndex + 1 - baseSetsData.length }, () => ({
+            min_reps: step.min_reps ?? 0,
+            max_reps: step.max_reps ?? 0,
+            last_reps: step.last_reps ?? 0,
+            time_seconds: step.time_seconds ?? 0,
+            weight: step.weight ?? 0,
+            rest_time: 0,
+          })),
+        ];
+      }
+
+      const newSetsData = baseSetsData.map((s, i) => {
+        if (i !== setIndex) return s;
+        const updated = { ...s };
+        if (liveReps !== null && liveReps !== s.last_reps) {
+          updated.last_reps = liveReps;
+        }
+        if (liveWeight !== null && liveWeight !== s.weight) {
+          updated.weight = liveWeight;
+        }
+        return updated;
+      });
+
+      const hasChanges = newSetsData.some(
+        (s, i) =>
+          s.last_reps !== baseSetsData[i].last_reps ||
+          s.weight !== baseSetsData[i].weight,
+      );
+
+      if (hasChanges) {
+        updates.sets_data = JSON.stringify(newSetsData);
+      }
+    } else {
+      if (liveReps !== null && liveReps !== step.last_reps) {
+        updates.last_reps = liveReps;
+      }
+
+      if (liveWeight !== null && liveWeight !== step.weight) {
+        updates.weight = liveWeight;
+      }
     }
 
     if (Object.keys(updates).length > 1) {
       try {
         await updateExercise(updates);
+        if (updates.sets_data) {
+          latestSetsDataRef.current[exerciseId] = JSON.parse(updates.sets_data);
+        }
         showSuccessMessage("Exercise saved");
       } catch (error) {
         handleAndShowError(error);
@@ -402,12 +460,11 @@ export default function StartWorkout() {
                 liveReps={liveReps}
                 liveWeight={liveWeight}
                 weightUnit={weightUnit}
-                showReps={!step.time_seconds && liveReps !== null}
-                showWeight={
-                  step.weight !== undefined &&
-                  step.weight !== null &&
-                  step.weight !== 0
+                showReps={
+                  step.exercise_type === EXERCISE_TYPES_REPS &&
+                  liveReps !== null
                 }
+                showWeight={true}
                 onRepsChange={setLiveReps}
                 onWeightChange={setLiveWeight}
               />

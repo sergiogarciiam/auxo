@@ -1,12 +1,13 @@
 import { useCallback } from "react";
 import {
+  EXERCISE_TYPES_TIME,
   LOCAL_STATUS_DELETED,
   LOCAL_STATUS_NEW,
   LOCAL_STATUS_UPDATED,
 } from "../../constants/constants";
 import { UIWorkout } from "../../types/ui";
-import { validateWorkout } from "../../utils/validation";
 import { serializeSetsData } from "../../utils/exercise-utils";
+import { validateWorkout } from "../../utils/validation";
 import { useBlocks } from "./useBlocks";
 import { useExercises } from "./useExercises";
 import { useWorkouts } from "./useWorkouts";

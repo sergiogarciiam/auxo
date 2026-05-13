@@ -23,6 +23,20 @@ export const BLOCK_TYPE_LABELS: Record<string, string> = {
   flexible: "Flexible",
 } as const;
 
+export const EXERCISE_TYPES_REPS = "reps";
+export const EXERCISE_TYPES_TIME = "time";
+export const EXERCISE_TYPES = [
+  EXERCISE_TYPES_REPS,
+  EXERCISE_TYPES_TIME,
+] as const;
+
+export const CONFIG_TYPES_SIMPLE = "simple";
+export const CONFIG_TYPES_COMPLEX = "complex";
+export const CONFIG_TYPES = [
+  CONFIG_TYPES_SIMPLE,
+  CONFIG_TYPES_COMPLEX,
+] as const;
+
 export const LOCAL_STATUS_NEW = "new";
 export const LOCAL_STATUS_UPDATED = "updated";
 export const LOCAL_STATUS_DELETED = "deleted";
