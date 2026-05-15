@@ -3,7 +3,6 @@ import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
 import { Sizes, Typography } from "@/lib/theme";
 import { Minus, Plus } from "lucide-react-native";
-import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useTheme } from "../hooks/other/useTheme";
 
@@ -14,6 +13,8 @@ type Props = {
   min?: number;
   max?: number;
   allowKeyboard?: boolean;
+  showButtons?: boolean;
+  containerStyle?: Record<string, any>;
 };
 
 export function NumberInput({
@@ -23,14 +24,11 @@ export function NumberInput({
   min = 0,
   max,
   allowKeyboard = true,
+  showButtons = true,
+  containerStyle,
 }: Props) {
   const colors = useTheme();
   const styles = createStyles(colors);
-  const [text, setText] = useState(value.toString());
-
-  useEffect(() => {
-    setText(value.toString());
-  }, [value]);
 
   const clamp = (v: number) => {
     if (v < min) return min;
@@ -39,48 +37,56 @@ export function NumberInput({
   };
 
   const update = (delta: number) => {
-    const next = clamp(value + delta);
-    onChange(next);
+    onChange(clamp(value + delta));
   };
 
   const handleTextChange = (t: string) => {
     const clean = t.replace(/[^0-9]/g, "");
-    setText(clean);
+
+    if (clean === "") {
+      onChange(min);
+      return;
+    }
 
     const num = Number(clean);
-    if (!Number.isNaN(num)) onChange(clamp(num));
+
+    if (!Number.isNaN(num)) {
+      onChange(clamp(num));
+    }
   };
 
   return (
-    <View style={styles.container}>
-      <Button
-        size="icon"
-        variant="ghost"
-        onPress={() => update(-step)}
-        style={styles.button}
-      >
-        <Icon as={Minus} />
-      </Button>
+    <View style={[styles.container, containerStyle]}>
+      {showButtons && (
+        <Button
+          size="icon"
+          variant="ghost"
+          onPress={() => update(-step)}
+          style={styles.button}
+        >
+          <Icon as={Minus} />
+        </Button>
+      )}
 
-      <View style={styles.inputWrapper}>
-        <Input
-          value={text}
-          keyboardType="numeric"
-          editable={allowKeyboard}
-          selectTextOnFocus
-          onChangeText={handleTextChange}
-          style={styles.input}
-        />
-      </View>
+      <Input
+        value={value.toString().padStart(2, "0")}
+        keyboardType="numeric"
+        editable={allowKeyboard}
+        selectTextOnFocus
+        onChangeText={handleTextChange}
+        style={styles.input}
+      />
 
-      <Button
-        size="icon"
-        variant="ghost"
-        onPress={() => update(step)}
-        style={styles.button}
-      >
-        <Icon as={Plus} />
-      </Button>
+      {showButtons && (
+        <Button
+          size="icon"
+          variant="ghost"
+          onPress={() => update(step)}
+          style={styles.button}
+        >
+          <Icon as={Plus} />
+        </Button>
+      )}
     </View>
   );
 }
@@ -95,6 +101,7 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
       borderRadius: Sizes.BORDER_RADIUS,
       overflow: "hidden",
     },
+
     button: {
       paddingHorizontal: Sizes.PADDING,
       paddingVertical: Sizes.PADDING,
@@ -102,13 +109,9 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
       alignItems: "center",
       borderRadius: 0,
     },
-    inputWrapper: {
-      flex: 1,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-    },
+
     input: {
+      flex: 1,
       fontSize: Typography.FONT_SIZE_DEFAULT,
       color: colors.TEXT_PRIMARY,
       textAlign: "center",
@@ -116,10 +119,5 @@ const createStyles = (colors: ReturnType<typeof useTheme>) =>
       paddingVertical: Sizes.PADDING / 2,
       borderRadius: 0,
       borderWidth: 0,
-    },
-    unit: {
-      marginLeft: 4,
-      color: colors.TEXT_SECONDARY,
-      fontSize: Typography.FONT_SIZE_SMALL,
     },
   });

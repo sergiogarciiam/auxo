@@ -1,4 +1,10 @@
-import { NumericInputBase } from "./numeric-input-base";
+import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
+import { Sizes } from "@/lib/theme";
+import { Minus, Plus } from "lucide-react-native";
+import { StyleSheet, View } from "react-native";
+import { useTheme } from "../hooks/other/useTheme";
+import { NumberInput } from "./number-input";
 
 type Props = {
   value: number;
@@ -8,51 +14,126 @@ type Props = {
 
 /**
  * Time input for selecting duration in seconds
- * Displays as MM:SS with -5s/+5s buttons
+ * Displays as two separate inputs: MM and SS with -5s/+5s buttons
  * Max value: 59:59 (3599 seconds)
  */
 export function TimeInput({ value, onChange, disabled }: Props) {
   const MAX_SECONDS = 59 * 60 + 59;
+  const colors = useTheme();
+  const styles = createStyles(colors);
 
-  const formatSeconds = (totalSeconds: number): string => {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+  const minutes = Math.floor(value / 60);
+  const seconds = value % 60;
+
+  const clamp = (v: number) => {
+    if (v < 0) return 0;
+    if (v > MAX_SECONDS) return MAX_SECONDS;
+    return v;
   };
 
-  const parseTime = (text: string): number | null => {
-    const parts = text.replace(/[^0-9]/g, "");
-    let totalSeconds = 0;
+  const getCurrentTotal = () => minutes * 60 + seconds;
 
-    if (parts.length <= 2) {
-      // Just seconds
-      totalSeconds = Number(parts) || 0;
-    } else {
-      // MM:SS format
-      const minutes = Number(parts.slice(0, 2)) || 0;
-      const seconds = Number(parts.slice(2, 4)) || 0;
-      totalSeconds = minutes * 60 + seconds;
-    }
+  const handleMinutesChange = (newMinutes: number) => {
+    onChange(clamp(newMinutes * 60 + seconds));
+  };
 
-    // Validate ranges
-    const minutesVal = Math.floor(totalSeconds / 60);
-    const secondsVal = totalSeconds % 60;
-    if (minutesVal > 59) return null;
-    if (secondsVal > 59) return null;
+  const handleSecondsChange = (newSeconds: number) => {
+    onChange(clamp(minutes * 60 + newSeconds));
+  };
 
-    return totalSeconds;
+  const updateTotal = (delta: number) => {
+    const currentTotal = getCurrentTotal();
+    const newTotal = clamp(currentTotal + delta);
+    onChange(newTotal);
   };
 
   return (
-    <NumericInputBase
-      value={value}
-      onChange={onChange}
-      max={MAX_SECONDS}
-      disabled={disabled}
-      format={formatSeconds}
-      parse={parseTime}
-      buttonIncrement={5}
-      buttonDecrement={5}
-    />
+    <View style={styles.container}>
+      <Button
+        size="icon"
+        variant="ghost"
+        onPress={() => updateTotal(-5)}
+        disabled={disabled}
+        style={styles.button}
+      >
+        <Icon as={Minus} />
+      </Button>
+
+      <View style={styles.inputsWrapper}>
+        <View style={styles.inputField}>
+          <NumberInput
+            value={minutes}
+            onChange={handleMinutesChange}
+            min={0}
+            max={59}
+            step={1}
+            allowKeyboard={!disabled}
+            showButtons={false}
+            containerStyle={styles.numberInputContainer}
+          />
+        </View>
+
+        <View style={styles.separator} />
+
+        <View style={styles.inputField}>
+          <NumberInput
+            value={seconds}
+            onChange={handleSecondsChange}
+            min={0}
+            max={59}
+            step={1}
+            allowKeyboard={!disabled}
+            showButtons={false}
+            containerStyle={styles.numberInputContainer}
+          />
+        </View>
+      </View>
+
+      <Button
+        size="icon"
+        variant="ghost"
+        onPress={() => updateTotal(5)}
+        style={styles.button}
+        disabled={disabled}
+      >
+        <Icon as={Plus} />
+      </Button>
+    </View>
   );
 }
+
+const createStyles = (colors: ReturnType<typeof useTheme>) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: "row",
+      alignItems: "center",
+      borderWidth: Sizes.BORDER_WIDTH,
+      borderColor: colors.BORDER,
+      borderRadius: Sizes.BORDER_RADIUS,
+      overflow: "hidden",
+    },
+    numberInputContainer: {
+      borderWidth: 0,
+      borderRadius: 0,
+    },
+    button: {
+      paddingHorizontal: Sizes.PADDING,
+      paddingVertical: Sizes.PADDING,
+      justifyContent: "center",
+      alignItems: "center",
+      borderRadius: 0,
+    },
+    inputsWrapper: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      minHeight: 40,
+    },
+    inputField: {
+      flex: 1,
+    },
+    separator: {
+      marginHorizontal: 4,
+    },
+  });

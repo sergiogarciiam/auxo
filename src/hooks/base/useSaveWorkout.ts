@@ -1,10 +1,10 @@
 import { useCallback } from "react";
 import {
-  EXERCISE_TYPES_TIME,
   LOCAL_STATUS_DELETED,
   LOCAL_STATUS_NEW,
   LOCAL_STATUS_UPDATED,
 } from "../../constants/constants";
+import { useStartWorkoutStore } from "../../stores/useStartWorkoutStore";
 import { UIWorkout } from "../../types/ui";
 import { serializeSetsData } from "../../utils/exercise-utils";
 import { validateWorkout } from "../../utils/validation";
@@ -16,6 +16,7 @@ export const useSaveWorkout = () => {
   const { createWorkout, updateWorkout } = useWorkouts();
   const { createBlock, updateBlock, deleteBlock } = useBlocks();
   const { createExercise, updateExercise, deleteExercise } = useExercises();
+  const { updateExerciseInStore } = useStartWorkoutStore();
 
   /**
    * Saves a complete workout and all its blocks/exercises to database
@@ -129,6 +130,21 @@ export const useSaveWorkout = () => {
                   sets_data: setsDataJson,
                   position: ex.position,
                 });
+
+                // Also update the start workout store if a workout is active
+                updateExerciseInStore(ex.id, {
+                  name: ex.name,
+                  last_reps: ex.last_reps,
+                  max_reps: ex.max_reps,
+                  min_reps: ex.min_reps,
+                  exercise_time: ex.exercise_time,
+                  rest_time: ex.rest_time,
+                  exercise_type: ex.exercise_type,
+                  config_type: ex.config_type,
+                  weight: ex.weight,
+                  sets: ex.sets,
+                  sets_data: ex.sets_data,
+                });
                 break;
               }
 
@@ -156,6 +172,7 @@ export const useSaveWorkout = () => {
       createExercise,
       updateExercise,
       deleteExercise,
+      updateExerciseInStore,
     ],
   );
 

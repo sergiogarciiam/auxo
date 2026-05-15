@@ -31,6 +31,34 @@ export function useFlexibleExerciseSelection() {
     setFlexIndex((p) => p - 1);
   }, []);
 
+  const updateFlexPlanSteps = useCallback(
+    (
+      exerciseId: number | string,
+      updates: {
+        last_reps?: number | null;
+        weight?: number | null;
+        sets_data?: {
+          last_reps: number;
+          weight: number;
+          min_reps: number;
+          max_reps: number;
+          time_seconds: number;
+          rest_time: number;
+        }[];
+      },
+    ) => {
+      setFlexPlan((prev) =>
+        prev.map((step) =>
+          step.exerciseId !== undefined &&
+          String(step.exerciseId) === String(exerciseId)
+            ? { ...step, ...updates }
+            : step,
+        ),
+      );
+    },
+    [],
+  );
+
   return {
     flexPlan,
     flexIndex,
@@ -41,5 +69,6 @@ export function useFlexibleExerciseSelection() {
     resetFlexPlan,
     nextFlexIndex,
     prevFlexIndex,
+    updateFlexPlanSteps,
   };
 }

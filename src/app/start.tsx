@@ -52,8 +52,13 @@ export default function StartWorkout() {
   const { width, height } = useWindowDimensions();
   const colors = useTheme();
 
-  const { workout, executionPlan, stopWorkout, markFlexibleExerciseCompleted } =
-    useStartWorkoutStore();
+  const {
+    workout,
+    executionPlan,
+    stopWorkout,
+    markFlexibleExerciseCompleted,
+    updatePlanSteps,
+  } = useStartWorkoutStore();
 
   // Subscribe to completed exercises for reactivity
   const completedExercises = useStartWorkoutStore(
@@ -74,7 +79,6 @@ export default function StartWorkout() {
   // Refs
   const timerRef = useRef<number | null>(null);
   const isPausedRef = useRef(false);
-  const latestSetsDataRef = useRef<Record<string | number, any[]>>({});
 
   // Flexible exercise management
   const {
@@ -87,6 +91,7 @@ export default function StartWorkout() {
     resetFlexPlan,
     nextFlexIndex,
     prevFlexIndex,
+    updateFlexPlanSteps,
   } = useFlexibleExerciseSelection();
 
   // Audio setup
@@ -106,10 +111,8 @@ export default function StartWorkout() {
 
   // Update live reps/weight when step changes
   useEffect(() => {
-    const exId = step?.exerciseId as number | undefined;
-    const setsData = exId ? latestSetsDataRef.current[exId] : undefined;
-    if (setsData && step?.set) {
-      const setData = setsData[step.set - 1];
+    if (step?.sets_data && step?.set) {
+      const setData = step.sets_data[step.set - 1];
       if (setData) {
         setLiveReps(setData.last_reps ?? null);
         setLiveWeight(setData.weight ?? null);
@@ -171,8 +174,7 @@ export default function StartWorkout() {
 
     if (step.sets_data && step.set) {
       const setIndex = step.set - 1;
-      let baseSetsData =
-        latestSetsDataRef.current[exerciseId] ?? step.sets_data;
+      let baseSetsData = step.sets_data;
 
       if (baseSetsData.length <= setIndex) {
         baseSetsData = [
@@ -222,8 +224,14 @@ export default function StartWorkout() {
     if (Object.keys(updates).length > 1) {
       try {
         await updateExercise(updates);
-        if (updates.sets_data) {
-          latestSetsDataRef.current[exerciseId] = JSON.parse(updates.sets_data);
+        const { id: _id, ...planUpdates } = updates;
+        if (planUpdates.sets_data) {
+          planUpdates.sets_data = JSON.parse(planUpdates.sets_data as string);
+        }
+        if (isRunningFlexibleExercise) {
+          updateFlexPlanSteps(exerciseId, planUpdates);
+        } else {
+          updatePlanSteps(exerciseId, planUpdates);
         }
         showSuccessMessage("Exercise saved");
       } catch (error) {

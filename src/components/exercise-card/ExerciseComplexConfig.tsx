@@ -32,6 +32,7 @@ function SetTabContent({
                 value={setData?.min_reps ?? 0}
                 step={1}
                 min={0}
+                max={1000}
                 onChange={(v) => onSetChange(setIndex, "min_reps", v)}
               />
             </View>
@@ -41,6 +42,7 @@ function SetTabContent({
                 value={setData?.max_reps ?? 0}
                 step={1}
                 min={0}
+                max={1000}
                 onChange={(v) => onSetChange(setIndex, "max_reps", v)}
               />
             </View>
@@ -51,6 +53,7 @@ function SetTabContent({
               value={setData?.last_reps ?? 0}
               step={1}
               min={0}
+              max={1000}
               onChange={(v) => onSetChange(setIndex, "last_reps", v)}
             />
           </View>
@@ -71,6 +74,7 @@ function SetTabContent({
           value={setData?.weight ?? 0}
           step={2.5}
           min={0}
+          max={1000}
           onChange={(v) => onSetChange(setIndex, "weight", v)}
         />
       </View>

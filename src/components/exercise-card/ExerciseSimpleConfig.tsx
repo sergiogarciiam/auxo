@@ -28,6 +28,7 @@ export function ExerciseSimpleConfig({
                 value={exercise.min_reps ?? 0}
                 step={1}
                 min={0}
+                max={1000}
                 onChange={(v) => onFieldChange("min_reps", v)}
               />
             </View>
@@ -37,6 +38,7 @@ export function ExerciseSimpleConfig({
                 value={exercise.max_reps ?? 0}
                 step={1}
                 min={0}
+                max={1000}
                 onChange={(v) => onFieldChange("max_reps", v)}
               />
             </View>
@@ -47,6 +49,7 @@ export function ExerciseSimpleConfig({
               value={exercise.last_reps ?? 0}
               step={1}
               min={0}
+              max={1000}
               onChange={(v) => onFieldChange("last_reps", v)}
             />
           </View>
@@ -67,6 +70,7 @@ export function ExerciseSimpleConfig({
           value={exercise.weight}
           step={2.5}
           min={0}
+          max={1000}
           onChange={(v) => onFieldChange("weight", v)}
         />
       </View>
