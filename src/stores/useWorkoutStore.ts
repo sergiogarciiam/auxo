@@ -29,6 +29,7 @@ interface WorkoutStore {
   loadBlock: (blockId: string) => void;
   updateBlock: (tempId: string | number, data: Partial<UIBlock>) => void;
   removeBlock: (tempId: string | number) => void;
+  revertBlock: (blockId: string | number, originalBlock: UIBlock) => void;
 
   addExercise: (blockId: string | number) => void;
   updateExercise: (
@@ -147,6 +148,19 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       return {
         workout: { ...state.workout, blocks: updatedBlocks },
         block: updatedBlock,
+      };
+    }),
+
+  revertBlock: (blockId, originalBlock) =>
+    set((state) => {
+      if (!state.workout) return { workout: null, block: null };
+      const idToFind = blockId?.toString();
+      const blocks = state.workout.blocks.map((b) =>
+        b.id?.toString() === idToFind ? originalBlock : b,
+      );
+      return {
+        workout: { ...state.workout, blocks },
+        block: originalBlock as UIBlock,
       };
     }),
 

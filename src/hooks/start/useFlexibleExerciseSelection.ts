@@ -35,8 +35,8 @@ export function useFlexibleExerciseSelection() {
     (
       exerciseId: number | string,
       updates: {
-        last_reps?: number | null;
-        weight?: number | null;
+        last_reps?: number;
+        weight?: number;
         sets_data?: {
           last_reps: number;
           weight: number;

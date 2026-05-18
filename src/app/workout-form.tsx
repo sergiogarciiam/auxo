@@ -46,7 +46,7 @@ export default function WorkoutForm() {
   const { deleteExercise } = useExercises();
   const { saveWorkout } = useSaveWorkout();
 
-  const { workout, block, startNewWorkout, setName, updateBlock, reset } =
+  const { workout, startNewWorkout, setName, updateBlock, reset } =
     useWorkoutStore();
 
   const initialWorkoutRef = useRef<UIWorkout | null>(null);
@@ -70,10 +70,10 @@ export default function WorkoutForm() {
   }, [startNewWorkout, workout]);
 
   useEffect(() => {
-    if (workout && !block?.id.toString().startsWith("temp-")) {
+    if (workout && !initialWorkoutRef.current) {
       initialWorkoutRef.current = JSON.parse(JSON.stringify(workout));
     }
-  }, [workout, block?.id]);
+  }, [workout]);
 
   useEffect(() => {
     const unsub = navigation.addListener("beforeRemove", (e: any) => {
@@ -280,6 +280,7 @@ export default function WorkoutForm() {
         cancel={handleDiscard}
         confirmText="Save"
         cancelText="Discard"
+        onClose={() => setIsOpenDiscardDialog(false)}
       />
     </>
   );

@@ -199,6 +199,9 @@ export default function SettingsScreen() {
         {/* REPORT ISSUE */}
         <View className="mt-6">
           <Label>Help</Label>
+          <Text className="mt-1 text-sm text-gray-400">
+            If you encounter any issues or have suggestions, please let me know!
+          </Text>
           <Text
             className="mt-1 text-sm text-blue-500"
             onPress={() => {
@@ -216,9 +219,6 @@ export default function SettingsScreen() {
             }}
           >
             Report an issue
-          </Text>
-          <Text className="mt-1 text-sm text-gray-400">
-            Opens your email client with an issue template.
           </Text>
         </View>
 

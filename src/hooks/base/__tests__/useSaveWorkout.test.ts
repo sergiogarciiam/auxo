@@ -6,7 +6,7 @@ import {
   LOCAL_STATUS_UNCHANGED,
   LOCAL_STATUS_UPDATED,
 } from "../../../constants/constants";
-import { UIBlock, UIExercise, UIWorkout } from "../../../types/ui";
+import { UIWorkout } from "../../../types/ui";
 import { useSaveWorkout } from "../useSaveWorkout";
 
 const createMockWorkout = (overrides: Partial<UIWorkout> = {}): UIWorkout => ({

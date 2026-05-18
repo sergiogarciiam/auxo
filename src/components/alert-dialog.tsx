@@ -16,6 +16,8 @@ interface CustomAlertDialogProps {
   cancelText?: string;
   confirm: () => void;
   cancel: () => void;
+  /** Called when dialog closes for any reason (hardware back, backdrop tap) */
+  onClose?: () => void;
 }
 
 export function CustomAlertDialog({
@@ -25,9 +27,15 @@ export function CustomAlertDialog({
   cancelText,
   confirm,
   cancel,
+  onClose,
 }: CustomAlertDialogProps) {
   return (
-    <AlertDialog open={open} onOpenChange={cancel}>
+    <AlertDialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) onClose?.();
+      }}
+    >
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{message}</AlertDialogTitle>

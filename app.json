@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "auxo",
+    "name": "Auxo",
     "slug": "auxo",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.auxo"
+      "bundleIdentifier": "com.sergiogarciiam.auxo"
     },
     "android": {
       "adaptiveIcon": {
@@ -26,7 +26,7 @@
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.POST_NOTIFICATIONS"
       ],
-      "package": "com.anonymous.auxo"
+      "package": "com.sergiogarciiam.auxo"
     },
     "web": {
       "output": "static",

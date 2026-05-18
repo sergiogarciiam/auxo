@@ -22,8 +22,8 @@ interface StartWorkoutStore {
   updatePlanSteps: (
     exerciseId: number | string,
     updates: {
-      last_reps?: number | null;
-      weight?: number | null;
+      last_reps?: number;
+      weight?: number;
       sets_data?: {
         last_reps: number;
         weight: number;
@@ -49,14 +49,14 @@ interface StartWorkoutStore {
       weight: number;
       rest_time: number;
       sets: number;
-      sets_data: Array<{
+      sets_data: {
         min_reps: number;
         max_reps: number;
         last_reps: number;
         time_seconds: number;
         weight: number;
         rest_time: number;
-      }>;
+      }[];
       exercise_type: string;
       config_type: string;
     }>,

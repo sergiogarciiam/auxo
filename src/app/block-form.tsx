@@ -68,6 +68,7 @@ export default function BlockForm() {
   const {
     updateBlock,
     removeBlock,
+    revertBlock,
     addExercise,
     updateExercise,
     removeExercise,
@@ -141,6 +142,37 @@ export default function BlockForm() {
     }
   }, [blockId, removeBlock, router]);
 
+  const handleDiscardBlock = useCallback(() => {
+    isLeavingRef.current = true;
+    setIsDiscardDialogOpen(false);
+
+    if (!blockId) {
+      router.back();
+      return;
+    }
+
+    const hasOriginalData =
+      initialBlockRef.current !== null
+        ? (() => {
+            const original = JSON.parse(initialBlockRef.current) as UIBlock;
+            return (
+              original.name !== "" ||
+              original.type !== "" ||
+              original.exercises.length > 0
+            );
+          })()
+        : false;
+
+    if (hasOriginalData) {
+      const originalBlock = JSON.parse(initialBlockRef.current!) as UIBlock;
+      revertBlock(blockId, originalBlock);
+    } else {
+      removeBlock(blockId);
+    }
+
+    router.back();
+  }, [blockId, removeBlock, revertBlock, router]);
+
   const handleDone = useCallback(() => {
     Keyboard.dismiss();
     try {
@@ -169,6 +201,22 @@ export default function BlockForm() {
       const validationError = validateBlock(currentBlock);
       if (!validationError) return;
 
+      // Temp/new unmodified blocks: auto-remove silently
+      if (
+        currentBlock.id?.toString().startsWith("temp-") ||
+        currentBlock.localStatus === "new"
+      ) {
+        const isUnmodified =
+          initialBlockRef.current !== null &&
+          JSON.stringify(currentBlock) === initialBlockRef.current;
+        if (isUnmodified) {
+          isLeavingRef.current = true;
+          removeBlock(blockId as string);
+          return;
+        }
+      }
+
+      // No original state captured or unmodified: allow navigation
       if (!initialBlockRef.current) return;
       if (JSON.stringify(currentBlock) === initialBlockRef.current) return;
 
@@ -177,14 +225,7 @@ export default function BlockForm() {
     });
 
     return unsub;
-  }, [navigation]);
-
-  const handleDiscardBlock = useCallback(() => {
-    isLeavingRef.current = true;
-    setIsDiscardDialogOpen(false);
-    removeBlock(blockId as string);
-    router.back();
-  }, [blockId, removeBlock, router]);
+  }, [navigation, blockId, removeBlock]);
 
   const handleCancelLeave = useCallback(() => {
     setIsDiscardDialogOpen(false);
@@ -277,11 +318,11 @@ export default function BlockForm() {
                       }
                     }}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger>
                       <SelectValue placeholder="Select Type" />
                     </SelectTrigger>
 
-                    <SelectContent className="w-full">
+                    <SelectContent>
                       <SelectGroup>
                         <SelectLabel>Block Types</SelectLabel>
                         {BLOCK_TYPE_OPTIONS.map((opt) => (
@@ -377,10 +418,12 @@ export default function BlockForm() {
 
       <CustomAlertDialog
         open={isDiscardDialogOpen}
-        message="The block has incomplete data. Discard changes?"
-        confirm={handleDiscardBlock}
-        cancel={handleCancelLeave}
-        confirmText="Discard"
+        message="Save changes before leaving?"
+        confirm={handleSaveAndLeave}
+        cancel={handleDiscardBlock}
+        confirmText="Save"
+        cancelText="Discard"
+        onClose={() => setIsDiscardDialogOpen(false)}
       />
     </>
   );

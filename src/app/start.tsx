@@ -20,6 +20,7 @@ import { usePauseTimer } from "../hooks/start/usePauseTimer";
 import { useStartTimer } from "../hooks/start/useStartTimer";
 import { useStartWorkoutStore } from "../stores/useStartWorkoutStore";
 import { UpdateExercisePayload } from "../types/exercise";
+import { ExecutionStep } from "../types/ui";
 import { handleAndShowError, showSuccessMessage } from "../utils/ui";
 
 import { FlexibleExerciseSelector } from "../components/start/FlexibleExerciseSelector";
@@ -224,10 +225,14 @@ export default function StartWorkout() {
     if (Object.keys(updates).length > 1) {
       try {
         await updateExercise(updates);
-        const { id: _id, ...planUpdates } = updates;
-        if (planUpdates.sets_data) {
-          planUpdates.sets_data = JSON.parse(planUpdates.sets_data as string);
-        }
+        const { id: _id, sets_data, ...baseUpdates } = updates;
+        const parsedSetsData = sets_data
+          ? (JSON.parse(sets_data) as ExecutionStep["sets_data"])
+          : undefined;
+        const planUpdates = {
+          ...baseUpdates,
+          ...(parsedSetsData ? { sets_data: parsedSetsData } : {}),
+        };
         if (isRunningFlexibleExercise) {
           updateFlexPlanSteps(exerciseId, planUpdates);
         } else {
