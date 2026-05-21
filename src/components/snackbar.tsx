@@ -2,7 +2,7 @@ import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Sizes } from "@/lib/theme";
 import { AlertCircleIcon, CheckCircle2Icon } from "lucide-react-native";
 import React, { useEffect, useRef } from "react";
-import { AccessibilityInfo, Animated } from "react-native";
+import { AccessibilityInfo, Animated, TouchableOpacity } from "react-native";
 import { SnackbarMessage, useSnackbarStore } from "../stores/useSnackbarStore";
 
 export function Snackbar() {
@@ -52,18 +52,20 @@ export function Snackbar() {
         position: "absolute",
         left: Sizes.PADDING_LARGE,
         right: Sizes.PADDING_LARGE,
-        bottom: 65,
+        bottom: 70,
         zIndex: 9999,
         transform: [{ translateY }],
         opacity,
       }}
     >
-      <Alert
-        icon={msg.variant === "success" ? CheckCircle2Icon : AlertCircleIcon}
-        variant={msg.variant === "success" ? "default" : "destructive"}
-      >
-        <AlertTitle>{msg.text}</AlertTitle>
-      </Alert>
+      <TouchableOpacity activeOpacity={0.8} onPress={() => hide(msg.id)}>
+        <Alert
+          icon={msg.variant === "success" ? CheckCircle2Icon : AlertCircleIcon}
+          variant={msg.variant === "success" ? "default" : "destructive"}
+        >
+          <AlertTitle>{msg.text}</AlertTitle>
+        </Alert>
+      </TouchableOpacity>
     </Animated.View>
   );
 }

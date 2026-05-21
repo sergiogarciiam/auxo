@@ -1,34 +1,35 @@
 import { setAudioModeAsync, useAudioPlayer } from "expo-audio";
 import * as Notifications from "expo-notifications";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View, useWindowDimensions } from "react-native";
 
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
+import { Text } from "@/components/ui/text";
 import * as Haptics from "expo-haptics";
 import { SquareArrowRightExit } from "lucide-react-native";
 
 import { CustomAlertDialog } from "../components/alert-dialog";
 import { useSettingsContext } from "../context/useSettingsContext";
 import { useExercises } from "../hooks/base/useExercises";
+import { useAppStateListener } from "../hooks/main-workout/useAppStateListener";
+import { useFlexibleExerciseSelection } from "../hooks/main-workout/useFlexibleExerciseSelection";
+import { useNavigationExit } from "../hooks/main-workout/useNavigationExit";
+import { usePauseTimer } from "../hooks/main-workout/usePauseTimer";
+import { useStartTimer } from "../hooks/main-workout/useStartTimer";
 import { useTheme } from "../hooks/other/useTheme";
-import { useAppStateListener } from "../hooks/start/useAppStateListener";
-import { useFlexibleExerciseSelection } from "../hooks/start/useFlexibleExerciseSelection";
-import { useNavigationExit } from "../hooks/start/useNavigationExit";
-import { usePauseTimer } from "../hooks/start/usePauseTimer";
-import { useStartTimer } from "../hooks/start/useStartTimer";
 import { useStartWorkoutStore } from "../stores/useStartWorkoutStore";
 import { UpdateExercisePayload } from "../types/exercise";
 import { ExecutionStep } from "../types/ui";
 import { handleAndShowError, showSuccessMessage } from "../utils/ui";
 
-import { FlexibleExerciseSelector } from "../components/start/FlexibleExerciseSelector";
-import { RepsWeightAdjustment } from "../components/start/RepsWeightAdjustment";
-import { WorkoutControls } from "../components/start/WorkoutControls";
-import { WorkoutDisplay } from "../components/start/WorkoutDisplay";
-import { WorkoutFinished } from "../components/start/WorkoutFinished";
-import { WorkoutProgressBar } from "../components/start/WorkoutProgressBar";
+import { FlexibleExerciseSelector } from "../components/main-workout/FlexibleExerciseSelector";
+import { RepsWeightAdjustment } from "../components/main-workout/RepsWeightAdjustment";
+import { WorkoutControls } from "../components/main-workout/WorkoutControls";
+import { WorkoutDisplay } from "../components/main-workout/WorkoutDisplay";
+import { WorkoutFinished } from "../components/main-workout/WorkoutFinished";
+import { WorkoutProgressBar } from "../components/main-workout/WorkoutProgressBar";
 import { EXERCISE_TYPES_REPS } from "../constants/constants";
 
 const beep = require("../../assets/beep.wav");
@@ -45,6 +46,7 @@ Notifications.setNotificationHandler({
 });
 
 export default function StartWorkout() {
+  const router = useRouter();
   const beepPlayer = useAudioPlayer(beep);
   const doubleBeepPlayer = useAudioPlayer(doubleBeep);
 
@@ -250,6 +252,7 @@ export default function StartWorkout() {
     await persistChanges();
     clearTimer();
     setRemaining(null);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     if (isRunningFlexibleExercise) {
       if (!isLastFlexIndex) {
@@ -312,6 +315,7 @@ export default function StartWorkout() {
   const handlePrev = () => {
     clearTimer();
     setRemaining(null);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     if (isRunningFlexibleExercise) {
       if (flexIndex > 0) {
@@ -401,7 +405,21 @@ export default function StartWorkout() {
 
   // Error state
   if (!workout || !executionPlan?.length || !mainStep) {
-    return;
+    return (
+      <View
+        className="items-center justify-center flex-1 gap-4 p-6"
+        style={{ backgroundColor: colors.BACKGROUND_SECONDARY }}
+      >
+        <Stack.Screen options={{ title: "Workout" }} />
+        <Text className="text-lg text-center">Workout not found</Text>
+        <Text variant="muted" className="text-center">
+          Start a workout from the home screen.
+        </Text>
+        <Button onPress={() => router.replace("/")}>
+          <Text>Go Home</Text>
+        </Button>
+      </View>
+    );
   }
 
   // UI calculations

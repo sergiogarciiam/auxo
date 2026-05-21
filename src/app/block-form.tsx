@@ -61,6 +61,7 @@ export default function BlockForm() {
     string | number | null
   >(null);
   const [isDiscardDialogOpen, setIsDiscardDialogOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const isLeavingRef = useRef(false);
   const initialBlockRef = useRef<string | null>(null);
@@ -111,6 +112,7 @@ export default function BlockForm() {
     setExerciseAlert(false);
     if (exerciseToDeleteId !== null && blockId) {
       removeExercise(blockId, String(exerciseToDeleteId));
+      showSuccessMessage("Exercise deleted");
     }
   }, [exerciseToDeleteId, blockId, removeExercise]);
 
@@ -135,6 +137,7 @@ export default function BlockForm() {
     setOpen(false);
     try {
       removeBlock(blockId as string);
+      isLeavingRef.current = true;
       router.back();
       showSuccessMessage("Block deleted");
     } catch (error) {
@@ -174,7 +177,9 @@ export default function BlockForm() {
   }, [blockId, removeBlock, revertBlock, router]);
 
   const handleDone = useCallback(() => {
+    if (isSaving) return;
     Keyboard.dismiss();
+    setIsSaving(true);
     try {
       const currentBlock = useWorkoutStore.getState().block;
       const validationError = validateBlock(currentBlock as UIBlock);
@@ -182,8 +187,9 @@ export default function BlockForm() {
       router.back();
     } catch (error) {
       handleAndShowError(error);
+      setIsSaving(false);
     }
-  }, [router]);
+  }, [router, isSaving]);
 
   useEffect(() => {
     if (block) {
@@ -389,9 +395,10 @@ export default function BlockForm() {
               <Button
                 onPress={handleDone}
                 className="flex-row items-center gap-2"
+                disabled={isSaving}
               >
                 <Icon as={Save} size={20} />
-                <Text>Save block</Text>
+                <Text>{isSaving ? "Saving..." : "Save block"}</Text>
               </Button>
             </View>
           </ScrollView>

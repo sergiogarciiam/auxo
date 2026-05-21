@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import type { TriggerRef } from "@rn-primitives/select";
+import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
 import { Stack } from "expo-router";
 import * as React from "react";
@@ -244,6 +245,13 @@ export default function SettingsScreen() {
               FreeSound
             </Text>{" "}
             (CC BY 3.0)
+          </Text>
+        </View>
+
+        {/* VERSION */}
+        <View className="mt-8 items-center">
+          <Text className="text-xs text-gray-400">
+            Version {Constants.expoConfig?.version ?? "1.0.0"}
           </Text>
         </View>
       </ScrollView>

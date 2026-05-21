@@ -36,7 +36,7 @@ interface DragEndEvent {
   data: UIBlock[];
 }
 
-export default function WorkoutForm() {
+export default function MainWWorkout() {
   const router = useRouter();
   const colors = useTheme();
   const navigation = useNavigation();

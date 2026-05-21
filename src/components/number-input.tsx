@@ -15,6 +15,7 @@ type Props = {
   allowKeyboard?: boolean;
   showButtons?: boolean;
   containerStyle?: Record<string, any>;
+  padWithZeros?: boolean;
 };
 
 export function NumberInput({
@@ -26,6 +27,7 @@ export function NumberInput({
   allowKeyboard = true,
   showButtons = true,
   containerStyle,
+  padWithZeros = true,
 }: Props) {
   const colors = useTheme();
   const styles = createStyles(colors);
@@ -69,7 +71,9 @@ export function NumberInput({
       )}
 
       <Input
-        value={value.toString().padStart(2, "0")}
+        value={
+          padWithZeros ? value.toString().padStart(2, "0") : value.toString()
+        }
         keyboardType="numeric"
         editable={allowKeyboard}
         selectTextOnFocus

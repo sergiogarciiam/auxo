@@ -27,33 +27,36 @@ function SetTabContent({
         <>
           <View className="flex-row gap-4">
             <View className="flex-1">
-              <Label>Min Reps</Label>
+              <Label>Min reps</Label>
               <NumberInput
                 value={setData?.min_reps ?? 0}
                 step={1}
                 min={0}
                 max={1000}
+                padWithZeros={false}
                 onChange={(v) => onSetChange(setIndex, "min_reps", v)}
               />
             </View>
             <View className="flex-1">
-              <Label>Max Reps</Label>
+              <Label>Max reps</Label>
               <NumberInput
                 value={setData?.max_reps ?? 0}
                 step={1}
                 min={0}
                 max={1000}
+                padWithZeros={false}
                 onChange={(v) => onSetChange(setIndex, "max_reps", v)}
               />
             </View>
           </View>
           <View>
-            <Label>Last Reps</Label>
+            <Label>Last reps</Label>
             <NumberInput
               value={setData?.last_reps ?? 0}
               step={1}
               min={0}
               max={1000}
+              padWithZeros={false}
               onChange={(v) => onSetChange(setIndex, "last_reps", v)}
             />
           </View>
@@ -75,6 +78,7 @@ function SetTabContent({
           step={2.5}
           min={0}
           max={1000}
+          padWithZeros={false}
           onChange={(v) => onSetChange(setIndex, "weight", v)}
         />
       </View>

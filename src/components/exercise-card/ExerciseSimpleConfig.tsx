@@ -23,33 +23,36 @@ export function ExerciseSimpleConfig({
         <>
           <View className="flex-row gap-4">
             <View className="flex-1">
-              <Label>Min Reps</Label>
+              <Label>Min reps</Label>
               <NumberInput
                 value={exercise.min_reps ?? 0}
                 step={1}
                 min={0}
                 max={1000}
+                padWithZeros={false}
                 onChange={(v) => onFieldChange("min_reps", v)}
               />
             </View>
             <View className="flex-1">
-              <Label>Max Reps</Label>
+              <Label>Max reps</Label>
               <NumberInput
                 value={exercise.max_reps ?? 0}
                 step={1}
                 min={0}
                 max={1000}
+                padWithZeros={false}
                 onChange={(v) => onFieldChange("max_reps", v)}
               />
             </View>
           </View>
           <View>
-            <Label>Last Reps</Label>
+            <Label>Last reps</Label>
             <NumberInput
               value={exercise.last_reps ?? 0}
               step={1}
               min={0}
               max={1000}
+              padWithZeros={false}
               onChange={(v) => onFieldChange("last_reps", v)}
             />
           </View>
@@ -71,6 +74,7 @@ export function ExerciseSimpleConfig({
           step={2.5}
           min={0}
           max={1000}
+          padWithZeros={false}
           onChange={(v) => onFieldChange("weight", v)}
         />
       </View>

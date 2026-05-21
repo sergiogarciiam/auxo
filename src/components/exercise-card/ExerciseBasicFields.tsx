@@ -85,6 +85,7 @@ export function ExerciseBasicFields({
           step={1}
           min={1}
           max={20}
+          padWithZeros={false}
           onChange={onSetsChange}
         />
       </View>

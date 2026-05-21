@@ -33,12 +33,7 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase) {
   if (currentDbVersion === 0) {
     try {
       await db.execAsync(v1Migration);
-
-      // Load seed data in dev mode
-      if (__DEV__) {
-        await db.execAsync(v1Seed);
-      }
-
+      await db.execAsync(v1Seed);
       currentDbVersion = 1;
     } catch (error) {
       console.error("Migration v1 failed:", error);

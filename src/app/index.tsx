@@ -23,6 +23,7 @@ export default function Homepage() {
   const colors = useTheme();
 
   const [uiWorkouts, setUIWorkouts] = useState<UIWorkout[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const { localWorkouts, loadWorkouts, loadWorkout, reset } = useWorkoutStore();
   const { startWorkout } = useStartWorkoutStore();
@@ -31,7 +32,8 @@ export default function Homepage() {
 
   useFocusEffect(
     useCallback(() => {
-      fetchWorkouts();
+      setIsLoading(true);
+      fetchWorkouts().finally(() => setIsLoading(false));
     }, [fetchWorkouts]),
   );
 
@@ -87,7 +89,7 @@ export default function Homepage() {
         const workout = await loadWorkoutWithData(Number(id));
         const plan = buildExecutionPlan(workout);
         startWorkout(workout, plan);
-        router.push("/start");
+        router.push("/main-workout");
       } catch (error) {
         handleAndShowError(error);
       }
@@ -139,9 +141,13 @@ export default function Homepage() {
             />
           )}
           ListEmptyComponent={
-            <Text className="mt-4 text-center text-gray-400">
-              No workouts yet
-            </Text>
+            isLoading ? (
+              <Text className="mt-4 text-center text-gray-400">Loading...</Text>
+            ) : (
+              <Text className="mt-4 text-center text-gray-400">
+                No workouts yet
+              </Text>
+            )
           }
         />
 

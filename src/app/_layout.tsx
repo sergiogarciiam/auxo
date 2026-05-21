@@ -4,6 +4,7 @@ import {
   SettingsProvider,
   useSettingsContext,
 } from "../context/useSettingsContext";
+import { ErrorBoundary } from "../components/error-boundary";
 import { dbRepository } from "../repositories/dbRepository";
 import RootNavigator from "./root-navigator";
 
@@ -25,18 +26,20 @@ function AppProviders() {
   }, [theme]);
 
   return (
-    <ThemeProvider value={NAV_THEME[scheme]}>
-      <SQLiteProvider
-        databaseName="workout_timer.db"
-        onInit={dbRepository.onInit}
-      >
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <RootNavigator />
-        </GestureHandlerRootView>
+    <ErrorBoundary>
+      <ThemeProvider value={NAV_THEME[scheme]}>
+        <SQLiteProvider
+          databaseName="workout_timer.db"
+          onInit={dbRepository.onInit}
+        >
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <RootNavigator />
+          </GestureHandlerRootView>
 
-        <PortalHost />
-      </SQLiteProvider>
-    </ThemeProvider>
+          <PortalHost />
+        </SQLiteProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 
