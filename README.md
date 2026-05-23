@@ -4,6 +4,8 @@ Create structured workouts with blocks, exercises, sets, reps, and rest interval
 
 Built with **Expo SDK 54**, **React Native 0.81**, **TypeScript**, **NativeWind/Tailwind**, **Zustand**, and **expo-sqlite**.
 
+![Feature Graphic](/assets/images/feature-graphic.jpg)
+
 ## Features
 
 ### Workout Management
