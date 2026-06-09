@@ -33,6 +33,7 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
 
 # typescript
@@ -43,3 +44,6 @@ app-example
 # generated native folders
 /ios
 /android
+
+# test coverage
+coverage/

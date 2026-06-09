@@ -79,7 +79,7 @@ export function ExerciseCard({
     if (!exercise.config_type) {
       handleInputChange("config_type", CONFIG_TYPES_SIMPLE);
     }
-  }, []);
+  }, [exercise.exercise_type, exercise.config_type, handleInputChange]);
 
   const contentInsets = {
     top: insets.top,

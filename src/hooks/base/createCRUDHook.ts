@@ -45,19 +45,16 @@ export function createCRUDHook<
     const [items, setItems] = useState<TEntity[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleError = useCallback(
-      (error: unknown, operation: string) => {
-        const err = error instanceof Error ? error : new Error(String(error));
-        console.error(`Failed to ${operation} ${entityName}:`, err);
+    const handleError = useCallback((error: unknown, operation: string) => {
+      const err = error instanceof Error ? error : new Error(String(error));
+      console.error(`Failed to ${operation} ${entityName}:`, err);
 
-        if (onError) {
-          onError(err, operation);
-        }
+      if (onError) {
+        onError(err, operation);
+      }
 
-        throw err;
-      },
-      [onError],
-    );
+      throw err;
+    }, []);
 
     const fetchItems = useCallback(async () => {
       setIsLoading(true);

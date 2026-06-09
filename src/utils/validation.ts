@@ -38,8 +38,15 @@ export function validateExercise(exercise: UIExercise): string | null {
 
   const hasReps =
     isNumberDefined(exercise.min_reps) || isNumberDefined(exercise.last_reps);
+
   const hasTime =
-    isNumberDefined(exercise.exercise_time) && exercise.exercise_time > 0;
+    exercise.config_type === "complex"
+      ? Array.isArray(exercise.sets_data) &&
+        exercise.sets_data.length > 0 &&
+        exercise.sets_data.every(
+          (set) => isNumberDefined(set.time_seconds) && set.time_seconds > 0,
+        )
+      : isNumberDefined(exercise.exercise_time) && exercise.exercise_time > 0;
 
   if (exercise.exercise_type === "reps" && !hasReps) {
     return "Exercise requiere min_reps or last_reps";

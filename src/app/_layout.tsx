@@ -23,7 +23,7 @@ function AppProviders() {
 
   useEffect(() => {
     setColorScheme(theme);
-  }, [theme]);
+  }, [theme, setColorScheme]);
 
   return (
     <ErrorBoundary>

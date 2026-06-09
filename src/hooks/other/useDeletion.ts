@@ -7,7 +7,7 @@
  * await deleteAndConfirm(id, "Delete this item?");
  */
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useDialogState } from "./useDialogState";
 
 export interface DeletionConfig {
@@ -32,21 +32,22 @@ export function useDeletion<
   });
 
   const entityName = defaultConfig.entityName || "item";
-  let pendingId: string | number | null = null;
+  const pendingIdRef = useRef<string | number | null>(null);
 
   const handleConfirmDelete = useCallback(async () => {
-    if (pendingId === null) return;
+    const id = pendingIdRef.current;
+    if (id === null) return;
 
     setIsDeleting(true);
     try {
-      await repository.delete({ id: pendingId });
+      await repository.delete({ id });
       confirmDialogActions.close();
 
       if (defaultConfig.onSuccess) {
-        defaultConfig.onSuccess(pendingId);
+        defaultConfig.onSuccess(id);
       }
 
-      pendingId = null;
+      pendingIdRef.current = null;
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
       console.error(`Failed to delete ${entityName}:`, err);
@@ -57,11 +58,11 @@ export function useDeletion<
     } finally {
       setIsDeleting(false);
     }
-  }, [confirmDialogActions, defaultConfig]);
+  }, [repository, confirmDialogActions, defaultConfig, entityName]);
 
   const deleteAndConfirm = useCallback(
     async (id: string | number, message?: string, title?: string) => {
-      pendingId = id;
+      pendingIdRef.current = id;
 
       confirmDialogActions.open({
         title: title || `Delete ${entityName}?`,
@@ -88,7 +89,7 @@ export function useDeletion<
     // Reset state
     reset: () => {
       confirmDialogActions.reset();
-      pendingId = null;
+      pendingIdRef.current = null;
       setIsDeleting(false);
     },
   };

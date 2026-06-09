@@ -14,7 +14,19 @@ const useCRUD = createCRUDHook<Block, CreateBlockPayload, UpdateBlockPayload>(
 );
 
 export const useBlocks = () => {
-  const crud = useCRUD();
+  const {
+    items,
+    isLoading,
+    fetchItems: fetchBlocks,
+    getItemById: getBlockById,
+    createItem: createBlock,
+    updateItem: updateBlock,
+    deleteItem: deleteBlock,
+  } = useCRUD();
+
+  useEffect(() => {
+    fetchBlocks();
+  }, [fetchBlocks]);
 
   // Additional specialized methods beyond basic CRUD
   const getAllExercisesByBlockId = (block_id: number): Promise<Exercise[]> =>
@@ -23,19 +35,14 @@ export const useBlocks = () => {
       throw error;
     });
 
-  // Auto-fetch on mount
-  useEffect(() => {
-    crud.fetchItems();
-  }, []);
-
   return {
-    blocks: crud.items,
-    fetchBlocks: crud.fetchItems,
-    getBlockById: crud.getItemById,
-    createBlock: crud.createItem,
-    updateBlock: crud.updateItem,
-    deleteBlock: crud.deleteItem,
+    blocks: items,
+    fetchBlocks,
+    getBlockById,
+    createBlock,
+    updateBlock,
+    deleteBlock,
     getAllExercisesByBlockId,
-    isLoading: crud.isLoading,
+    isLoading,
   };
 };

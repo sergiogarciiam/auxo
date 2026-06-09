@@ -195,7 +195,7 @@ export default function BlockForm() {
     if (block) {
       initialBlockRef.current = JSON.stringify(block);
     }
-  }, [block?.id]);
+  }, [block]);
 
   useEffect(() => {
     const unsub = navigation.addListener("beforeRemove", (e: any) => {
@@ -232,10 +232,6 @@ export default function BlockForm() {
 
     return unsub;
   }, [navigation, blockId, removeBlock]);
-
-  const handleCancelLeave = useCallback(() => {
-    setIsDiscardDialogOpen(false);
-  }, []);
 
   const handleSaveAndLeave = useCallback(() => {
     Keyboard.dismiss();

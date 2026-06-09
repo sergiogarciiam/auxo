@@ -38,6 +38,7 @@ export function buildFlexibleExercisePlan(
       blockId,
       exerciseId: exercise.id,
       name: exercise.name,
+      exercise_type: exercise.exercise_type,
       last_reps: metrics.last_reps,
       min_reps: metrics.min_reps,
       max_reps: metrics.max_reps,

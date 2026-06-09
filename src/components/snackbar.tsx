@@ -17,7 +17,6 @@ export function Snackbar() {
   useEffect(() => {
     if (!msg) return;
 
-    // reset ANTES de animar (esto es lo importante)
     translateY.setValue(40);
     opacity.setValue(0);
 
@@ -41,7 +40,7 @@ export function Snackbar() {
     }, 3000);
 
     return () => clearTimeout(timeout);
-  }, [msg?.id]);
+  }, [msg, hide, opacity, translateY]);
 
   if (!msg) return null;
 

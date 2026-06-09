@@ -15,7 +15,19 @@ const useCRUD = createCRUDHook<
 >(workoutRepository, { entityName: "Workout" });
 
 export const useWorkouts = () => {
-  const crud = useCRUD();
+  const {
+    items,
+    isLoading,
+    fetchItems: fetchWorkouts,
+    getItemById: getWorkoutById,
+    createItem: createWorkout,
+    updateItem: updateWorkout,
+    deleteItem: deleteWorkout,
+  } = useCRUD();
+
+  useEffect(() => {
+    fetchWorkouts();
+  }, [fetchWorkouts]);
 
   // Additional specialized methods beyond basic CRUD
   const getAllBlocksByWorkoutId = (id: number): Promise<Block[]> =>
@@ -24,19 +36,14 @@ export const useWorkouts = () => {
       throw error;
     });
 
-  // Auto-fetch on mount
-  useEffect(() => {
-    crud.fetchItems();
-  }, []);
-
   return {
-    workouts: crud.items,
-    fetchWorkouts: crud.fetchItems,
-    getWorkoutById: crud.getItemById,
-    createWorkout: crud.createItem,
-    updateWorkout: crud.updateItem,
-    deleteWorkout: crud.deleteItem,
+    workouts: items,
+    fetchWorkouts,
+    getWorkoutById,
+    createWorkout,
+    updateWorkout,
+    deleteWorkout,
     getAllBlocksByWorkoutId,
-    isLoading: crud.isLoading,
+    isLoading,
   };
 };
