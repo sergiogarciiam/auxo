@@ -104,11 +104,11 @@ Auxo supports six block types:
 
 ## Screenshots
 
-| Workouts list                               | Workout form                               | Block form                                     |
-| ------------------------------------------- | ------------------------------------------ | ---------------------------------------------- |
+| Workouts list | Workout form | Block form |
+| ------------------------------------------ | ------------------------------------------| ------------------------------------------ |
 | ![](/assets/images/phone/workouts-list.png) | ![](/assets/images/phone/workout-form.png) | ![](/assets/images/phone/block-form.png) |
 
-| Workout progress                           | Flexible workout                               |
+| Workout progress | Flexible workout |
 | ------------------------------------------ | ---------------------------------------------- |
 | ![](/assets/images/phone/main-workout.png) | ![](/assets/images/phone/flexible-workout.png) |
 
