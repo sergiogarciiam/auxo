@@ -18,6 +18,10 @@ import { Text } from "@/components/ui/text";
 import { Plus, Save, Trash } from "lucide-react-native";
 
 import DraggableFlatList from "react-native-draggable-flatlist";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { CustomAlertDialog } from "../components/alert-dialog";
 import { BlockCard } from "../components/block-card";
 
@@ -40,6 +44,7 @@ export default function MainWWorkout() {
   const router = useRouter();
   const colors = useTheme();
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   const { deleteWorkout } = useWorkouts();
   const { deleteBlock } = useBlocks();
@@ -196,38 +201,38 @@ export default function MainWWorkout() {
         keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View
+          <SafeAreaView
+            edges={["bottom", "left", "right"]}
             className="flex-1"
             style={{ backgroundColor: colors.BACKGROUND_SECONDARY }}
           >
-            {/* INPUT */}
-            <Card className="m-4">
-              <CardContent>
-                <Label>Workout Name</Label>
-                <Input
-                  value={workout.name}
-                  onChangeText={setName}
-                  accessibilityLabel="Workout name input"
-                />
-              </CardContent>
-            </Card>
-
-            {/* BLOCKS */}
-            <Text variant="h3" className="px-4 mb-2">
-              Blocks
-            </Text>
-
             <View className="flex-1">
               <DraggableFlatList
                 contentContainerStyle={{
                   paddingHorizontal: Sizes.PADDING_LARGE,
-                  paddingBottom: 125,
+                  paddingBottom: insets.bottom + 125,
+                  paddingTop: 16,
                   gap: Spacing.LARGE,
                   flexGrow: 1,
                 }}
                 data={blocks}
                 keyExtractor={(item) => item.id.toString()}
                 onDragEnd={handleDragEnd}
+                ListHeaderComponent={
+                  <View style={{ gap: Spacing.LARGE }}>
+                    <Card>
+                      <CardContent>
+                        <Label>Workout Name</Label>
+                        <Input
+                          value={workout.name}
+                          onChangeText={setName}
+                          accessibilityLabel="Workout name input"
+                        />
+                      </CardContent>
+                    </Card>
+                    <Text variant="h3">Blocks</Text>
+                  </View>
+                }
                 renderItem={({ item, drag, isActive }) => (
                   <BlockCard
                     block={item as UIBlock}
@@ -245,7 +250,10 @@ export default function MainWWorkout() {
             </View>
 
             {/* BOTONES FLOTANTES */}
-            <View className="absolute flex-col gap-2 bottom-6 right-6">
+            <View
+              className="absolute flex-col gap-2"
+              style={{ bottom: insets.bottom + 24, right: 24 }}
+            >
               <Button
                 variant="secondary"
                 className="flex-row items-center justify-center shadow-lg"
@@ -263,7 +271,7 @@ export default function MainWWorkout() {
                 <Text>Save workout</Text>
               </Button>
             </View>
-          </View>
+          </SafeAreaView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
 

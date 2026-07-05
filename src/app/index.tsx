@@ -5,8 +5,11 @@ import { Sizes, Spacing } from "@/lib/theme";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { Plus, Settings } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
-import { View } from "react-native";
 import DraggableFlatList from "react-native-draggable-flatlist";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { WorkoutCard } from "../components/workout-card";
 import { useWorkouts } from "../hooks/base/useWorkouts";
 import { useLoadWorkout } from "../hooks/other/useLoadWorkout";
@@ -21,6 +24,7 @@ import { handleAndShowError } from "../utils/ui";
 export default function Homepage() {
   const router = useRouter();
   const colors = useTheme();
+  const insets = useSafeAreaInsets();
 
   const [uiWorkouts, setUIWorkouts] = useState<UIWorkout[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -102,7 +106,20 @@ export default function Homepage() {
       <Stack.Screen
         options={{
           headerBackVisible: false,
+          headerTitleAlign: "left",
           title: "Auxo",
+          headerTitle: () => (
+            <Text
+              style={{
+                marginLeft: Sizes.PADDING_LARGE,
+                fontSize: 18,
+                fontWeight: "500",
+                color: colors.TEXT_PRIMARY,
+              }}
+            >
+              Auxo
+            </Text>
+          ),
           headerRight: () => (
             <Button
               variant="ghost"
@@ -115,7 +132,8 @@ export default function Homepage() {
         }}
       />
 
-      <View
+      <SafeAreaView
+        edges={["bottom", "left", "right"]}
         className="relative flex-1"
         style={{ backgroundColor: colors.BACKGROUND_SECONDARY }}
       >
@@ -124,7 +142,7 @@ export default function Homepage() {
             padding: Sizes.PADDING_LARGE,
             gap: Spacing.LARGE,
             flexGrow: 1,
-            paddingBottom: 100,
+            paddingBottom: insets.bottom + 100,
             backgroundColor: colors.BACKGROUND_SECONDARY,
           }}
           data={uiWorkouts}
@@ -154,12 +172,13 @@ export default function Homepage() {
         <Button
           onPress={handleCreateWorkout}
           variant={"secondary"}
-          className="absolute flex-row items-center justify-center shadow-lg bottom-6 right-6"
+          className="absolute flex-row items-center justify-center shadow-lg"
+          style={{ bottom: insets.bottom + 24, right: 24 }}
         >
           <Icon as={Plus} size={20} />
           <Text>New workout</Text>
         </Button>
-      </View>
+      </SafeAreaView>
     </>
   );
 }

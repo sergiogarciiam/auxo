@@ -3,11 +3,13 @@ import { Sizes } from "@/lib/theme";
 import { AlertCircleIcon, CheckCircle2Icon } from "lucide-react-native";
 import React, { useEffect, useRef } from "react";
 import { AccessibilityInfo, Animated, TouchableOpacity } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SnackbarMessage, useSnackbarStore } from "../stores/useSnackbarStore";
 
 export function Snackbar() {
   const messages = useSnackbarStore((s) => s.messages);
   const hide = useSnackbarStore((s) => s.hide);
+  const insets = useSafeAreaInsets();
 
   const msg: SnackbarMessage = messages[0] || null;
 
@@ -51,7 +53,7 @@ export function Snackbar() {
         position: "absolute",
         left: Sizes.PADDING_LARGE,
         right: Sizes.PADDING_LARGE,
-        bottom: 70,
+        bottom: insets.bottom + 16,
         zIndex: 9999,
         transform: [{ translateY }],
         opacity,

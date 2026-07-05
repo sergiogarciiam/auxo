@@ -3,6 +3,7 @@ import * as Notifications from "expo-notifications";
 import { Stack, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View, useWindowDimensions } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
@@ -426,6 +427,13 @@ export default function StartWorkout() {
   const isIdleFlexibleSelection =
     mainStep.type === "flexible-selection" && !isRunningFlexibleExercise;
 
+  const hasAdjustableContent =
+    (step.exercise_type === EXERCISE_TYPES_REPS && liveReps !== null) ||
+    liveWeight !== null;
+
+  const paddingSize = isLandscape ? 8 : 24;
+  const gapSize = isLandscape ? 4 : 16;
+
   return (
     <>
       <Stack.Screen
@@ -457,62 +465,101 @@ export default function StartWorkout() {
       )}
 
       {/* Main content */}
-      <View
-        className="flex-1 gap-6 p-6"
-        style={{ backgroundColor: colors.BACKGROUND_SECONDARY }}
+      <SafeAreaView
+        edges={["bottom", "left", "right"]}
+        className="flex-1"
+        style={{
+          backgroundColor: colors.BACKGROUND_SECONDARY,
+          paddingHorizontal: paddingSize,
+          paddingTop: paddingSize,
+          paddingBottom: paddingSize,
+          gap: gapSize,
+        }}
       >
-        {/* Flexible exercise selector */}
-        {mainStep.type === "flexible-selection" &&
-          !isRunningFlexibleExercise &&
-          !isFinished && (
-            <FlexibleExerciseSelector
-              availableExercises={mainStep.availableExercises || []}
-              completedExerciseIds={completedFlexIds}
-              onSelectExercise={(ex) =>
-                handleSelectFlexible(ex, mainStep.blockId as string)
-              }
-            />
-          )}
         <WorkoutProgressBar percent={percent} />
 
-        <View className="items-center justify-center flex-1 gap-6">
-          {isFinished ? (
-            <WorkoutFinished onGoHome={handleGoHome} />
-          ) : (
-            <>
-              <WorkoutDisplay
-                step={step}
-                remaining={remaining}
-                isLandscape={isLandscape}
-                isIdleFlexibleSelection={isIdleFlexibleSelection}
-              />
+        {mainStep.type === "flexible-selection" &&
+        !isRunningFlexibleExercise &&
+        !isFinished ? (
+          <FlexibleExerciseSelector
+            availableExercises={mainStep.availableExercises || []}
+            completedExerciseIds={completedFlexIds}
+            onSelectExercise={(ex) =>
+              handleSelectFlexible(ex, mainStep.blockId as string)
+            }
+            isLandscape={isLandscape}
+          />
+        ) : !isFinished && isLandscape ? (
+          <View className="flex-1 flex-row items-center">
+            <WorkoutDisplay
+              step={step}
+              remaining={remaining}
+              isLandscape={isLandscape}
+              isIdleFlexibleSelection={isIdleFlexibleSelection}
+            />
 
-              <RepsWeightAdjustment
-                liveReps={liveReps}
-                liveWeight={liveWeight}
-                weightUnit={weightUnit}
-                showReps={
-                  step.exercise_type === EXERCISE_TYPES_REPS &&
-                  liveReps !== null
-                }
-                showWeight={true}
-                onRepsChange={setLiveReps}
-                onWeightChange={setLiveWeight}
-              />
-            </>
-          )}
-        </View>
+            {hasAdjustableContent && (
+              <View className="flex-1 items-center">
+                <RepsWeightAdjustment
+                  liveReps={liveReps}
+                  liveWeight={liveWeight}
+                  weightUnit={weightUnit}
+                  showReps={
+                    step.exercise_type === EXERCISE_TYPES_REPS &&
+                    liveReps !== null
+                  }
+                  showWeight={true}
+                  onRepsChange={setLiveReps}
+                  onWeightChange={setLiveWeight}
+                />
+              </View>
+            )}
+          </View>
+        ) : (
+          <View
+            className={`flex-1 ${isFinished ? "" : "items-center justify-center gap-6"}`}
+          >
+            {isFinished ? (
+              <WorkoutFinished onGoHome={handleGoHome} />
+            ) : (
+              <>
+                <WorkoutDisplay
+                  step={step}
+                  remaining={remaining}
+                  isLandscape={isLandscape}
+                  isIdleFlexibleSelection={isIdleFlexibleSelection}
+                />
+
+                {hasAdjustableContent && (
+                  <RepsWeightAdjustment
+                    liveReps={liveReps}
+                    liveWeight={liveWeight}
+                    weightUnit={weightUnit}
+                    showReps={
+                      step.exercise_type === EXERCISE_TYPES_REPS &&
+                      liveReps !== null
+                    }
+                    showWeight={true}
+                    onRepsChange={setLiveReps}
+                    onWeightChange={setLiveWeight}
+                  />
+                )}
+              </>
+            )}
+          </View>
+        )}
 
         <WorkoutControls
           isPaused={isPaused}
           remaining={remaining}
           isFirstExercise={index === 0 && !isRunningFlexibleExercise}
           isFinished={isFinished}
+          isLandscape={isLandscape}
           onPrev={handlePrev}
           onTogglePause={() => setIsPaused((p) => !p)}
           onNext={handleNext}
         />
-      </View>
+      </SafeAreaView>
 
       {/* Exit dialog */}
       <CustomAlertDialog

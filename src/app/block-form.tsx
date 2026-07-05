@@ -29,6 +29,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { CustomAlertDialog } from "../components/alert-dialog";
 import { ExercisesBlock } from "../components/exercises-block";
 import { InfoDialog } from "../components/info-dialog";
@@ -283,121 +284,126 @@ export default function BlockForm() {
         keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView
-            className="flex-grow gap-8 p-6"
-            style={{
-              backgroundColor: colors.BACKGROUND_SECONDARY,
-            }}
+          <SafeAreaView
+            edges={["bottom", "left", "right"]}
+            style={{ flex: 1, backgroundColor: colors.BACKGROUND_SECONDARY }}
           >
-            <Card className="mb-6">
-              <CardContent className="gap-2">
-                {/* NAME */}
-                <View>
-                  <Label>Block name</Label>
-                  <Input
-                    value={block.name}
-                    onChangeText={(text) => handleUpdateBlock({ name: text })}
-                  />
-                </View>
-
-                {/* BLOCK TYPE */}
-                <View>
-                  <View className="flex-row">
-                    <Label>Block type</Label>
-                    <Button
-                      onPress={() => setIsInfoOpen(true)}
-                      size={"sm"}
-                      variant={"ghost"}
-                    >
-                      <Icon as={Info} />
-                    </Button>
-                  </View>
-                  <Select
-                    value={selectedBlockType}
-                    onValueChange={(option: any) => {
-                      if (option?.value) {
-                        handleUpdateBlock({ type: option.value });
-                      }
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Type" />
-                    </SelectTrigger>
-
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Block Types</SelectLabel>
-                        {BLOCK_TYPE_OPTIONS.map((opt) => (
-                          <SelectItem
-                            key={opt.value}
-                            value={opt.value}
-                            label={opt.label}
-                          >
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </View>
-
-                {/* TIMES */}
-                <View>
-                  <Label>Prepare time</Label>
-                  <TimeInput
-                    value={block.prepare_time}
-                    onChange={(seconds) =>
-                      handleUpdateBlock({ prepare_time: seconds })
-                    }
-                  />
-                </View>
-
-                {isCircuitOrSuperset && (
+            <ScrollView
+              className="flex-grow gap-8 p-6"
+              style={{
+                backgroundColor: colors.BACKGROUND_SECONDARY,
+              }}
+            >
+              <Card className="mb-6">
+                <CardContent className="gap-2">
+                  {/* NAME */}
                   <View>
-                    <Label>Rest between {block.type}</Label>
+                    <Label>Block name</Label>
+                    <Input
+                      value={block.name}
+                      onChangeText={(text) => handleUpdateBlock({ name: text })}
+                    />
+                  </View>
+
+                  {/* BLOCK TYPE */}
+                  <View>
+                    <View className="flex-row">
+                      <Label>Block type</Label>
+                      <Button
+                        onPress={() => setIsInfoOpen(true)}
+                        size={"sm"}
+                        variant={"ghost"}
+                      >
+                        <Icon as={Info} />
+                      </Button>
+                    </View>
+                    <Select
+                      value={selectedBlockType}
+                      onValueChange={(option: any) => {
+                        if (option?.value) {
+                          handleUpdateBlock({ type: option.value });
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Type" />
+                      </SelectTrigger>
+
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Block Types</SelectLabel>
+                          {BLOCK_TYPE_OPTIONS.map((opt) => (
+                            <SelectItem
+                              key={opt.value}
+                              value={opt.value}
+                              label={opt.label}
+                            >
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </View>
+
+                  {/* TIMES */}
+                  <View>
+                    <Label>Prepare time</Label>
                     <TimeInput
-                      value={block.rest_group}
+                      value={block.prepare_time}
                       onChange={(seconds) =>
-                        handleUpdateBlock({ rest_group: seconds })
+                        handleUpdateBlock({ prepare_time: seconds })
                       }
                     />
                   </View>
-                )}
-              </CardContent>
-            </Card>
 
-            {/* EXERCISES */}
-            <Text variant="h3">Exercises</Text>
+                  {isCircuitOrSuperset && (
+                    <View>
+                      <Label>Rest between {block.type}</Label>
+                      <TimeInput
+                        value={block.rest_group}
+                        onChange={(seconds) =>
+                          handleUpdateBlock({ rest_group: seconds })
+                        }
+                      />
+                    </View>
+                  )}
+                </CardContent>
+              </Card>
 
-            <View className="relative flex flex-grow gap-2 mb-8">
-              <ExercisesBlock
-                exercises={localExercises}
-                blockId={blockId!}
-                updateExercise={updateExercise}
-                handleDeleteExercise={handleDeleteExercise}
-                onMovePrev={handleMovePrevExercise}
-                onMoveNext={handleMoveNextExercise}
-              />
+              {/* EXERCISES */}
+              <Text variant="h3">Exercises</Text>
 
-              <Button
-                variant="outline"
-                onPress={handleAddExercise}
-                className="flex-row items-center gap-2"
-              >
-                <Icon as={Plus} size={20} />
-                <Text>New exercise</Text>
-              </Button>
+              <View className="relative flex flex-grow gap-2 mb-8">
+                <ExercisesBlock
+                  exercises={localExercises}
+                  blockId={blockId!}
+                  updateExercise={updateExercise}
+                  handleDeleteExercise={handleDeleteExercise}
+                  onMovePrev={handleMovePrevExercise}
+                  onMoveNext={handleMoveNextExercise}
+                />
 
-              <Button
-                onPress={handleDone}
-                className="flex-row items-center gap-2"
-                disabled={isSaving}
-              >
-                <Icon as={Save} size={20} />
-                <Text>{isSaving ? "Saving..." : "Save block"}</Text>
-              </Button>
-            </View>
-          </ScrollView>
+                <Button
+                  variant="outline"
+                  onPress={handleAddExercise}
+                  className="flex-row items-center gap-2"
+                >
+                  <Icon as={Plus} size={20} />
+                  <Text>New exercise</Text>
+                </Button>
+
+                <Button
+                  onPress={handleDone}
+                  className="flex-row items-center gap-2"
+                  disabled={isSaving}
+                >
+                  <Icon as={Save} size={20} />
+                  <Text>{isSaving ? "Saving..." : "Save block"}</Text>
+                </Button>
+              </View>
+            </ScrollView>
+          </SafeAreaView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
       {/* ALERTS */}

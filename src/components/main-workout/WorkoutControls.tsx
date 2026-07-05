@@ -8,6 +8,7 @@ interface WorkoutControlsProps {
   remaining: number | null;
   isFirstExercise: boolean;
   isFinished: boolean;
+  isLandscape?: boolean;
   onPrev: () => void;
   onTogglePause: () => void;
   onNext: () => void;
@@ -18,6 +19,7 @@ export function WorkoutControls({
   remaining,
   isFirstExercise,
   isFinished,
+  isLandscape,
   onPrev,
   onTogglePause,
   onNext,
@@ -25,7 +27,9 @@ export function WorkoutControls({
   if (isFinished) return null;
 
   return (
-    <View className="flex-row items-center justify-between gap-6">
+    <View
+      className={`flex-row items-center justify-between ${isLandscape ? "gap-16" : "gap-6"}`}
+    >
       <Button size="icon" onPress={onPrev} disabled={isFirstExercise}>
         <Icon as={ArrowLeft} />
       </Button>

@@ -3,7 +3,6 @@
     "name": "Auxo",
     "slug": "auxo",
     "version": "1.0.0",
-    "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "auxo",
     "userInterfaceStyle": "automatic",
@@ -46,7 +45,8 @@
       ],
       "expo-sqlite",
       "expo-audio",
-      "expo-notifications"
+      "expo-notifications",
+      "./plugins/withDisableNotificationsBootReceiver",
     ],
     "experiments": {
       "typedRoutes": true,
