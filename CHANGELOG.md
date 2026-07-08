@@ -12,7 +12,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add landscape mode compatibility.
 - Add about section on settings page.
 - Improve bottom UI spacing on devices with navigation bars and gesture controls.
-- Fix restricted foreground service types (BOOT_COMPLETED broadcast receivers).
 
 ## [1.0.0]
 
